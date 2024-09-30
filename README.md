@@ -34,6 +34,6 @@ TODO
 - `alembic downgrade -1`: undo the last change
 
 ### Run postgreSQL in Docker locally
-- docker-compose up
+- `docker-compose up`: start the database
 - DATABASE_URL = "postgresql://test_user:password@localhost:5432/test_db"
 - (optional) Download a GUI client like `DBeaver` to connect to the database

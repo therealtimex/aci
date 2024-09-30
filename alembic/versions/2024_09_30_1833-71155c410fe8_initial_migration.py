@@ -170,5 +170,12 @@ def downgrade() -> None:
     op.drop_table("functions")
     op.drop_table("users")
     op.drop_table("apps")
+
+    # Drop the Enum types
+    sa.Enum("API_KEY", "OPEN_ID", "OAUTH2", "BASIC_AUTH", "BRERAR_TOKEN", name="authtype").drop(op.get_bind())
+    sa.Enum("BASIC", "ADMIN", "OWNER", name="orgrole").drop(op.get_bind())
+    sa.Enum("ACTIVE", "DISABLED", "DELETED", name="status").drop(op.get_bind())
+    sa.Enum("FREE", "BASIC", "PRO", "ENTERPRISE", name="plan").drop(op.get_bind())
+
     # ### end Alembic commands ###
     op.execute("DROP EXTENSION IF EXISTS vector;")
