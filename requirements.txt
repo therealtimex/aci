@@ -1,0 +1,10 @@
+fastapi[standard]
+uvicorn[standard]
+boto3
+pydantic
+python-dotenv
+jsonschema
+sqlalchemy
+pgvector
+Authlib
+psycopg2-binary
