@@ -20,6 +20,19 @@ TODO
 
 ## Development
 
+### Run database migrations
+- `alembic current`: show the current revision
+- `alembic check`: detect if there are any new upgrade operations.
+- `alembic revision --autogenerate -m "xxx"`: generate a new revision
+- change the generated file in `alembic/versions/` to add the necessary changes, e.g.,:
+  - import `pgvector` library for `Vector` type
+  - create and drop necessary indexes
+  - create and drop vector extension
+  - ...
+
+- `alembic upgrade head`: apply the changes to the database
+- `alembic downgrade -1`: undo the last change
+
 ### Run postgreSQL in Docker locally
 - docker-compose up
 - DATABASE_URL = "postgresql://test_user:password@localhost:5432/test_db"

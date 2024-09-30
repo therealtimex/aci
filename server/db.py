@@ -30,6 +30,8 @@ Base = declarative_base()
 EMBEDDING_DIMENTION = 1024
 APP_DEFAULT_VERSION = "1.0.0"
 
+# TODO: add indexes for frequently used fields for all tables, including embedding fields
+
 
 # TODO: use incrementing integer as primary key for simplicity and performance
 # TODO: limit auth_provider to a set of values?
