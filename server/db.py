@@ -86,7 +86,11 @@ class APIKey(Base):
         PRO = "pro"
         ENTERPRISE = "enterprise"
 
+    # id is not the actual API key, it's just a unique identifier to easily reference each API key entry without depending
+    # on the API key string itself.
     id = Column(PGUUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    # TODO: the actual API key string that the user will use to authenticate, consider encrypting it
+    key = Column(String(100), nullable=False, unique=True)
     # TODO: each project only allow one api key to make quota management easier, in the future might allow multiple api keys
     project_id = Column(PGUUID(as_uuid=True), ForeignKey("projects.id"), unique=True, nullable=False)
     creator_id = Column(PGUUID(as_uuid=True), ForeignKey("users.id"), nullable=False)

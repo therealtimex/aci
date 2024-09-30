@@ -18,3 +18,9 @@ TODO
   - Install `Flake8` extension in VS Code
   - It should work out of box and respect the settings in `.vscode/settings.json` if any
 
+## Development
+
+### Run postgreSQL in Docker locally
+- docker-compose up
+- DATABASE_URL = "postgresql://test_user:password@localhost:5432/test_db"
+- (optional) Download a GUI client like `DBeaver` to connect to the database
