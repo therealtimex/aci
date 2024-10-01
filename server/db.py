@@ -19,10 +19,14 @@ from sqlalchemy.dialects.postgresql import UUID as PGUUID
 from pgvector.sqlalchemy import Vector
 import uuid
 import enum
+import os
 
-SQLALCHEMY_DATABASE_URL = "postgresql://user:password@postgresserver/db"
+DATABASE_URL = os.getenv("DATABASE_URL")
+# check if DATABASE_URL is set
+if not DATABASE_URL:
+    raise ValueError("DATABASE_URL environment variable is not set")
 
-engine = create_engine(SQLALCHEMY_DATABASE_URL)
+engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base = declarative_base()
@@ -30,9 +34,9 @@ Base = declarative_base()
 EMBEDDING_DIMENTION = 1024
 APP_DEFAULT_VERSION = "1.0.0"
 
-# TODO: add indexes for frequently used fields for all tables, including embedding fields
 
-
+# TODO: add indexes for frequently used fields for all tables, including embedding fields. Note we might need to set up index for embedding manually
+# for customizing the similarity search algorithm (https://github.com/pgvector/pgvector)
 # TODO: use incrementing integer as primary key for simplicity and performance
 # TODO: limit auth_provider to a set of values?
 class User(Base):

@@ -18,6 +18,8 @@ def custom_generate_unique_id(route: APIRoute) -> str:
 
 app = FastAPI(
     title="Aipolabs",
+    docs_url="/v1/docs",
+    redoc_url="/v1/redoc",
     openapi_url="/v1/openapi.json",
     generate_unique_id_function=custom_generate_unique_id,
 )

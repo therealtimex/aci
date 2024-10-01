@@ -100,11 +100,11 @@ async def auth_callback(request: Request, provider: str):
         raise HTTPException(status_code=400, detail="User ID not found in user information")
 
     # Create a unique user identifier
-    user_id = f"{provider}-{user_info["sub"]}"
+    user_id = f"{provider}-{user_info['sub']}"
     logger.info(f"Unique user identifier generated: {user_id}")
 
     # TODO: If this is a new user, save the user information to a database
-    
+
     # Generate JWT token for the user
     try:
         jwt_token = create_access_token(
