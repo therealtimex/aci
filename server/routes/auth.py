@@ -4,7 +4,7 @@ from authlib.integrations.starlette_client import OAuth
 from datetime import datetime, timedelta, timezone
 import os
 from authlib.jose import jwt, JoseError
-from schemas import TokenResponse
+from server.schemas import TokenResponse
 
 # Create router instance
 router = APIRouter()
@@ -56,7 +56,7 @@ def create_access_token(user_id: str, expires_delta: timedelta):
 # login route for different auth providers
 @router.get("/login/{provider}")
 async def login(request: Request, provider: str):
-    if provider not in oauth.registry:
+    if provider not in oauth._registry:
         logger.error(f"Unsupported provider: {provider}")
         raise HTTPException(status_code=400, detail="Unsupported provider")
 
@@ -69,7 +69,7 @@ async def login(request: Request, provider: str):
 # TODO: decision between long-lived JWT v.s session based v.s refresh token based auth
 @router.get("/callback/{provider}", name="auth_callback", response_model=TokenResponse)
 async def auth_callback(request: Request, provider: str):
-    if provider not in oauth.registry:
+    if provider not in oauth._registry:
         logger.error(f"Unsupported provider during callback: {provider}")
         raise HTTPException(status_code=400, detail="Unsupported provider")
 

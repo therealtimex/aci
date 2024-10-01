@@ -33,7 +33,7 @@ TODO
 - `alembic upgrade head`: apply the changes to the database
 - `alembic downgrade -1`: undo the last change
 
-### Run postgreSQL in Docker locally
-- `docker-compose up`: start the database
+### Run postgreSQL and server in Docker locally
+- `docker-compose up --build`: build server and start the database and server
 - DATABASE_URL = "postgresql://test_user:password@localhost:5432/test_db"
 - (optional) Download a GUI client like `DBeaver` to connect to the database

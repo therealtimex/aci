@@ -8,3 +8,20 @@ services:
     ports:
       - "5432:5432"
     restart: unless-stopped
+
+  backend:
+    build: .
+    # this overrides the default CMD specified in the Dockerfile, e.g., can add --reload for local development
+    command: fastapi run server/main.py --proxy-headers --host 0.0.0.0 --port 8000 --reload
+    # This will make the .env file available to the container       
+    env_file:
+      - .env 
+    # Mount the local 'server' directory to the container's '/code/server'
+    # Mount the .env file as a volume: more dynamic and allows you to update the .env file without rebuilding the container
+    volumes:
+      - ./server:/code/server
+      - ./.env:/code/.env      
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
