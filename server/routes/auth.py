@@ -1,10 +1,15 @@
 import logging
-from fastapi import APIRouter, Request, HTTPException
+from fastapi import APIRouter, Request, HTTPException, Depends
 from authlib.integrations.starlette_client import OAuth
 from datetime import datetime, timedelta, timezone
 import os
 from authlib.jose import jwt, JoseError
-from server.schemas import TokenResponse
+from server import dependencies as deps
+from sqlalchemy.orm import Session
+from server import crud
+from server import schemas
+from typing import Any
+from enum import Enum
 
 # Create router instance
 router = APIRouter()
@@ -16,25 +21,37 @@ logger = logging.getLogger(__name__)
 # JWT configuration
 JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY")
 JWT_ALGORITHM = os.getenv("JWT_ALGORITHM")
-JWT_ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("JWT_ACCESS_TOKEN_EXPIRE_MINUTES"))
-
+JWT_ACCESS_TOKEN_EXPIRE_MINUTES = int(
+    os.getenv("JWT_ACCESS_TOKEN_EXPIRE_MINUTES", "30")
+)  # Default to 30 minutes if not set
 # OAuth setup
 oauth = OAuth()
 
+
+class AuthProvider(Enum):
+    GOOGLE = "google"
+    GITHUB = "github"
+
+
 # Register Google OAuth
 oauth.register(
-    name="google",
+    name=AuthProvider.GOOGLE.value,
     client_id=os.getenv("GOOGLE_CLIENT_ID"),
     client_secret=os.getenv("GOOGLE_CLIENT_SECRET"),
-    access_token_url=os.getenv("GOOGLE_ACCESS_TOKEN_URL"),
     authorize_url=os.getenv("GOOGLE_AUTHORIZE_URL"),
+    access_token_url=os.getenv("GOOGLE_ACCESS_TOKEN_URL"),
     api_base_url=os.getenv("GOOGLE_API_BASE_URL"),
-    client_kwargs={"scope": "openid email profile"},
+    client_kwargs={
+        "scope": "openid email profile",
+        # "access_type": "offline",  # Request a refresh token
+        # "prompt": "consent",  # Force the user to consent again (to get the refresh token)
+    },
+    server_metadata_url=os.getenv("GOOGLE_SERVER_METADATA_URL"),
 )
 
 
 # Function to generate JWT using Authlib
-def create_access_token(user_id: str, expires_delta: timedelta):
+def create_access_token(user_id: str, expires_delta: timedelta) -> str:
     now = datetime.now(timezone.utc)
     payload = {
         "sub": user_id,
@@ -45,9 +62,9 @@ def create_access_token(user_id: str, expires_delta: timedelta):
     # Authlib expects a header, payload, and key
     header = {"alg": JWT_ALGORITHM}
     try:
-        encoded_jwt = jwt.encode(header, payload, JWT_SECRET_KEY)
-        logger.info(f"JWT successfully created for user {user_id}, payload: {payload}")
-        return encoded_jwt.decode("utf-8")  # Decode to convert bytes to string
+        jwt_token = jwt.encode(header, payload, JWT_SECRET_KEY).decode("utf-8")  # Decode to convert bytes to string
+
+        return jwt_token
     except JoseError as e:
         logger.error(f"JWT generation failed: {str(e)}")
         raise HTTPException(status_code=500, detail="JWT generation failed")
@@ -60,15 +77,18 @@ async def login(request: Request, provider: str):
         logger.error(f"Unsupported provider: {provider}")
         raise HTTPException(status_code=400, detail="Unsupported provider")
 
-    redirect_uri = request.url_for("auth_callback", provider=provider)
+    # redirect_uri = request.url_for("auth_callback", provider=provider)
+    # TODO: configure redirect_uri properly for production
+    redirect_uri = "http://localhost:8000/v1/auth/callback/google"
     logger.info(f"Initiating OAuth login for provider: {provider}, redirecting to: {redirect_uri}")
     return await oauth.create_client(provider).authorize_redirect(request, redirect_uri)
 
 
 # callback route for different auth providers
 # TODO: decision between long-lived JWT v.s session based v.s refresh token based auth
-@router.get("/callback/{provider}", name="auth_callback", response_model=TokenResponse)
-async def auth_callback(request: Request, provider: str):
+@router.get("/callback/{provider}", name="auth_callback", response_model=schemas.TokenResponse)
+async def auth_callback(request: Request, provider: str, db_session: Session = Depends(deps.get_db_session)) -> Any:
+    logger.info(f"Callback received for provider: {provider}")
     if provider not in oauth._registry:
         logger.error(f"Unsupported provider during callback: {provider}")
         raise HTTPException(status_code=400, detail="Unsupported provider")
@@ -77,43 +97,48 @@ async def auth_callback(request: Request, provider: str):
 
     try:
         logger.info(f"Retrieving access token for provider: {provider}")
-        token = await oauth_client.authorize_access_token(request)
-        logger.info(f"Access token retrieved successfully for provider: {provider}, token: {token}")
+        auth_response = await oauth_client.authorize_access_token(request)
+        # TODO: remove log
+        logger.info(f"Access token requested successfully for provider: {provider}, auth_response: {auth_response}")
     except Exception as e:
-        logger.error(f"Failed to retrieve access token for provider {provider}: {str(e)}")
+        logger.error(f"Failed to retrieve access token for provider {provider}", exc_info=True)
         raise HTTPException(status_code=400, detail=f"Failed to retrieve access token: {str(e)}")
 
-    try:
-        if provider == "google":
-            logger.info("Parsing ID token from Google")
-            user_info = await oauth_client.parse_id_token(request, token)
-            logger.info(f"User information retrieved from Google: {user_info}")
-        else:
-            logger.error(f"Unsupported provider during user info retrieval: {provider}")
-            raise HTTPException(status_code=400, detail="Unsupported provider")
-    except Exception as e:
-        logger.error(f"Failed to retrieve user information for provider {provider}: {str(e)}")
-        raise HTTPException(status_code=400, detail=f"Failed to retrieve user information: {str(e)}")
+    if provider == AuthProvider.GOOGLE.value:
+        user_info = auth_response["userinfo"]
+    else:
+        pass
 
     if not user_info["sub"]:
         logger.error(f"User ID not found in user information for provider {provider}")
-        raise HTTPException(status_code=400, detail="User ID not found in user information")
+        raise HTTPException(status_code=400, detail="User ID not found from auth provider")
 
     # Create a unique user identifier
-    user_id = f"{provider}-{user_info['sub']}"
-    logger.info(f"Unique user identifier generated: {user_id}")
-
-    # TODO: If this is a new user, save the user information to a database
+    user_create = schemas.UserCreate(
+        auth_provider=user_info["iss"],
+        auth_user_id=user_info["sub"],
+        name=user_info["name"],
+        email=user_info["email"],
+        profile_picture=user_info["picture"],
+    )
+    try:
+        user = crud.create_user_if_not_exists(db_session, user_create)
+        logger.info(f"User created or retrieved successfully: {vars(user)}")
+    except Exception as e:
+        logger.error(f"Failed to create or get user: {user_create}", exc_info=True)
+        db_session.rollback()
+        raise HTTPException(status_code=400, detail=f"Failed to create user create: {str(e)}")
 
     # Generate JWT token for the user
     try:
         jwt_token = create_access_token(
-            user_id,
+            str(user.id),
             timedelta(minutes=JWT_ACCESS_TOKEN_EXPIRE_MINUTES),
         )
-        logger.info(f"JWT generated successfully for user: {user_id}, jwt_token: {jwt_token}")
-    except JoseError as e:
-        logger.error(f"JWT generation failed for user {user_id}: {str(e)}")
+        # TODO: remove log
+        logger.info(f"JWT generated successfully for user: {user.id}, jwt_token: {jwt_token}")
+    except Exception:
+        logger.error(f"JWT generation failed for user {user.id}", exc_info=True)
         raise HTTPException(status_code=500, detail="JWT generation failed")
 
     return {"access_token": jwt_token, "token_type": "bearer"}

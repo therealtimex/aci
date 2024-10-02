@@ -43,3 +43,7 @@ Guidelines for setting up the development environment.
     - ...
   - `alembic upgrade head`: apply the changes to the database
   - `alembic downgrade -1`: undo the last change
+
+### Type checking
+- `mypy server/ --ignore-missing-imports`: run type checking for the server module
+- `mypy server/crud.py  --ignore-missing-imports`: run type checking for the `crud.py` file with ignoring missing imports

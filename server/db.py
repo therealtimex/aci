@@ -12,13 +12,16 @@ from sqlalchemy import (
     ARRAY,
     JSON,
 )
-from sqlalchemy.orm import DeclarativeBase, mapped_column
+from sqlalchemy.orm import DeclarativeBase, mapped_column, Mapped
 from sqlalchemy.orm import sessionmaker, relationship
 from sqlalchemy.dialects.postgresql import UUID as PGUUID
 from pgvector.sqlalchemy import Vector
 import uuid
 import enum
 import os
+
+# from typing import Annotated
+import datetime
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 if not DATABASE_URL:
@@ -48,18 +51,23 @@ class User(Base):
         ADMIN = "admin"
         OWNER = "owner"
 
-    id = mapped_column(PGUUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    auth_provider = mapped_column(String(255), nullable=False)  # google, github, email, etc
-    auth_user_id = mapped_column(String(255), nullable=False)  # google id, github id, email, etc
-    name = mapped_column(String(255), nullable=False)
-    email = mapped_column(String(255), nullable=True)
-    profile_picture = mapped_column(Text, nullable=True)
-    # TODO: might need a Organization table in the future
-    organization_id = mapped_column(PGUUID(as_uuid=True), nullable=False, default=uuid.uuid4)
-    organization_role = mapped_column(Enum(OrgRole), nullable=False, default=OrgRole.OWNER)
+    id: Mapped[uuid.UUID] = mapped_column(PGUUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    auth_provider: Mapped[str] = mapped_column(String(255), nullable=False)  # google, github, email, etc
+    auth_user_id: Mapped[str] = mapped_column(String(255), nullable=False)  # google id, github id, email, etc
+    name: Mapped[str] = mapped_column(String(255), nullable=False)
+    email: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    profile_picture: Mapped[str | None] = mapped_column(Text, nullable=True)
+    organization_id: Mapped[uuid.UUID] = mapped_column(
+        PGUUID(as_uuid=True), nullable=False, default=uuid.uuid4
+    )  # TODO: might need a Organization table in the future
 
-    created_at = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
-    updated_at = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+    organization_role: Mapped[OrgRole] = mapped_column(Enum(OrgRole), nullable=False, default=OrgRole.OWNER)
+    created_at: Mapped[datetime.datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    updated_at: Mapped[datetime.datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False
+    )
 
     __table_args__ = (UniqueConstraint("auth_provider", "auth_user_id", name="uc_auth_provider_user"),)
 
