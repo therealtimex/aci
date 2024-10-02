@@ -40,12 +40,13 @@ oauth.register(
     client_secret=os.getenv("GOOGLE_CLIENT_SECRET"),
     authorize_url=os.getenv("GOOGLE_AUTHORIZE_URL"),
     access_token_url=os.getenv("GOOGLE_ACCESS_TOKEN_URL"),
+    # refresh_token_url=os.getenv("GOOGLE_REFRESH_TOKEN_URL"),
     api_base_url=os.getenv("GOOGLE_API_BASE_URL"),
     client_kwargs={
         "scope": "openid email profile",
-        # "access_type": "offline",  # Request a refresh token
-        # "prompt": "consent",  # Force the user to consent again (to get the refresh token)
+        "prompt": "consent",  # Force the user to consent again (to get the refresh token)
     },
+    # authorize_params={"access_type": "offline"},  # Request a refresh token
     server_metadata_url=os.getenv("GOOGLE_SERVER_METADATA_URL"),
 )
 
