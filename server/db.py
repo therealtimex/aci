@@ -1,7 +1,6 @@
 from sqlalchemy import (
     create_engine,
     Boolean,
-    Column,
     ForeignKey,
     Integer,
     String,
@@ -13,7 +12,7 @@ from sqlalchemy import (
     ARRAY,
     JSON,
 )
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import DeclarativeBase, mapped_column
 from sqlalchemy.orm import sessionmaker, relationship
 from sqlalchemy.dialects.postgresql import UUID as PGUUID
 from pgvector.sqlalchemy import Vector
@@ -22,17 +21,19 @@ import enum
 import os
 
 DATABASE_URL = os.getenv("DATABASE_URL")
-# check if DATABASE_URL is set
 if not DATABASE_URL:
     raise ValueError("DATABASE_URL environment variable is not set")
 
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-Base = declarative_base()
 
 EMBEDDING_DIMENTION = 1024
 APP_DEFAULT_VERSION = "1.0.0"
+
+
+class Base(DeclarativeBase):
+    pass
 
 
 # TODO: add indexes for frequently used fields for all tables, including embedding fields. Note we might need to set up index for embedding manually
@@ -47,17 +48,18 @@ class User(Base):
         ADMIN = "admin"
         OWNER = "owner"
 
-    id = Column(PGUUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    auth_provider = Column(String(255), nullable=False)  # google, github, email, etc
-    auth_user_id = Column(String(255), nullable=False)  # google id, github id, email, etc
-    name = Column(String(255), nullable=False)
-    email = Column(String(255), nullable=True)
+    id = mapped_column(PGUUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    auth_provider = mapped_column(String(255), nullable=False)  # google, github, email, etc
+    auth_user_id = mapped_column(String(255), nullable=False)  # google id, github id, email, etc
+    name = mapped_column(String(255), nullable=False)
+    email = mapped_column(String(255), nullable=True)
+    profile_picture = mapped_column(Text, nullable=True)
     # TODO: might need a Organization table in the future
-    organization_id = Column(PGUUID(as_uuid=True), nullable=False, default=uuid.uuid4)
-    organization_role = Column(Enum(OrgRole), nullable=False, default=OrgRole.OWNER)
+    organization_id = mapped_column(PGUUID(as_uuid=True), nullable=False, default=uuid.uuid4)
+    organization_role = mapped_column(Enum(OrgRole), nullable=False, default=OrgRole.OWNER)
 
-    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
-    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+    created_at = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
 
     __table_args__ = (UniqueConstraint("auth_provider", "auth_user_id", name="uc_auth_provider_user"),)
 
@@ -68,12 +70,12 @@ class User(Base):
 # TODO: might need to assign projects to organizations
 class Project(Base):
     __tablename__ = "projects"
-    id = Column(PGUUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    name = Column(String(255), nullable=False)
-    creator_id = Column(PGUUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    id = mapped_column(PGUUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    name = mapped_column(String(255), nullable=False)
+    creator_id = mapped_column(PGUUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
 
-    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
-    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+    created_at = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
 
 
 class APIKey(Base):
@@ -94,20 +96,20 @@ class APIKey(Base):
 
     # id is not the actual API key, it's just a unique identifier to easily reference each API key entry without depending
     # on the API key string itself.
-    id = Column(PGUUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id = mapped_column(PGUUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     # TODO: the actual API key string that the user will use to authenticate, consider encrypting it
-    key = Column(String(100), nullable=False, unique=True)
+    key = mapped_column(String(100), nullable=False, unique=True)
     # TODO: each project only allow one api key to make quota management easier, in the future might allow multiple api keys
-    project_id = Column(PGUUID(as_uuid=True), ForeignKey("projects.id"), unique=True, nullable=False)
-    creator_id = Column(PGUUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
-    status = Column(Enum(Status), default=Status.ACTIVE, nullable=False)
-    plan = Column(Enum(Plan), default=Plan.FREE, nullable=False)
-    daily_quota_used = Column(Integer, default=0, nullable=False)
-    daily_quota_reset_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
-    total_quota_used = Column(Integer, default=0, nullable=False)
+    project_id = mapped_column(PGUUID(as_uuid=True), ForeignKey("projects.id"), unique=True, nullable=False)
+    creator_id = mapped_column(PGUUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    status = mapped_column(Enum(Status), default=Status.ACTIVE, nullable=False)
+    plan = mapped_column(Enum(Plan), default=Plan.FREE, nullable=False)
+    daily_quota_used = mapped_column(Integer, default=0, nullable=False)
+    daily_quota_reset_at = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    total_quota_used = mapped_column(Integer, default=0, nullable=False)
 
-    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
-    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+    created_at = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
 
 
 # TODO: filtering by tags and categories should be manageable because the App table will be very small
@@ -124,30 +126,30 @@ class App(Base):
         BASIC_AUTH = "basic_auth"
         BRERAR_TOKEN = "bearer_token"
 
-    id = Column(PGUUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id = mapped_column(PGUUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     # e.g., "github", "google". Note there can be another app also named "github" but from a different company,
     # in this case we need to make sure the name is unique by adding some kind of provider field or version or random string.
     # Need it to be unique to support both sdk (where user can specify apps by name) and globally unique function name.
-    name = Column(String(50), nullable=False, unique=True)
-    display_name = Column(String(50), nullable=False)
-    version = Column(String(50), nullable=False, default=APP_DEFAULT_VERSION)
+    name = mapped_column(String(50), nullable=False, unique=True)
+    display_name = mapped_column(String(50), nullable=False)
+    version = mapped_column(String(50), nullable=False, default=APP_DEFAULT_VERSION)
     # provider (or company) of the app, e.g., google, github, or aipolabs or user (if allow user to create custom apps)
-    provider = Column(String(255), nullable=False)
-    description = Column(Text, nullable=False)
-    website = Column(String(255), nullable=True)
-    logo = Column(Text, nullable=True)
-    categories = Column(ARRAY(String), nullable=False)
-    tags = Column(ARRAY(String), nullable=False)
+    provider = mapped_column(String(255), nullable=False)
+    description = mapped_column(Text, nullable=False)
+    website = mapped_column(String(255), nullable=True)
+    logo = mapped_column(Text, nullable=True)
+    categories = mapped_column(ARRAY(String), nullable=False)
+    tags = mapped_column(ARRAY(String), nullable=False)
     # false if the app does not require customer authentication, e.g., scrapers API
-    auth_required = Column(Boolean, default=True, nullable=False)
-    supported_auth_types = Column(ARRAY(Enum(AuthType)), nullable=False)
+    auth_required = mapped_column(Boolean, default=True, nullable=False)
+    supported_auth_types = mapped_column(ARRAY(Enum(AuthType)), nullable=False)
     # controlled by aipolabs
-    enabled = Column(Boolean, default=True, nullable=False)
+    enabled = mapped_column(Boolean, default=True, nullable=False)
     # TODO: currently created with name, description, categories, tags
-    embedding = Column(Vector(EMBEDDING_DIMENTION), nullable=False)
+    embedding = mapped_column(Vector(EMBEDDING_DIMENTION), nullable=False)
 
-    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
-    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+    created_at = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
 
     functions = relationship("Function", back_populates="app", lazy="select", cascade="all, delete-orphan")
 
@@ -160,22 +162,22 @@ class Function(Base):
 
     # TODO: I don't see a reason yet to have a separate id for function as primary key instead of just using function name,
     # but keep it for now for potential future use
-    id = Column(PGUUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id = mapped_column(PGUUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     # Note: the function name is unique across the platform and should have app information, e.g., "github_clone_repo"
     # ideally this should just be <app name>_<function name>
-    name = Column(String(255), nullable=False, unique=True)
-    app_id = Column(PGUUID(as_uuid=True), ForeignKey("apps.id"), nullable=False)
-    description = Column(Text, nullable=False)
-    parameters = Column(JSON, nullable=False)
+    name = mapped_column(String(255), nullable=False, unique=True)
+    app_id = mapped_column(PGUUID(as_uuid=True), ForeignKey("apps.id"), nullable=False)
+    description = mapped_column(Text, nullable=False)
+    parameters = mapped_column(JSON, nullable=False)
     # TODO: should response schema be generic (data + execution success of not + optional error) or specific to the function
-    response = Column(JSON, nullable=False)
+    response = mapped_column(JSON, nullable=False)
     # TODO: currently created with name, description, parameters, response
-    embedding = Column(Vector(EMBEDDING_DIMENTION), nullable=False)
+    embedding = mapped_column(Vector(EMBEDDING_DIMENTION), nullable=False)
     # controlled by aipolabs
-    enabled = Column(Boolean, default=True, nullable=False)
+    enabled = mapped_column(Boolean, default=True, nullable=False)
 
-    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
-    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+    created_at = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
 
     app = relationship("App", back_populates="functions", lazy="select")
 
@@ -191,14 +193,14 @@ class Function(Base):
 class ProjectAppIntegration(Base):
     __tablename__ = "project_app_integrations"
 
-    id = Column(PGUUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    project_id = Column(PGUUID(as_uuid=True), ForeignKey("projects.id"), nullable=False)
-    app_id = Column(PGUUID(as_uuid=True), ForeignKey("apps.id"), nullable=False)
+    id = mapped_column(PGUUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    project_id = mapped_column(PGUUID(as_uuid=True), ForeignKey("projects.id"), nullable=False)
+    app_id = mapped_column(PGUUID(as_uuid=True), ForeignKey("apps.id"), nullable=False)
     # controlled by users
-    enabled = Column(Boolean, default=True, nullable=False)
+    enabled = mapped_column(Boolean, default=True, nullable=False)
 
-    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
-    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+    created_at = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
 
     # unique constraint
     __table_args__ = (UniqueConstraint("project_id", "app_id", name="uc_project_app"),)
@@ -208,18 +210,20 @@ class ProjectAppIntegration(Base):
 class ConnectedAccount(Base):
     __tablename__ = "connected_accounts"
 
-    id = Column(PGUUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    project_app_integration_id = Column(PGUUID(as_uuid=True), ForeignKey("project_app_integrations.id"), nullable=False)
+    id = mapped_column(PGUUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    project_app_integration_id = mapped_column(
+        PGUUID(as_uuid=True), ForeignKey("project_app_integrations.id"), nullable=False
+    )
     # account_owner should be unique per app per project (or just per ProjectAppIntegration), it identifies the end user, not the project owner.
     # ideally this should be some user id in client's system that uniquely identify this account owner.
-    account_owner_id = Column(String(255), nullable=False)
+    account_owner_id = mapped_column(String(255), nullable=False)
     # TODO: here we assume it's possible to have connected account but no auth is required, in which case auth_type and auth_data will be null
-    auth_type = Column(Enum(App.AuthType), nullable=True)
+    auth_type = mapped_column(Enum(App.AuthType), nullable=True)
     # auth_data is different for each auth type, e.g., API key, OAuth2 etc
-    auth_data = Column(JSON, nullable=True)
+    auth_data = mapped_column(JSON, nullable=True)
 
-    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
-    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+    created_at = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
 
     __table_args__ = (
         UniqueConstraint("project_app_integration_id", "account_owner_id", name="uc_project_app_account_owner"),

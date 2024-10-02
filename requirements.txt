@@ -9,3 +9,5 @@ pgvector
 Authlib
 psycopg2-binary
 alembic
+itsdangerous
+mypy
