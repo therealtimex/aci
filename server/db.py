@@ -62,11 +62,12 @@ class User(Base):
     )  # TODO: might need a Organization table in the future
 
     organization_role: Mapped[OrgRole] = mapped_column(Enum(OrgRole), nullable=False, default=OrgRole.OWNER)
+    # TODO: consider storing timestap in UTC
     created_at: Mapped[datetime.datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now(), nullable=False
+        DateTime(timezone=False), server_default=func.now(), nullable=False
     )
     updated_at: Mapped[datetime.datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False
+        DateTime(timezone=False), server_default=func.now(), onupdate=func.now(), nullable=False
     )
 
     __table_args__ = (UniqueConstraint("auth_provider", "auth_user_id", name="uc_auth_provider_user"),)
@@ -82,8 +83,8 @@ class Project(Base):
     name = mapped_column(String(255), nullable=False)
     creator_id = mapped_column(PGUUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
 
-    created_at = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
-    updated_at = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+    created_at = mapped_column(DateTime(timezone=False), server_default=func.now(), nullable=False)
+    updated_at = mapped_column(DateTime(timezone=False), server_default=func.now(), onupdate=func.now(), nullable=False)
 
 
 class APIKey(Base):
@@ -113,11 +114,11 @@ class APIKey(Base):
     status = mapped_column(Enum(Status), default=Status.ACTIVE, nullable=False)
     plan = mapped_column(Enum(Plan), default=Plan.FREE, nullable=False)
     daily_quota_used = mapped_column(Integer, default=0, nullable=False)
-    daily_quota_reset_at = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    daily_quota_reset_at = mapped_column(DateTime(timezone=False), server_default=func.now(), nullable=False)
     total_quota_used = mapped_column(Integer, default=0, nullable=False)
 
-    created_at = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
-    updated_at = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+    created_at = mapped_column(DateTime(timezone=False), server_default=func.now(), nullable=False)
+    updated_at = mapped_column(DateTime(timezone=False), server_default=func.now(), onupdate=func.now(), nullable=False)
 
 
 # TODO: filtering by tags and categories should be manageable because the App table will be very small
@@ -156,8 +157,8 @@ class App(Base):
     # TODO: currently created with name, description, categories, tags
     embedding = mapped_column(Vector(EMBEDDING_DIMENTION), nullable=False)
 
-    created_at = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
-    updated_at = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+    created_at = mapped_column(DateTime(timezone=False), server_default=func.now(), nullable=False)
+    updated_at = mapped_column(DateTime(timezone=False), server_default=func.now(), onupdate=func.now(), nullable=False)
 
     functions = relationship("Function", back_populates="app", lazy="select", cascade="all, delete-orphan")
 
@@ -184,8 +185,8 @@ class Function(Base):
     # controlled by aipolabs
     enabled = mapped_column(Boolean, default=True, nullable=False)
 
-    created_at = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
-    updated_at = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+    created_at = mapped_column(DateTime(timezone=False), server_default=func.now(), nullable=False)
+    updated_at = mapped_column(DateTime(timezone=False), server_default=func.now(), onupdate=func.now(), nullable=False)
 
     app = relationship("App", back_populates="functions", lazy="select")
 
@@ -207,8 +208,8 @@ class ProjectAppIntegration(Base):
     # controlled by users
     enabled = mapped_column(Boolean, default=True, nullable=False)
 
-    created_at = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
-    updated_at = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+    created_at = mapped_column(DateTime(timezone=False), server_default=func.now(), nullable=False)
+    updated_at = mapped_column(DateTime(timezone=False), server_default=func.now(), onupdate=func.now(), nullable=False)
 
     # unique constraint
     __table_args__ = (UniqueConstraint("project_id", "app_id", name="uc_project_app"),)
@@ -230,8 +231,8 @@ class ConnectedAccount(Base):
     # auth_data is different for each auth type, e.g., API key, OAuth2 etc
     auth_data = mapped_column(JSON, nullable=True)
 
-    created_at = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
-    updated_at = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+    created_at = mapped_column(DateTime(timezone=False), server_default=func.now(), nullable=False)
+    updated_at = mapped_column(DateTime(timezone=False), server_default=func.now(), onupdate=func.now(), nullable=False)
 
     __table_args__ = (
         UniqueConstraint("project_app_integration_id", "account_owner_id", name="uc_project_app_account_owner"),
