@@ -17,6 +17,9 @@ services:
     # This will make the .env file available to the container       
     env_file:
       - .env
+    # need to override DATABASE_URL in .env to point to the db service in docker-compose, @db instead of @localhost
+    environment:
+      - DATABASE_URL=postgresql://user:password@db:5432/local_db      
     # Mount the local 'server' directory to the container's '/code/server'
     # Mount the .env file as a volume: more dynamic and allows you to update the .env file without rebuilding the container
     volumes:

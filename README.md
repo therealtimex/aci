@@ -3,8 +3,8 @@
 ## OpenAPI Specification
 TODO
 
-## Development
-Guidelines for setting up the development environment.
+## Local Development
+Guidelines for setting up the local development environment.
 
 ### Requirements
 - Python ^3.12

@@ -1,7 +1,7 @@
 # import sentry_sdk
 from fastapi import FastAPI, Request
 from fastapi.routing import APIRoute
-from .routes import api_keys, auth
+from .routes import auth, projects
 from starlette.middleware.sessions import SessionMiddleware
 import os
 from fastapi.responses import JSONResponse
@@ -51,7 +51,7 @@ app.add_middleware(
 
 
 @app.exception_handler(ValidationError)
-def validation_exception_handler(request: Request, exc: ValidationError):
+def validation_exception_handler(request: Request, exc: ValidationError) -> JSONResponse:
     logger.error(f"Validation error, request: {request}, error: {exc.errors()}")
     return JSONResponse(
         status_code=400,
@@ -68,4 +68,4 @@ def validation_exception_handler(request: Request, exc: ValidationError):
 app.add_middleware(SessionMiddleware, secret_key=SESSION_SECRET_KEY)
 
 app.include_router(auth.router, prefix="/v1/auth", tags=["auth"])
-app.include_router(api_keys.router, prefix="/v1/api_keys", tags=["api_keys"])
+app.include_router(projects.router, prefix="/v1/projects", tags=["projects"])

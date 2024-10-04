@@ -1,5 +1,6 @@
+# TODO: ideally shouldn't need it in python 3.12 for forward reference?
+from __future__ import annotations
 from sqlalchemy import (
-    create_engine,
     Boolean,
     ForeignKey,
     Integer,
@@ -13,22 +14,12 @@ from sqlalchemy import (
     JSON,
 )
 from sqlalchemy.orm import DeclarativeBase, mapped_column, Mapped
-from sqlalchemy.orm import sessionmaker, relationship
+from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.postgresql import UUID as PGUUID
 from pgvector.sqlalchemy import Vector
 import uuid
 import enum
-import os
-
-# from typing import Annotated
 import datetime
-
-DATABASE_URL = os.getenv("DATABASE_URL")
-if not DATABASE_URL:
-    raise ValueError("DATABASE_URL environment variable is not set")
-
-engine = create_engine(DATABASE_URL)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
 EMBEDDING_DIMENTION = 1024
@@ -79,12 +70,26 @@ class User(Base):
 # TODO: might need to assign projects to organizations
 class Project(Base):
     __tablename__ = "projects"
-    id = mapped_column(PGUUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    name = mapped_column(String(255), nullable=False)
-    creator_id = mapped_column(PGUUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    id: Mapped[uuid.UUID] = mapped_column(PGUUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    name: Mapped[str] = mapped_column(String(255), nullable=False)
+    creator_id: Mapped[uuid.UUID] = mapped_column(PGUUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    organization_id: Mapped[uuid.UUID] = mapped_column(
+        PGUUID(as_uuid=True), nullable=False, default=uuid.uuid4
+    )  # TODO: might need a Organization table in the future
 
-    created_at = mapped_column(DateTime(timezone=False), server_default=func.now(), nullable=False)
-    updated_at = mapped_column(DateTime(timezone=False), server_default=func.now(), onupdate=func.now(), nullable=False)
+    created_at: Mapped[datetime.datetime] = mapped_column(
+        DateTime(timezone=False), server_default=func.now(), nullable=False
+    )
+    updated_at: Mapped[datetime.datetime] = mapped_column(
+        DateTime(timezone=False), server_default=func.now(), onupdate=func.now(), nullable=False
+    )
+
+    # TODO: now each project only allow one api key to make quota management easier,
+    # in the future might allow multiple api keys
+    api_keys: Mapped[list[APIKey]] = relationship("APIKey", lazy="select", cascade="all, delete-orphan")
+
+    # TODO: don't have unique constraints on project name / creator / organization combination now as it can complicate
+    # project management and org v.s personal project reconciliation. Maybe it's something frontend can soft-enforce
 
 
 class APIKey(Base):
@@ -105,20 +110,27 @@ class APIKey(Base):
 
     # id is not the actual API key, it's just a unique identifier to easily reference each API key entry without depending
     # on the API key string itself.
-    id = mapped_column(PGUUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id: Mapped[uuid.UUID] = mapped_column(PGUUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     # TODO: the actual API key string that the user will use to authenticate, consider encrypting it
-    key = mapped_column(String(100), nullable=False, unique=True)
-    # TODO: each project only allow one api key to make quota management easier, in the future might allow multiple api keys
-    project_id = mapped_column(PGUUID(as_uuid=True), ForeignKey("projects.id"), unique=True, nullable=False)
-    creator_id = mapped_column(PGUUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
-    status = mapped_column(Enum(Status), default=Status.ACTIVE, nullable=False)
-    plan = mapped_column(Enum(Plan), default=Plan.FREE, nullable=False)
-    daily_quota_used = mapped_column(Integer, default=0, nullable=False)
-    daily_quota_reset_at = mapped_column(DateTime(timezone=False), server_default=func.now(), nullable=False)
-    total_quota_used = mapped_column(Integer, default=0, nullable=False)
+    key: Mapped[str] = mapped_column(String(100), nullable=False, unique=True)
+    project_id: Mapped[uuid.UUID] = mapped_column(
+        PGUUID(as_uuid=True), ForeignKey("projects.id"), unique=True, nullable=False
+    )
+    creator_id: Mapped[uuid.UUID] = mapped_column(PGUUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    status: Mapped[Status] = mapped_column(Enum(Status), default=Status.ACTIVE, nullable=False)
+    plan: Mapped[Plan] = mapped_column(Enum(Plan), nullable=False)
+    daily_quota_used: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    daily_quota_reset_at: Mapped[datetime.datetime] = mapped_column(
+        DateTime(timezone=False), server_default=func.now(), nullable=False
+    )
+    total_quota_used: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
 
-    created_at = mapped_column(DateTime(timezone=False), server_default=func.now(), nullable=False)
-    updated_at = mapped_column(DateTime(timezone=False), server_default=func.now(), onupdate=func.now(), nullable=False)
+    created_at: Mapped[datetime.datetime] = mapped_column(
+        DateTime(timezone=False), server_default=func.now(), nullable=False
+    )
+    updated_at: Mapped[datetime.datetime] = mapped_column(
+        DateTime(timezone=False), server_default=func.now(), onupdate=func.now(), nullable=False
+    )
 
 
 # TODO: filtering by tags and categories should be manageable because the App table will be very small
@@ -160,7 +172,7 @@ class App(Base):
     created_at = mapped_column(DateTime(timezone=False), server_default=func.now(), nullable=False)
     updated_at = mapped_column(DateTime(timezone=False), server_default=func.now(), onupdate=func.now(), nullable=False)
 
-    functions = relationship("Function", back_populates="app", lazy="select", cascade="all, delete-orphan")
+    functions = relationship("Function", lazy="select", cascade="all, delete-orphan")
 
 
 # TODO: how to do versioning for app and funcitons to allow backward compatibility, or we don't actually need to
@@ -187,8 +199,6 @@ class Function(Base):
 
     created_at = mapped_column(DateTime(timezone=False), server_default=func.now(), nullable=False)
     updated_at = mapped_column(DateTime(timezone=False), server_default=func.now(), onupdate=func.now(), nullable=False)
-
-    app = relationship("App", back_populates="functions", lazy="select")
 
 
 # A user can have multiple projects, a project can integrate multiple apps, an app can have multiple connected accounts.

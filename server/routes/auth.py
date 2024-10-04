@@ -6,7 +6,7 @@ import os
 from authlib.jose import jwt, JoseError
 from server import dependencies as deps
 from sqlalchemy.orm import Session
-from server import crud
+from server.database import crud
 from server import schemas
 from typing import Any
 from enum import Enum
@@ -15,7 +15,8 @@ from enum import Enum
 router = APIRouter()
 
 # Set up logging
-logging.basicConfig(level=logging.INFO)
+# TODO: consider adding %(data)s - %(error)s and abstract to a common logging file
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 # JWT configuration
@@ -63,7 +64,9 @@ def create_access_token(user_id: str, expires_delta: timedelta) -> str:
     # Authlib expects a header, payload, and key
     header = {"alg": JWT_ALGORITHM}
     try:
-        jwt_token = jwt.encode(header, payload, JWT_SECRET_KEY).decode("utf-8")  # Decode to convert bytes to string
+        jwt_token: str = jwt.encode(header, payload, JWT_SECRET_KEY).decode(
+            "utf-8"
+        )  # Decode to convert bytes to string
 
         return jwt_token
     except JoseError as e:
@@ -73,7 +76,7 @@ def create_access_token(user_id: str, expires_delta: timedelta) -> str:
 
 # login route for different auth providers
 @router.get("/login/{provider}")
-async def login(request: Request, provider: str):
+async def login(request: Request, provider: str) -> Any:
     if provider not in oauth._registry:
         logger.error(f"Unsupported provider: {provider}")
         raise HTTPException(status_code=400, detail="Unsupported provider")
@@ -123,11 +126,12 @@ async def auth_callback(request: Request, provider: str, db_session: Session = D
         profile_picture=user_info["picture"],
     )
     try:
-        user = crud.create_user_if_not_exists(db_session, user_create)
+        user = crud.create_or_get_user(db_session, user_create)
         logger.info(f"User created or retrieved successfully: {vars(user)}")
     except Exception as e:
         logger.error(f"Failed to create or get user: {user_create}", exc_info=True)
         db_session.rollback()
+        # TODO: replace status code with enum
         raise HTTPException(status_code=400, detail=f"Failed to create user create: {str(e)}")
 
     # Generate JWT token for the user
