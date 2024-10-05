@@ -4,7 +4,7 @@ from sqlalchemy import engine_from_config
 from sqlalchemy import pool
 
 from alembic import context
-from server.database.models import Base
+from app.database.models import Base
 import dotenv
 import os
 
@@ -32,6 +32,12 @@ target_metadata = Base.metadata
 # ... etc.
 
 
+def get_db_url() -> str:
+    if not DATABASE_URL:
+        raise ValueError("DATABASE_URL is not set")
+    return DATABASE_URL
+
+
 def run_migrations_offline() -> None:
     """Run migrations in 'offline' mode.
 
@@ -45,7 +51,7 @@ def run_migrations_offline() -> None:
 
     """
     context.configure(
-        url=DATABASE_URL,
+        url=get_db_url(),
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
@@ -63,7 +69,7 @@ def run_migrations_online() -> None:
 
     """
     configuration = config.get_section(config.config_ini_section, {})
-    configuration["sqlalchemy.url"] = DATABASE_URL
+    configuration["sqlalchemy.url"] = get_db_url()
     connectable = engine_from_config(
         configuration,
         prefix="sqlalchemy.",

@@ -1,9 +1,11 @@
 import logging
 from fastapi import APIRouter, Depends, HTTPException
-from server import dependencies as deps, schemas
+from app import schemas
 from sqlalchemy.orm import Session
-from server.database import crud
+from app.database import crud
 from typing import Any
+
+from app import dependencies as deps
 
 # Create router instance
 router = APIRouter()

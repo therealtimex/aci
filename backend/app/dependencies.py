@@ -1,4 +1,4 @@
-from server.database import engine
+from app.database import engine
 from sqlalchemy.orm import Session
 from typing import Generator
 from fastapi import HTTPException, status, Security

@@ -3,8 +3,8 @@ import datetime
 from typing import Tuple
 from sqlalchemy import select, update
 import logging
-from server.database import models
-from server import schemas
+from app.database import models
+from app import schemas
 from typing import Union
 from sqlalchemy.sql import Select, Update
 import secrets

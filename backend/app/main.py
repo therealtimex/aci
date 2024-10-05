@@ -1,7 +1,9 @@
 # import sentry_sdk
 from fastapi import FastAPI, Request
 from fastapi.routing import APIRoute
-from .routes import auth, projects
+
+from .routes import auth
+from .routes import projects
 from starlette.middleware.sessions import SessionMiddleware
 import os
 from fastapi.responses import JSONResponse

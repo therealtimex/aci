@@ -11,20 +11,19 @@ services:
     restart: unless-stopped
 
   backend:
-    build: .
+    build: ./backend
     # this overrides the default CMD specified in the Dockerfile, use this for local development
-    command: fastapi dev server/main.py --host 0.0.0.0 --port 8000
+    command: fastapi dev app/main.py --host 0.0.0.0 --port 8000
     # This will make the .env file available to the container       
     env_file:
       - .env
     # need to override DATABASE_URL in .env to point to the db service in docker-compose, @db instead of @localhost
-    environment:
-      - DATABASE_URL=postgresql://user:password@db:5432/local_db      
-    # Mount the local 'server' directory to the container's '/code/server'
-    # Mount the .env file as a volume: more dynamic and allows you to update the .env file without rebuilding the container
+    # environment:
+    # TODO: break down to env variable in db
+      # - DATABASE_URL=postgresql://user:password@db:5432/local_db      
+    # useful for development, changes take effect in the container without needing to rebuild the image.
     volumes:
-      - ./server:/code/server
-      - ./.env:/code/.env     
+      - ./backend:/backend
     ports:
       - "8000:8000"
     depends_on:

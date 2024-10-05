@@ -4,10 +4,10 @@ from authlib.integrations.starlette_client import OAuth
 from datetime import datetime, timedelta, timezone
 import os
 from authlib.jose import jwt, JoseError
-from server import dependencies as deps
+from app import dependencies as deps
 from sqlalchemy.orm import Session
-from server.database import crud
-from server import schemas
+from app.database import crud
+from app import schemas
 from typing import Any
 from enum import Enum
 
