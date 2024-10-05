@@ -1,10 +1,14 @@
 # Aipolabs Core Components
 
+## Project Structure
+Currently only contains the app server code (and associated database).
+But can be extended to include more services (e.g., separate admin server, sdk, cli, etc.) as a monorepo if needed.
+
 ## OpenAPI Specification
 TODO
 
 ## Local Development
-Guidelines for setting up the local development environment.
+Guidelines for setting up the containerized development environment locally
 
 ### Requirements
 - Python ^3.12
@@ -21,16 +25,23 @@ Guidelines for setting up the local development environment.
   - Install `Flake8` extension in VS Code
   - It should work out of box and respect the settings in `.vscode/settings.json` if any
 
-### Run postgreSQL and backend in Docker locally
+### Virtual Environment
+Because we use docker and docker compose to run components in a container, installing the dependencies here locally is more for development purposes.
+- Activate virtual environemnt
+  - `poetry shell`
+- Install dependencies
+  - `poetry install`
+
+### Run postgreSQL and app server in Docker locally
 - create a `.env` file in the root directory based on `.env.example`
   - Note that we don't use the `.env` file in the production environment
-  - `.env` is provided to docker compose to set up the environment variables in the container, not loaded by the backend directly
-- `docker-compose up --build`: build backend and start the database and backend
+  - `.env` is provided to docker compose to set up the environment variables in the container, not loaded by the app server directly
+- `docker-compose up --build`: build app server and start the database and app server
 
 ### Run database migrations
-In local development the backend directory is mounted as a volume inside the container,you can run the migrations with `alembic` commands inside the container and the migration code (`versions` folder) will be in your local directory (instead of being only inside the container).
-- Get a bash shell inside the backend container for running commands
-  - `docker-compose exec backend bash`
+In local development the `app` directory is mounted as a volume inside the container,you can run the migrations with `alembic` commands inside the container and the migration code (`versions` folder) will be in your local directory (instead of being only inside the container).
+- Get a bash shell inside the app server container for running commands
+  - `docker-compose exec app bash`
 - Set up the database (running in docker) with the latest migration 
   - `alembic upgrade head`
 - (Optional) Connect to the database using a GUI client like `DBeaver`
@@ -47,5 +58,5 @@ In local development the backend directory is mounted as a volume inside the con
   - `alembic downgrade -1`: you can undo the last change to the database
 
 ### Type checking
-- `mypy backend/ --ignore-missing-imports`: run type checking for the backend module
-- `mypy backend/crud.py  --ignore-missing-imports`: run type checking for the `crud.py` file with ignoring missing imports
+- `mypy app/ `: run (outside of the container) type checking for the app module
+  - configure mypy in `mypy.ini`

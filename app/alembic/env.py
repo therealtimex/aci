@@ -5,10 +5,8 @@ from sqlalchemy import pool
 
 from alembic import context
 from app.database.models import Base
-import dotenv
 import os
 
-dotenv.load_dotenv()
 DATABASE_URL = os.getenv("DATABASE_URL")
 
 # this is the Alembic Config object, which provides

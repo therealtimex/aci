@@ -10,8 +10,11 @@ services:
       - "5432:5432"
     restart: unless-stopped
 
-  backend:
-    build: ./backend
+  app:
+    build:
+      context: .
+      args:
+        INSTALL_DEV: true # install dev dependencies so we can run tests
     # this overrides the default CMD specified in the Dockerfile, use this for local development
     command: fastapi dev app/main.py --host 0.0.0.0 --port 8000
     # This will make the .env file available to the container       
@@ -23,7 +26,7 @@ services:
       # - DATABASE_URL=postgresql://user:password@db:5432/local_db      
     # useful for development, changes take effect in the container without needing to rebuild the image.
     volumes:
-      - ./backend:/backend
+      - ./app:/backend/app
     ports:
       - "8000:8000"
     depends_on:

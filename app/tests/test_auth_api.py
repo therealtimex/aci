@@ -8,7 +8,7 @@
 # @pytest.fixture
 # def mock_oauth_provider(monkeypatch):
 #     # Mock the OAuth provider registry
-#     monkeypatch.setattr("server.routes.auth.oauth._registry", {"google": "mock_google_client"})
+#     monkeypatch.setattr("app.routes.auth.oauth._registry", {"google": "mock_google_client"})
 
 #     # Mock the OAuth client creation
 #     async def mock_create_client(provider):
@@ -29,7 +29,7 @@
 
 #         return MockOAuthClient()
 
-#     monkeypatch.setattr("server.routes.auth.oauth.create_client", mock_create_client)
+#     monkeypatch.setattr("app.routes.auth.oauth.create_client", mock_create_client)
 
 
 # def test_login_google(mock_oauth_provider):
