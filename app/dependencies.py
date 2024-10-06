@@ -8,7 +8,7 @@ from authlib.jose import jwt, JoseError
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 # Set up logging
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY")
@@ -16,7 +16,7 @@ http_bearer = HTTPBearer()
 
 
 def get_db_session() -> Generator[Session, None, None]:
-    db_session = engine.SessionLocal()
+    db_session = engine.SessionMaker()
     try:
         yield db_session
     finally:

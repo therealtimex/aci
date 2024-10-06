@@ -57,6 +57,17 @@ In local development the `app` directory is mounted as a volume inside the conta
   - `alembic upgrade head`: apply the changes to the database
   - `alembic downgrade -1`: you can undo the last change to the database
 
+### Testing
+- make sure services and database are running, if not, run 
+  - `docker-compose up --build`
+  - we will read and write to the `db` running in docker
+  - we will NOT send and receive requests to the `app` server running in docker because we use `TestClient` (but still need to make sure it's running in order to apply database migrations and run `pytest`, e.g., all env variables are only available in the container of `app` server)
+- make sure you have applied the latest migrations, and all tables are empty
+  - `docker-compose exec app alembic upgrade head`
+- run tests
+  - `docker-compose exec app pytest -vv -s`
+
 ### Type checking
 - `mypy app/ `: run (outside of the container) type checking for the app module
   - configure mypy in `mypy.ini`
+

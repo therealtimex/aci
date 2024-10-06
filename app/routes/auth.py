@@ -26,6 +26,7 @@ JWT_ACCESS_TOKEN_EXPIRE_MINUTES = int(
     os.getenv("JWT_ACCESS_TOKEN_EXPIRE_MINUTES", "30")
 )  # Default to 30 minutes if not set
 # OAuth setup
+AIPOLABS_REDIRECT_URI_BASE = os.getenv("AIPOLABS_REDIRECT_URI_BASE")
 oauth = OAuth()
 
 
@@ -81,9 +82,9 @@ async def login(request: Request, provider: str) -> Any:
         logger.error(f"Unsupported provider: {provider}")
         raise HTTPException(status_code=400, detail="Unsupported provider")
 
-    # redirect_uri = request.url_for("auth_callback", provider=provider)
+    path = request.url_for("auth_callback", provider=provider).path
     # TODO: configure redirect_uri properly for production
-    redirect_uri = "http://localhost:8000/v1/auth/callback/google"
+    redirect_uri = f"{AIPOLABS_REDIRECT_URI_BASE}{path}"
     logger.info(f"Initiating OAuth login for provider: {provider}, redirecting to: {redirect_uri}")
     return await oauth.create_client(provider).authorize_redirect(request, redirect_uri)
 

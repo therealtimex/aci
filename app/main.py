@@ -26,7 +26,7 @@ def custom_generate_unique_id(route: APIRoute) -> str:
 #     sentry_sdk.init(dsn=str(settings.SENTRY_DSN), enable_tracing=True)
 
 # Configure logging
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 

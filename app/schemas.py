@@ -2,6 +2,7 @@ from pydantic import BaseModel
 import uuid
 from .database import models
 import datetime
+from pydantic import ConfigDict
 
 
 class TokenResponse(BaseModel):
@@ -30,8 +31,7 @@ class User(UserBase):
     created_at: datetime.datetime
     updated_at: datetime.datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class APIKeyBase(BaseModel):
@@ -56,8 +56,7 @@ class APIKey(APIKeyBase):
     created_at: datetime.datetime
     updated_at: datetime.datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class ProjectBase(BaseModel):
@@ -77,5 +76,4 @@ class Project(ProjectBase):
 
     api_keys: list[APIKey]
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)

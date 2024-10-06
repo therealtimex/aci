@@ -78,7 +78,6 @@ def create_or_get_user(db_session: Session, user: schemas.UserCreate) -> models.
     db_session.add(db_user)
     db_session.commit()
     db_session.refresh(db_user)
-    logger.info(f"User created: {db_user}")
 
     return db_user
 
