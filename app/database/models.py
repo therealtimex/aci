@@ -42,9 +42,15 @@ class User(Base):
         ADMIN = "admin"
         OWNER = "owner"
 
-    id: Mapped[uuid.UUID] = mapped_column(PGUUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    auth_provider: Mapped[str] = mapped_column(String(255), nullable=False)  # google, github, email, etc
-    auth_user_id: Mapped[str] = mapped_column(String(255), nullable=False)  # google id, github id, email, etc
+    id: Mapped[uuid.UUID] = mapped_column(
+        PGUUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    auth_provider: Mapped[str] = mapped_column(
+        String(255), nullable=False
+    )  # google, github, email, etc
+    auth_user_id: Mapped[str] = mapped_column(
+        String(255), nullable=False
+    )  # google id, github id, email, etc
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     email: Mapped[str | None] = mapped_column(String(255), nullable=True)
     profile_picture: Mapped[str | None] = mapped_column(Text, nullable=True)
@@ -52,7 +58,9 @@ class User(Base):
         PGUUID(as_uuid=True), nullable=False, default=uuid.uuid4
     )  # TODO: might need a Organization table in the future
 
-    organization_role: Mapped[OrgRole] = mapped_column(Enum(OrgRole), nullable=False, default=OrgRole.OWNER)
+    organization_role: Mapped[OrgRole] = mapped_column(
+        Enum(OrgRole), nullable=False, default=OrgRole.OWNER
+    )
     # TODO: consider storing timestap in UTC
     created_at: Mapped[datetime.datetime] = mapped_column(
         DateTime(timezone=False), server_default=func.now(), nullable=False
@@ -61,7 +69,9 @@ class User(Base):
         DateTime(timezone=False), server_default=func.now(), onupdate=func.now(), nullable=False
     )
 
-    __table_args__ = (UniqueConstraint("auth_provider", "auth_user_id", name="uc_auth_provider_user"),)
+    __table_args__ = (
+        UniqueConstraint("auth_provider", "auth_user_id", name="uc_auth_provider_user"),
+    )
 
 
 # logical container for isolating and managing API keys, selected apps, and other data
@@ -70,9 +80,13 @@ class User(Base):
 # TODO: might need to assign projects to organizations
 class Project(Base):
     __tablename__ = "projects"
-    id: Mapped[uuid.UUID] = mapped_column(PGUUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id: Mapped[uuid.UUID] = mapped_column(
+        PGUUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
     name: Mapped[str] = mapped_column(String(255), nullable=False)
-    creator_id: Mapped[uuid.UUID] = mapped_column(PGUUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    creator_id: Mapped[uuid.UUID] = mapped_column(
+        PGUUID(as_uuid=True), ForeignKey("users.id"), nullable=False
+    )
     organization_id: Mapped[uuid.UUID] = mapped_column(
         PGUUID(as_uuid=True), nullable=False, default=uuid.uuid4
     )  # TODO: might need a Organization table in the future
@@ -86,7 +100,9 @@ class Project(Base):
 
     # TODO: now each project only allow one api key to make quota management easier,
     # in the future might allow multiple api keys
-    api_keys: Mapped[list[APIKey]] = relationship("APIKey", lazy="select", cascade="all, delete-orphan")
+    api_keys: Mapped[list[APIKey]] = relationship(
+        "APIKey", lazy="select", cascade="all, delete-orphan"
+    )
 
     # TODO: don't have unique constraints on project name / creator / organization combination now as it can complicate
     # project management and org v.s personal project reconciliation. Maybe it's something frontend can soft-enforce
@@ -110,13 +126,17 @@ class APIKey(Base):
 
     # id is not the actual API key, it's just a unique identifier to easily reference each API key entry without depending
     # on the API key string itself.
-    id: Mapped[uuid.UUID] = mapped_column(PGUUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id: Mapped[uuid.UUID] = mapped_column(
+        PGUUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
     # TODO: the actual API key string that the user will use to authenticate, consider encrypting it
     key: Mapped[str] = mapped_column(String(100), nullable=False, unique=True)
     project_id: Mapped[uuid.UUID] = mapped_column(
         PGUUID(as_uuid=True), ForeignKey("projects.id"), unique=True, nullable=False
     )
-    creator_id: Mapped[uuid.UUID] = mapped_column(PGUUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    creator_id: Mapped[uuid.UUID] = mapped_column(
+        PGUUID(as_uuid=True), ForeignKey("users.id"), nullable=False
+    )
     status: Mapped[Status] = mapped_column(Enum(Status), default=Status.ACTIVE, nullable=False)
     plan: Mapped[Plan] = mapped_column(Enum(Plan), nullable=False)
     daily_quota_used: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
@@ -170,7 +190,9 @@ class App(Base):
     embedding = mapped_column(Vector(EMBEDDING_DIMENTION), nullable=False)
 
     created_at = mapped_column(DateTime(timezone=False), server_default=func.now(), nullable=False)
-    updated_at = mapped_column(DateTime(timezone=False), server_default=func.now(), onupdate=func.now(), nullable=False)
+    updated_at = mapped_column(
+        DateTime(timezone=False), server_default=func.now(), onupdate=func.now(), nullable=False
+    )
 
     functions = relationship("Function", lazy="select", cascade="all, delete-orphan")
 
@@ -198,7 +220,9 @@ class Function(Base):
     enabled = mapped_column(Boolean, default=True, nullable=False)
 
     created_at = mapped_column(DateTime(timezone=False), server_default=func.now(), nullable=False)
-    updated_at = mapped_column(DateTime(timezone=False), server_default=func.now(), onupdate=func.now(), nullable=False)
+    updated_at = mapped_column(
+        DateTime(timezone=False), server_default=func.now(), onupdate=func.now(), nullable=False
+    )
 
 
 # A user can have multiple projects, a project can integrate multiple apps, an app can have multiple connected accounts.
@@ -219,7 +243,9 @@ class ProjectAppIntegration(Base):
     enabled = mapped_column(Boolean, default=True, nullable=False)
 
     created_at = mapped_column(DateTime(timezone=False), server_default=func.now(), nullable=False)
-    updated_at = mapped_column(DateTime(timezone=False), server_default=func.now(), onupdate=func.now(), nullable=False)
+    updated_at = mapped_column(
+        DateTime(timezone=False), server_default=func.now(), onupdate=func.now(), nullable=False
+    )
 
     # unique constraint
     __table_args__ = (UniqueConstraint("project_id", "app_id", name="uc_project_app"),)
@@ -242,8 +268,12 @@ class ConnectedAccount(Base):
     auth_data = mapped_column(JSON, nullable=True)
 
     created_at = mapped_column(DateTime(timezone=False), server_default=func.now(), nullable=False)
-    updated_at = mapped_column(DateTime(timezone=False), server_default=func.now(), onupdate=func.now(), nullable=False)
+    updated_at = mapped_column(
+        DateTime(timezone=False), server_default=func.now(), onupdate=func.now(), nullable=False
+    )
 
     __table_args__ = (
-        UniqueConstraint("project_app_integration_id", "account_owner_id", name="uc_project_app_account_owner"),
+        UniqueConstraint(
+            "project_app_integration_id", "account_owner_id", name="uc_project_app_account_owner"
+        ),
     )

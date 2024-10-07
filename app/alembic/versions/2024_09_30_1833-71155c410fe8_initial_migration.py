@@ -38,13 +38,27 @@ def upgrade() -> None:
         sa.Column("auth_required", sa.Boolean(), nullable=False),
         sa.Column(
             "supported_auth_types",
-            sa.ARRAY(sa.Enum("API_KEY", "OPEN_ID", "OAUTH2", "BASIC_AUTH", "BRERAR_TOKEN", name="authtype")),
+            sa.ARRAY(
+                sa.Enum(
+                    "API_KEY", "OPEN_ID", "OAUTH2", "BASIC_AUTH", "BRERAR_TOKEN", name="authtype"
+                )
+            ),
             nullable=False,
         ),
         sa.Column("enabled", sa.Boolean(), nullable=False),
         sa.Column("embedding", Vector(dim=1024), nullable=False),
-        sa.Column("created_at", sa.DateTime(timezone=False), server_default=sa.text("now()"), nullable=False),
-        sa.Column("updated_at", sa.DateTime(timezone=False), server_default=sa.text("now()"), nullable=False),
+        sa.Column(
+            "created_at",
+            sa.DateTime(timezone=False),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
+        sa.Column(
+            "updated_at",
+            sa.DateTime(timezone=False),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint("name"),
     )
@@ -57,9 +71,21 @@ def upgrade() -> None:
         sa.Column("email", sa.String(length=255), nullable=True),
         sa.Column("profile_picture", sa.Text(), nullable=True),
         sa.Column("organization_id", sa.UUID(), nullable=False),
-        sa.Column("organization_role", sa.Enum("BASIC", "ADMIN", "OWNER", name="orgrole"), nullable=False),
-        sa.Column("created_at", sa.DateTime(timezone=False), server_default=sa.text("now()"), nullable=False),
-        sa.Column("updated_at", sa.DateTime(timezone=False), server_default=sa.text("now()"), nullable=False),
+        sa.Column(
+            "organization_role", sa.Enum("BASIC", "ADMIN", "OWNER", name="orgrole"), nullable=False
+        ),
+        sa.Column(
+            "created_at",
+            sa.DateTime(timezone=False),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
+        sa.Column(
+            "updated_at",
+            sa.DateTime(timezone=False),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint("auth_provider", "auth_user_id", name="uc_auth_provider_user"),
     )
@@ -73,8 +99,18 @@ def upgrade() -> None:
         sa.Column("response", sa.JSON(), nullable=False),
         sa.Column("embedding", Vector(dim=1024), nullable=False),
         sa.Column("enabled", sa.Boolean(), nullable=False),
-        sa.Column("created_at", sa.DateTime(timezone=False), server_default=sa.text("now()"), nullable=False),
-        sa.Column("updated_at", sa.DateTime(timezone=False), server_default=sa.text("now()"), nullable=False),
+        sa.Column(
+            "created_at",
+            sa.DateTime(timezone=False),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
+        sa.Column(
+            "updated_at",
+            sa.DateTime(timezone=False),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
         sa.ForeignKeyConstraint(
             ["app_id"],
             ["apps.id"],
@@ -87,8 +123,18 @@ def upgrade() -> None:
         sa.Column("id", sa.UUID(), nullable=False),
         sa.Column("name", sa.String(length=255), nullable=False),
         sa.Column("creator_id", sa.UUID(), nullable=False),
-        sa.Column("created_at", sa.DateTime(timezone=False), server_default=sa.text("now()"), nullable=False),
-        sa.Column("updated_at", sa.DateTime(timezone=False), server_default=sa.text("now()"), nullable=False),
+        sa.Column(
+            "created_at",
+            sa.DateTime(timezone=False),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
+        sa.Column(
+            "updated_at",
+            sa.DateTime(timezone=False),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
         sa.ForeignKeyConstraint(
             ["creator_id"],
             ["users.id"],
@@ -101,13 +147,32 @@ def upgrade() -> None:
         sa.Column("key", sa.String(length=100), nullable=False),
         sa.Column("project_id", sa.UUID(), nullable=False),
         sa.Column("creator_id", sa.UUID(), nullable=False),
-        sa.Column("status", sa.Enum("ACTIVE", "DISABLED", "DELETED", name="status"), nullable=False),
-        sa.Column("plan", sa.Enum("FREE", "BASIC", "PRO", "ENTERPRISE", name="plan"), nullable=False),
+        sa.Column(
+            "status", sa.Enum("ACTIVE", "DISABLED", "DELETED", name="status"), nullable=False
+        ),
+        sa.Column(
+            "plan", sa.Enum("FREE", "BASIC", "PRO", "ENTERPRISE", name="plan"), nullable=False
+        ),
         sa.Column("daily_quota_used", sa.Integer(), nullable=False),
-        sa.Column("daily_quota_reset_at", sa.DateTime(timezone=False), server_default=sa.text("now()"), nullable=False),
+        sa.Column(
+            "daily_quota_reset_at",
+            sa.DateTime(timezone=False),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
         sa.Column("total_quota_used", sa.Integer(), nullable=False),
-        sa.Column("created_at", sa.DateTime(timezone=False), server_default=sa.text("now()"), nullable=False),
-        sa.Column("updated_at", sa.DateTime(timezone=False), server_default=sa.text("now()"), nullable=False),
+        sa.Column(
+            "created_at",
+            sa.DateTime(timezone=False),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
+        sa.Column(
+            "updated_at",
+            sa.DateTime(timezone=False),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
         sa.ForeignKeyConstraint(
             ["creator_id"],
             ["users.id"],
@@ -126,8 +191,18 @@ def upgrade() -> None:
         sa.Column("project_id", sa.UUID(), nullable=False),
         sa.Column("app_id", sa.UUID(), nullable=False),
         sa.Column("enabled", sa.Boolean(), nullable=False),
-        sa.Column("created_at", sa.DateTime(timezone=False), server_default=sa.text("now()"), nullable=False),
-        sa.Column("updated_at", sa.DateTime(timezone=False), server_default=sa.text("now()"), nullable=False),
+        sa.Column(
+            "created_at",
+            sa.DateTime(timezone=False),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
+        sa.Column(
+            "updated_at",
+            sa.DateTime(timezone=False),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
         sa.ForeignKeyConstraint(
             ["app_id"],
             ["apps.id"],
@@ -150,14 +225,26 @@ def upgrade() -> None:
             nullable=True,
         ),
         sa.Column("auth_data", sa.JSON(), nullable=True),
-        sa.Column("created_at", sa.DateTime(timezone=False), server_default=sa.text("now()"), nullable=False),
-        sa.Column("updated_at", sa.DateTime(timezone=False), server_default=sa.text("now()"), nullable=False),
+        sa.Column(
+            "created_at",
+            sa.DateTime(timezone=False),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
+        sa.Column(
+            "updated_at",
+            sa.DateTime(timezone=False),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
         sa.ForeignKeyConstraint(
             ["project_app_integration_id"],
             ["project_app_integrations.id"],
         ),
         sa.PrimaryKeyConstraint("id"),
-        sa.UniqueConstraint("project_app_integration_id", "account_owner_id", name="uc_project_app_account_owner"),
+        sa.UniqueConstraint(
+            "project_app_integration_id", "account_owner_id", name="uc_project_app_account_owner"
+        ),
     )
     # ### end Alembic commands ###
 

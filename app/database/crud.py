@@ -10,7 +10,9 @@ from sqlalchemy.sql import Select, Update
 import secrets
 
 # Set up logging
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
 logger = logging.getLogger(__name__)
 
 
@@ -21,7 +23,9 @@ class UserNotFoundError(Exception):
 
 
 # create a new project and automatically generate an api key
-def create_project(db_session: Session, project: schemas.ProjectCreate, user_id: str) -> models.Project:
+def create_project(
+    db_session: Session, project: schemas.ProjectCreate, user_id: str
+) -> models.Project:
     # Start a new transaction
     db_session.begin()
 
@@ -64,7 +68,10 @@ def create_or_get_user(db_session: Session, user: schemas.UserCreate) -> models.
     # Step 1: Acquire a lock on the row to prevent race condition
     db_user = db_session.execute(
         select(models.User)
-        .where(models.User.auth_provider == user.auth_provider, models.User.auth_user_id == user.auth_user_id)
+        .where(
+            models.User.auth_provider == user.auth_provider,
+            models.User.auth_user_id == user.auth_user_id,
+        )
         .with_for_update()
     ).scalar_one_or_none()
 

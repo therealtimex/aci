@@ -16,7 +16,9 @@ router = APIRouter()
 
 # Set up logging
 # TODO: consider adding %(data)s - %(error)s and abstract to a common logging file
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
 logger = logging.getLogger(__name__)
 
 # JWT configuration
@@ -92,7 +94,9 @@ async def login(request: Request, provider: str) -> Any:
 # callback route for different auth providers
 # TODO: decision between long-lived JWT v.s session based v.s refresh token based auth
 @router.get("/callback/{provider}", name="auth_callback", response_model=schemas.TokenResponse)
-async def auth_callback(request: Request, provider: str, db_session: Session = Depends(deps.get_db_session)) -> Any:
+async def auth_callback(
+    request: Request, provider: str, db_session: Session = Depends(deps.get_db_session)
+) -> Any:
     logger.info(f"Callback received for provider: {provider}")
     if provider not in oauth._registry:
         logger.error(f"Unsupported provider during callback: {provider}")
@@ -104,7 +108,9 @@ async def auth_callback(request: Request, provider: str, db_session: Session = D
         logger.info(f"Retrieving access token for provider: {provider}")
         auth_response = await oauth_client.authorize_access_token(request)
         # TODO: remove log
-        logger.info(f"Access token requested successfully for provider: {provider}, auth_response: {auth_response}")
+        logger.info(
+            f"Access token requested successfully for provider: {provider}, auth_response: {auth_response}"
+        )
     except Exception as e:
         logger.error(f"Failed to retrieve access token for provider {provider}", exc_info=True)
         raise HTTPException(status_code=400, detail=f"Failed to retrieve access token: {str(e)}")

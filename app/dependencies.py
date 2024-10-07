@@ -8,7 +8,9 @@ from authlib.jose import jwt, JoseError
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 # Set up logging
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
 logger = logging.getLogger(__name__)
 
 JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY")
@@ -38,11 +40,16 @@ def verify_user(
         user_id: str = payload.get("sub")
         if not user_id:
             logger.error("Token is missing 'sub' claim.")
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid authentication credentials")
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid authentication credentials",
+            )
 
         logger.info(f"Token valid. User ID: {user_id}")
         return user_id
 
     except JoseError as e:
         logger.error("Token verification failed", exc_info=True)
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=f"Invalid token: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail=f"Invalid token: {str(e)}"
+        )
