@@ -71,3 +71,4 @@ In local development the `app` directory is mounted as a volume inside the conta
 - `mypy app/ `: run (outside of the container) type checking for the app module
   - configure mypy in `mypy.ini`
 
+ - pre-commit install

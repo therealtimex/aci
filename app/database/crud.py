@@ -1,13 +1,12 @@
-from sqlalchemy.orm import Session
-import datetime
-from typing import Tuple
-from sqlalchemy import select, update
 import logging
-from app.database import models
-from app import schemas
-from typing import Union
-from sqlalchemy.sql import Select, Update
 import secrets
+from typing import Union
+
+from sqlalchemy import select
+from sqlalchemy.orm import Session
+
+from app import schemas
+from app.database import models
 
 # Set up logging
 logging.basicConfig(
@@ -66,7 +65,7 @@ def create_project(
 def create_or_get_user(db_session: Session, user: schemas.UserCreate) -> models.User:
     """Use SELECT FOR UPDATE to handle concurrent access."""
     # Step 1: Acquire a lock on the row to prevent race condition
-    db_user = db_session.execute(
+    db_user: Union[models.User, None] = db_session.execute(
         select(models.User)
         .where(
             models.User.auth_provider == user.auth_provider,

@@ -1,11 +1,10 @@
+import os
 from logging.config import fileConfig
 
-from sqlalchemy import engine_from_config
-from sqlalchemy import pool
-
 from alembic import context
+from sqlalchemy import engine_from_config, pool
+
 from app.database.models import Base
-import os
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 

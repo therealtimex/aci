@@ -1,26 +1,26 @@
 # TODO: ideally shouldn't need it in python 3.12 for forward reference?
 from __future__ import annotations
+
+import datetime
+import enum
+import uuid
+
+from pgvector.sqlalchemy import Vector
 from sqlalchemy import (
+    ARRAY,
+    JSON,
     Boolean,
+    DateTime,
+    Enum,
     ForeignKey,
     Integer,
     String,
-    DateTime,
-    UniqueConstraint,
-    Enum,
-    func,
     Text,
-    ARRAY,
-    JSON,
+    UniqueConstraint,
+    func,
 )
-from sqlalchemy.orm import DeclarativeBase, mapped_column, Mapped
-from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.postgresql import UUID as PGUUID
-from pgvector.sqlalchemy import Vector
-import uuid
-import enum
-import datetime
-
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 EMBEDDING_DIMENTION = 1024
 APP_DEFAULT_VERSION = "1.0.0"

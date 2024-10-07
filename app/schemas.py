@@ -1,8 +1,9 @@
-from pydantic import BaseModel
-import uuid
-from .database import models
 import datetime
-from pydantic import ConfigDict
+import uuid
+
+from pydantic import BaseModel, ConfigDict
+
+from .database import models
 
 
 class TokenResponse(BaseModel):

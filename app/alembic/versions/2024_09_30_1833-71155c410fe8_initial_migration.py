@@ -8,8 +8,8 @@ Create Date: 2024-09-30 18:33:13.317138+00:00
 
 from typing import Sequence, Union
 
-from alembic import op
 import sqlalchemy as sa
+from alembic import op
 from pgvector.sqlalchemy import Vector
 
 # revision identifiers, used by Alembic.
@@ -261,10 +261,12 @@ def downgrade() -> None:
 
     # Drop the Enum types
     op_bind = op.get_bind()
-    sa.Enum("API_KEY", "OPEN_ID", "OAUTH2", "BASIC_AUTH", "BRERAR_TOKEN", name="authtype").drop(op_bind)  # type: ignore
-    sa.Enum("BASIC", "ADMIN", "OWNER", name="orgrole").drop(op_bind)  # type: ignore
-    sa.Enum("ACTIVE", "DISABLED", "DELETED", name="status").drop(op_bind)  # type: ignore
-    sa.Enum("FREE", "BASIC", "PRO", "ENTERPRISE", name="plan").drop(op_bind)  # type: ignore
+    sa.Enum("API_KEY", "OPEN_ID", "OAUTH2", "BASIC_AUTH", "BRERAR_TOKEN", name="authtype").drop(
+        op_bind
+    )
+    sa.Enum("BASIC", "ADMIN", "OWNER", name="orgrole").drop(op_bind)
+    sa.Enum("ACTIVE", "DISABLED", "DELETED", name="status").drop(op_bind)
+    sa.Enum("FREE", "BASIC", "PRO", "ENTERPRISE", name="plan").drop(op_bind)
 
     # ### end Alembic commands ###
     op.execute("DROP EXTENSION IF EXISTS vector;")

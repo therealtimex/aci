@@ -1,12 +1,13 @@
-import pytest
-from fastapi.testclient import TestClient
-from app.main import app
 import os
+
+import pytest
 from authlib.jose import jwt
+from fastapi import Request, status
+from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
+
 from app.database import models
-from fastapi import Request
-from fastapi import status
+from app.main import app
 
 # disable following redirects for testing login
 test_client = TestClient(app, follow_redirects=False)

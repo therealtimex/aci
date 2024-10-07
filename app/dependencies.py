@@ -1,11 +1,13 @@
-from app.database import engine
-from sqlalchemy.orm import Session
-from typing import Generator
-from fastapi import HTTPException, status, Security
 import logging
 import os
-from authlib.jose import jwt, JoseError
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from typing import Generator
+
+from authlib.jose import JoseError, jwt
+from fastapi import HTTPException, Security, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from sqlalchemy.orm import Session
+
+from app.database import engine
 
 # Set up logging
 logging.basicConfig(

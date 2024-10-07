@@ -1,15 +1,17 @@
 import logging
-from fastapi import APIRouter, Request, HTTPException, Depends
-from authlib.integrations.starlette_client import OAuth
-from datetime import datetime, timedelta, timezone
 import os
-from authlib.jose import jwt, JoseError
-from app import dependencies as deps
-from sqlalchemy.orm import Session
-from app.database import crud
-from app import schemas
-from typing import Any
+from datetime import datetime, timedelta, timezone
 from enum import Enum
+from typing import Any
+
+from authlib.integrations.starlette_client import OAuth
+from authlib.jose import JoseError, jwt
+from fastapi import APIRouter, Depends, HTTPException, Request
+from sqlalchemy.orm import Session
+
+from app import dependencies as deps
+from app import schemas
+from app.database import crud
 
 # Create router instance
 router = APIRouter()
@@ -56,7 +58,7 @@ oauth.register(
 
 
 # Function to generate JWT using Authlib
-def create_access_token(user_id: str, expires_delta: timedelta):
+def create_access_token(user_id: str, expires_delta: timedelta) -> str:
     now = datetime.now(timezone.utc)
     payload = {
         "sub": user_id,
@@ -109,7 +111,8 @@ async def auth_callback(
         auth_response = await oauth_client.authorize_access_token(request)
         # TODO: remove log
         logger.info(
-            f"Access token requested successfully for provider: {provider}, auth_response: {auth_response}"
+            f"Access token requested successfully for provider: {provider}, "
+            f"auth_response: {auth_response}"
         )
     except Exception as e:
         logger.error(f"Failed to retrieve access token for provider {provider}", exc_info=True)

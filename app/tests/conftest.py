@@ -1,12 +1,14 @@
 from typing import Generator, cast
+
 import pytest
 from fastapi.testclient import TestClient
+from sqlalchemy import inspect
+from sqlalchemy.engine.reflection import Inspector
 from sqlalchemy.orm import Session
+
+from app.database import models
 from app.database.engine import SessionMaker
 from app.main import app
-from sqlalchemy import inspect
-from app.database import models
-from sqlalchemy.engine.reflection import Inspector
 
 
 @pytest.fixture(scope="session", autouse=True)
