@@ -4,71 +4,77 @@
 Currently only contains the app server code (and associated database).
 But can be extended to include more services (e.g., separate admin server, sdk, cli, etc.) as a monorepo if needed.
 
-## OpenAPI Specification
-TODO
-
 ## Local Development
-Guidelines for setting up the containerized development environment locally
+Follow all guidelines below for setting up the development environment, running services and testing locally
 
-### Requirements
-- Python ^3.12
-- Install docker
-- Install virtualenv: `pip install virtualenv`
-- Create a virtual env: `cd /path/to/your/project && python -m venv venv`
-- Activate virtual env: `source venv/bin/activate`
-- Install dependencies
-  - `pip install -r requirements.txt`
-- Formatter: `Black`
-  - Install `Black Formatter` extension in VS Code
-  - It should respect the settings in `.vscode/settings.json`
-- Linter: `Flake8`
-  - Install `Flake8` extension in VS Code
-  - It should work out of box and respect the settings in `.vscode/settings.json` if any
 
-### Virtual Environment
-Because we use docker and docker compose to run components in a container, installing the dependencies here locally is more for development purposes.
-- Activate virtual environemnt
-  - `poetry shell`
-- Install dependencies
-  - `poetry install`
+<details>
+  <summary>Setup</summary>
 
-### Run postgreSQL and app server in Docker locally
-- create a `.env` file in the root directory based on `.env.example`
-  - Note that we don't use the `.env` file in the production environment
-  - `.env` is provided to docker compose to set up the environment variables in the container, not loaded by the app server directly
-- `docker-compose up --build`: build app server and start the database and app server
+  - Git clone the repo
+  - Python ^3.12
+  - Install `docker`
+  - Install `poetry`
+  - Activate virtual env: `poetry shell`
+    - We use docker and docker compose to run components in a container, so using a virtual env is more for development purposes. (IDE, pytest, dev dependencies, etc.)
+  - Install dependencies: `poetry install`
+  - Set up `.env` file according to `.env.example`, these should be parameters for testing and loaded from env variables in docker compose instead of being loaded by the app server directly
+  - Coding style
+    - all the following tools are part of `pyproject.toml` dev dependencies, and are automatically installed when running `poetry install`
+    - use `black` to format the code
+    - use `flake8` to lint the code
+    - use `mypy` to type check the code
+    - use `isort` to sort the imports
+    - use `pre-commit` to run the above tools as pre-commit hooks
+  - Install `pre-commit` hooks: `pre-commit install`
+  - Setup you preferred editor to use `Black` formatter
+    - e.g., you might need to install `Black` formatter extension in VS Code, and configure the setting as below
+      ```json
+      {
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "ms-python.black-formatter"
+      }
+      ```
+</details>
 
-### Run database migrations
-In local development the `app` directory is mounted as a volume inside the container,you can run the migrations with `alembic` commands inside the container and the migration code (`versions` folder) will be in your local directory (instead of being only inside the container).
-- Get a bash shell inside the app server container for running commands
-  - `docker-compose exec app bash`
-- Set up the database (running in docker) with the latest migration 
-  - `alembic upgrade head`
-- (Optional) Connect to the database using a GUI client like `DBeaver`
-  - parameters for the db connection can be found in the `docker-compose.yml` file
-- After (if any) changing any tables or models, generate a new migration
-  - `alembic check`: check if a new migration is needed
-  - `alembic revision --autogenerate -m "<some message>"`: generate a new migration if a new migration is needed
-  - change the generated file in `alembic/versions/` to add the necessary changes (that are not auto-generated), e.g.,:
-    - import `pgvector` library for `Vector` type
-    - create and drop necessary indexes
-    - create and drop vector extension
-    - ...  
-  - `alembic upgrade head`: apply the changes to the database
-  - `alembic downgrade -1`: you can undo the last change to the database
+<details>
+  <summary>Run postgreSQL and app server in Docker locally</summary>
 
-### Testing
-- make sure services and database are running, if not, run 
-  - `docker-compose up --build`
-  - we will read and write to the `db` running in docker
-  - we will NOT send and receive requests to the `app` server running in docker because we use `TestClient` (but still need to make sure it's running in order to apply database migrations and run `pytest`, e.g., all env variables are only available in the container of `app` server)
-- make sure you have applied the latest migrations, and all tables are empty
-  - `docker-compose exec app alembic upgrade head`
-- run tests
-  - `docker-compose exec app pytest -vv -s`
+  - `docker-compose up --build`: build app server and start the database and app server
+  - You can access the `Swagger UI` at `http://localhost:8000/v1/docs`
+</details>
 
-### Type checking
-- `mypy app/ `: run (outside of the container) type checking for the app module
-  - configure mypy in `mypy.ini`
+<details>
+  <summary>Set up or update database for testing locally</summary>
 
- - pre-commit install
+  - In local development the `app` directory is mounted as a volume inside the container, you can run the migrations with `alembic` commands inside the container and the migration code (`versions` folder) will be in your local directory (instead of being only inside the container).
+  - Get a bash shell inside the app server container for running commands
+    - `docker-compose exec app bash`
+  - Set up the database (running in docker) with the latest migration 
+    - `alembic upgrade head`
+  - (Optional) Connect to the database using a GUI client like `DBeaver`
+    - Parameters for the db connection can be found in the `docker-compose.yml` file
+  - (If any changes are made to the models) After changing any tables or models, generate a new migration
+    - Check if a new migration is needed: `alembic check`
+    - Generate a new migration if a new migration is needed: `alembic revision --autogenerate -m "<some message>"`
+    - (If needed) Change the generated file in `alembic/versions/` to add the necessary changes (that are not auto-generated), e.g.,:
+      - import `pgvector` library for `Vector` type
+      - create and drop necessary indexes
+      - create and drop vector extension
+      - ...  
+    - Apply the changes to the database: `alembic upgrade head`
+    - (If needed) you can undo the last change to the database: `alembic downgrade -1`
+</details>
+
+<details>
+  <summary>Testing</summary>
+
+  - Make sure services and database are running, as instructed previously
+    - We will read and write to the `db` instance running in docker
+    - We will **NOT** send and receive requests to the `app` server instance running in docker because we use `TestClient` (but still need to make sure it's running in order to apply database migrations and run `pytest`, and all `env` variables are only available in the container of `app` server)
+  - Make sure you have applied the latest migrations, and all tables are empty
+    - `docker-compose exec app alembic upgrade head`
+  - Run tests
+    - `docker-compose exec app pytest -vv -s`
+  - Apart from running `pytest`, you should also manually do integration tests by sending requests to the endpoints (the `app` server instance running in docker) and checking the behaviors
+</details>
