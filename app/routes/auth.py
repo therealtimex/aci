@@ -56,7 +56,7 @@ oauth.register(
 
 
 # Function to generate JWT using Authlib
-def create_access_token(user_id: str, expires_delta: timedelta) -> str:
+def create_access_token(user_id: str, expires_delta: timedelta):
     now = datetime.now(timezone.utc)
     payload = {
         "sub": user_id,
