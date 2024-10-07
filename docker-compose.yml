@@ -2,12 +2,14 @@ services:
   db:
     # Note: we need to use the pgvector/pgvector:pg17 image to use the pgvector extension, instead of the official postgres image
     image: pgvector/pgvector:pg17
+    env_file:
+      - .env    
     environment:
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: local_db
+      POSTGRES_USER: ${DB_USER?Variable not set}
+      POSTGRES_PASSWORD: ${DB_PASSWORD?Variable not set}
+      POSTGRES_DB: ${DB_NAME?Variable not set}
     ports:
-      - "5432:5432"
+      - "${DB_PORT?Variable not set}:${DB_PORT?Variable not set}"
     restart: unless-stopped
 
   app:
@@ -16,18 +18,14 @@ services:
       args:
         INSTALL_DEV: true # install dev dependencies so we can run tests
     # this overrides the default CMD specified in the Dockerfile, use this for local development
-    command: fastapi dev app/main.py --host 0.0.0.0 --port 8000
+    command: fastapi dev app/main.py --host 0.0.0.0 --port ${APP_PORT?Variable not set}
     # This will make the .env file available to the container       
     env_file:
       - .env
-    # need to override DATABASE_URL in .env to point to the db service in docker-compose, @db instead of @localhost
-    # environment:
-    # TODO: break down to env variable in db
-      # - DATABASE_URL=postgresql://user:password@db:5432/local_db      
     # useful for development, changes take effect in the container without needing to rebuild the image.
     volumes:
       - ./app:/backend/app
     ports:
-      - "8000:8000"
+      - "${APP_PORT?Variable not set}:${APP_PORT?Variable not set}"
     depends_on:
       - db

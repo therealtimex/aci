@@ -69,7 +69,7 @@ Follow all guidelines below for setting up the development environment, running 
 <details>
   <summary>Testing</summary>
 
-  - Make sure services and database are running, as instructed previously
+  - Make sure services and database are running with `docker-compose up --build`, as instructed previously
     - We will read and write to the `db` instance running in docker
     - We will **NOT** send and receive requests to the `app` server instance running in docker because we use `TestClient` (but still need to make sure it's running in order to apply database migrations and run `pytest`, and all `env` variables are only available in the container of `app` server)
   - Make sure you have applied the latest migrations, and all tables are empty

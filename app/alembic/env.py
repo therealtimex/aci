@@ -6,7 +6,7 @@ from sqlalchemy import engine_from_config, pool
 
 from app.database.models import Base
 
-DATABASE_URL = os.getenv("DATABASE_URL")
+DB_FULL_URL = os.getenv("DB_FULL_URL")
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -30,9 +30,9 @@ target_metadata = Base.metadata
 
 
 def get_db_url() -> str:
-    if not DATABASE_URL:
-        raise ValueError("DATABASE_URL is not set")
-    return DATABASE_URL
+    if not DB_FULL_URL:
+        raise ValueError("DB_FULL_URL is not set")
+    return DB_FULL_URL
 
 
 def run_migrations_offline() -> None:
