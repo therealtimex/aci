@@ -1,5 +1,4 @@
 import logging
-import os
 from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Any
@@ -9,12 +8,10 @@ from authlib.jose import JoseError, jwt
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 
+from app import config
 from app import dependencies as deps
 from app import schemas
-from app.database import crud
-
-# Create router instance
-router = APIRouter()
+from app.db import crud
 
 # Set up logging
 # TODO: consider adding %(data)s - %(error)s and abstract to a common logging file
@@ -23,14 +20,8 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# JWT configuration
-JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY")
-JWT_ALGORITHM = os.getenv("JWT_ALGORITHM")
-JWT_ACCESS_TOKEN_EXPIRE_MINUTES = int(
-    os.getenv("JWT_ACCESS_TOKEN_EXPIRE_MINUTES", "30")
-)  # Default to 30 minutes if not set
-# OAuth setup
-AIPOLABS_REDIRECT_URI_BASE = os.getenv("AIPOLABS_REDIRECT_URI_BASE")
+# Create router instance
+router = APIRouter()
 oauth = OAuth()
 
 
@@ -42,18 +33,13 @@ class AuthProvider(Enum):
 # Register Google OAuth
 oauth.register(
     name=AuthProvider.GOOGLE.value,
-    client_id=os.getenv("GOOGLE_CLIENT_ID"),
-    client_secret=os.getenv("GOOGLE_CLIENT_SECRET"),
-    authorize_url=os.getenv("GOOGLE_AUTHORIZE_URL"),
-    access_token_url=os.getenv("GOOGLE_ACCESS_TOKEN_URL"),
-    # refresh_token_url=os.getenv("GOOGLE_REFRESH_TOKEN_URL"),
-    api_base_url=os.getenv("GOOGLE_API_BASE_URL"),
-    client_kwargs={
-        "scope": "openid email profile",
-        "prompt": "consent",  # Force the user to consent again (to get the refresh token)
-    },
-    # authorize_params={"access_type": "offline"},  # Request a refresh token
-    server_metadata_url=os.getenv("GOOGLE_SERVER_METADATA_URL"),
+    client_id=config.GOOGLE_AUTH_CLIENT_ID,
+    client_secret=config.GOOGLE_AUTH_CLIENT_SECRET,
+    authorize_url=config.GOOGLE_AUTH_AUTHORIZE_URL,
+    access_token_url=config.GOOGLE_AUTH_ACCESS_TOKEN_URL,
+    api_base_url=config.GOOGLE_AUTH_API_BASE_URL,
+    client_kwargs=config.GOOGLE_AUTH_CLIENT_KWARGS,
+    server_metadata_url=config.GOOGLE_AUTH_SERVER_METADATA_URL,
 )
 
 
@@ -67,9 +53,9 @@ def create_access_token(user_id: str, expires_delta: timedelta) -> str:
     }
 
     # Authlib expects a header, payload, and key
-    header = {"alg": JWT_ALGORITHM}
+    header = {"alg": config.JWT_ALGORITHM}
     try:
-        jwt_token: str = jwt.encode(header, payload, JWT_SECRET_KEY).decode(
+        jwt_token: str = jwt.encode(header, payload, config.JWT_SECRET_KEY).decode(
             "utf-8"
         )  # Decode to convert bytes to string
 
@@ -88,7 +74,7 @@ async def login(request: Request, provider: str) -> Any:
 
     path = request.url_for("auth_callback", provider=provider).path
     # TODO: configure redirect_uri properly for production
-    redirect_uri = f"{AIPOLABS_REDIRECT_URI_BASE}{path}"
+    redirect_uri = f"{config.AIPOLABS_REDIRECT_URI_BASE}{path}"
     logger.info(f"Initiating OAuth login for provider: {provider}, redirecting to: {redirect_uri}")
     return await oauth.create_client(provider).authorize_redirect(request, redirect_uri)
 
@@ -148,7 +134,7 @@ async def auth_callback(
     try:
         jwt_token = create_access_token(
             str(user.id),
-            timedelta(minutes=JWT_ACCESS_TOKEN_EXPIRE_MINUTES),
+            timedelta(minutes=config.JWT_ACCESS_TOKEN_EXPIRE_MINUTES),
         )
         # TODO: remove log
         logger.info(f"JWT generated successfully for user: {user.id}, jwt_token: {jwt_token}")

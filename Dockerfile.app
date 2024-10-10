@@ -9,25 +9,21 @@ RUN curl -sSL https://install.python-poetry.org | POETRY_HOME=/opt/poetry python
 RUN cd /usr/local/bin && ln -s /opt/poetry/bin/poetry
 RUN poetry config virtualenvs.create false
 
-
 # Copy poetry.lock* in case it doesn't exist in the repo
 COPY ./pyproject.toml ./poetry.lock* /backend/
 
-# COPY ./requirements.txt /backend/requirements.txt
+# skip dev dependencies
+RUN poetry install --no-root --only main
 
-# RUN pip install --no-cache-dir --upgrade -r /backend/requirements.txt
+# Set the Python path to include the project root
+ENV PYTHONPATH=/backend:$PYTHONPATH
 
-# Allow installing dev dependencies to run tests
-ARG INSTALL_DEV=false
-RUN bash -c "if [ $INSTALL_DEV == 'true' ] ; then poetry install --no-root ; else poetry install --no-root --only main ; fi"
-
-# ENV PYTHONPATH=${PYTHONPATH}:${PWD} 
-
-# TODO: remove this and use either AWS Secrets Manager or container definition on fargate
-# COPY .env /backend/.env
-COPY ./alembic.ini /backend/
-
+# alembic and .env files will be skipped by default specified in .dockerignore
 COPY ./app /backend/app
+COPY ./database /backend/database
 
+# remove unecessary or sensitive files (.env files are skipped by default specified in .dockerignore)
+RUN rm -rf /backend/app/tests
+RUN rm -rf /backend/database/alembic
 
 CMD ["fastapi", "run", "app/main.py", "--proxy-headers", "--host", "0.0.0.0", "--port", "8000"]

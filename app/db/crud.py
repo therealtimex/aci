@@ -6,7 +6,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app import schemas
-from app.database import models
+from database import models
 
 # Set up logging
 logging.basicConfig(

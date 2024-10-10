@@ -5,27 +5,32 @@ services:
     env_file:
       - .env    
     environment:
-      POSTGRES_USER: ${DB_USER?Variable not set}
-      POSTGRES_PASSWORD: ${DB_PASSWORD?Variable not set}
-      POSTGRES_DB: ${DB_NAME?Variable not set}
+      POSTGRES_USER: ${ALEMBIC_DB_USER?Variable not set}
+      POSTGRES_PASSWORD: ${ALEMBIC_DB_PASSWORD?Variable not set}
+      POSTGRES_DB: ${ALEMBIC_DB_NAME?Variable not set}
     ports:
-      - "${DB_PORT?Variable not set}:${DB_PORT?Variable not set}"
-    restart: unless-stopped
+      - "${ALEMBIC_DB_PORT?Variable not set}:${ALEMBIC_DB_PORT?Variable not set}"
+    restart: no
 
   app:
     build:
       context: .
+      dockerfile: Dockerfile.app
       args:
         INSTALL_DEV: true # install dev dependencies so we can run tests
     # this overrides the default CMD specified in the Dockerfile, use this for local development
-    command: fastapi dev app/main.py --host 0.0.0.0 --port ${APP_PORT?Variable not set}
-    # This will make the .env file available to the container       
+    command: fastapi dev app/main.py --host 0.0.0.0 --port 8000
     env_file:
       - .env
+    environment:
+      # override the default APP_DB_HOST value in .env
+      APP_DB_HOST: db
     # useful for development, changes take effect in the container without needing to rebuild the image.
     volumes:
       - ./app:/backend/app
     ports:
-      - "${APP_PORT?Variable not set}:${APP_PORT?Variable not set}"
+      - "8000:8000"
     depends_on:
       - db
+    restart: no
+

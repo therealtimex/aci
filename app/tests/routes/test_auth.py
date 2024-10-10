@@ -1,18 +1,16 @@
-import os
-
 import pytest
 from authlib.jose import jwt
 from fastapi import Request, status
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
-from app.database import models
+from app import config
 from app.main import app
+from database import models
 
 # disable following redirects for testing login
 test_client = TestClient(app, follow_redirects=False)
-AIPOLABS_REDIRECT_URI_BASE = os.getenv("AIPOLABS_REDIRECT_URI_BASE")
-JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY")
+
 MOCK_USER_GOOGLE_AUTH_DATA = {
     "sub": "123",
     "iss": "mock_google",
@@ -21,8 +19,8 @@ MOCK_USER_GOOGLE_AUTH_DATA = {
     "picture": "http://example.com/pic.jpg",
 }
 MOCK_GOOGLE_AUTH_REDIRECT_URI_PREFIX = (
-    "https://accounts.google.com/o/oauth2/v2/auth?response_type=code&"
-    "client_id=982856172186-en95h2s8qds12pme8gjp8n49sjhdtmgg.apps.googleusercontent.com&"
+    f"{config.GOOGLE_AUTH_AUTHORIZE_URL}?response_type=code&"
+    f"client_id={config.GOOGLE_AUTH_CLIENT_ID}&"
     "redirect_uri"
 )
 
@@ -59,7 +57,7 @@ def test_callback_google(mock_oauth_provider: None, db_session: Session) -> None
     assert data["access_token"] is not None
     assert data["token_type"] == "bearer"
     # check user is created
-    payload = jwt.decode(data["access_token"], JWT_SECRET_KEY)
+    payload = jwt.decode(data["access_token"], config.JWT_SECRET_KEY)
     payload.validate()
     user_id = payload.get("sub")
     # get user by id and check user is created

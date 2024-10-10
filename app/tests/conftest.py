@@ -6,9 +6,9 @@ from sqlalchemy import inspect
 from sqlalchemy.engine.reflection import Inspector
 from sqlalchemy.orm import Session
 
-from app.database import models
-from app.database.engine import SessionMaker
+from app.db.engine import SessionMaker
 from app.main import app
+from database import models
 
 
 @pytest.fixture(scope="session", autouse=True)

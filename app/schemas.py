@@ -3,7 +3,7 @@ import uuid
 
 from pydantic import BaseModel, ConfigDict
 
-from .database import models
+from database import models
 
 
 class TokenResponse(BaseModel):

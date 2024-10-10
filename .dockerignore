@@ -1,3 +1,9 @@
+# custom ignores
+**/.env
+**/.env.example
+**/__pycache__
+**/*.pyc
+
 # Python
 __pycache__
 app.egg-info

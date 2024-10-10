@@ -18,7 +18,7 @@ Follow all guidelines below for setting up the development environment, running 
   - Activate virtual env: `poetry shell`
     - We use docker and docker compose to run components in a container, so using a virtual env is more for development purposes. (IDE, pytest, dev dependencies, etc.)
   - Install dependencies: `poetry install`
-  - Set up `.env` file according to `.env.example`, these should be parameters for testing and loaded from env variables in docker compose instead of being loaded by the app server directly
+  - Set up `.env` file according to `.env.example`, it's for running locally and pytest only
   - Coding style
     - all the following tools are part of `pyproject.toml` dev dependencies, and are automatically installed when running `poetry install`
     - use `black` to format the code
@@ -40,41 +40,37 @@ Follow all guidelines below for setting up the development environment, running 
 <details>
   <summary>Run postgreSQL and app server in Docker locally</summary>
 
-  - `docker-compose up --build`: build app server and start the database and app server
+  - Build app server and start the database and app server
+    - `docker-compose up --build`
+  - Set up the database (running in docker) with the latest migration 
+    - `alembic upgrade head`
+  - (Optional) Connect to the database using a GUI client like `DBeaver`
+    - Parameters for the db connection can be found in the `.env` file
   - You can access the `Swagger UI` at `http://localhost:8000/v1/docs`
 </details>
 
 <details>
-  <summary>Set up or update database for testing locally</summary>
+  <summary>If any changes are made to the database or it's models</summary>
 
-  - In local development the `app` directory is mounted as a volume inside the container, you can run the migrations with `alembic` commands inside the container and the migration code (`versions` folder) will be in your local directory (instead of being only inside the container).
-  - Get a bash shell inside the app server container for running commands
-    - `docker-compose exec app bash`
-  - Set up the database (running in docker) with the latest migration 
-    - `alembic upgrade head`
-  - (Optional) Connect to the database using a GUI client like `DBeaver`
-    - Parameters for the db connection can be found in the `docker-compose.yml` file
-  - (If any changes are made to the models) After changing any tables or models, generate a new migration
-    - Check if a new migration is needed: `alembic check`
-    - Generate a new migration if a new migration is needed: `alembic revision --autogenerate -m "<some message>"`
-    - (If needed) Change the generated file in `alembic/versions/` to add the necessary changes (that are not auto-generated), e.g.,:
-      - import `pgvector` library for `Vector` type
-      - create and drop necessary indexes
-      - create and drop vector extension
-      - ...  
-    - Apply the changes to the database: `alembic upgrade head`
-    - (If needed) you can undo the last change to the database: `alembic downgrade -1`
+  - You need to generate a new migration, which will generate a new file in `database/alembic/versions/`
+  - First check if new upgrade operations detected: `alembic check`
+  - If so, generate a new migration file: `alembic revision --autogenerate -m "<some message>"`
+  - (If needed) Change the generated file in `database/alembic/versions/` to add the necessary changes (that are not auto-generated), e.g.,:
+    - import `pgvector` library for `Vector` type
+    - create and drop necessary indexes
+    - create and drop vector extension
+    - ...  
+  - Apply the changes to the **local** database: `alembic upgrade head`
+  - (If needed) you can undo the last change to the database: `alembic downgrade -1`
+  - Test the changes by `pytest` and local end to end tests
 </details>
 
 <details>
-  <summary>Testing</summary>
+  <summary>Run pytest</summary>
 
-  - Make sure services and database are running with `docker-compose up --build`, as instructed previously
-    - We will read and write to the `db` instance running in docker
-    - We will **NOT** send and receive requests to the `app` server instance running in docker because we use `TestClient` (but still need to make sure it's running in order to apply database migrations and run `pytest`, and all `env` variables are only available in the container of `app` server)
-  - Make sure you have applied the latest migrations, and all tables are empty
-    - `docker-compose exec app alembic upgrade head`
+  - Make sure a local db is running by `docker-compose up db` (no need to run `app` server for `pytest`)
+  - Make sure you have applied the latest migrations to the database, and all tables are empty
+    - `alembic upgrade head`
   - Run tests
-    - `docker-compose exec app pytest -vv -s`
-  - Apart from running `pytest`, you should also manually do integration tests by sending requests to the endpoints (the `app` server instance running in docker) and checking the behaviors
+    - `pytest -vv -s`
 </details>

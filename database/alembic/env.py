@@ -2,11 +2,12 @@ import os
 from logging.config import fileConfig
 
 from alembic import context
+from dotenv import load_dotenv
 from sqlalchemy import engine_from_config, pool
 
-from app.database.models import Base
+from database.models import Base
 
-DB_FULL_URL = os.getenv("DB_FULL_URL")
+load_dotenv()
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -29,10 +30,25 @@ target_metadata = Base.metadata
 # ... etc.
 
 
-def get_db_url() -> str:
-    if not DB_FULL_URL:
-        raise ValueError("DB_FULL_URL is not set")
-    return DB_FULL_URL
+def _check_and_get_env_variable(name: str) -> str:
+    value = os.getenv(name)
+    if value is None:
+        raise ValueError(f"Environment variable '{name}' is not set")
+    if value == "":
+        raise ValueError(f"Environment variable '{name}' is empty string")
+    return value
+
+
+def _get_db_url() -> str:
+
+    # construct db url from env variables
+    DB_SCHEME = _check_and_get_env_variable("ALEMBIC_DB_SCHEME")
+    DB_USER = _check_and_get_env_variable("ALEMBIC_DB_USER")
+    DB_PASSWORD = _check_and_get_env_variable("ALEMBIC_DB_PASSWORD")
+    DB_HOST = _check_and_get_env_variable("ALEMBIC_DB_HOST")
+    DB_PORT = _check_and_get_env_variable("ALEMBIC_DB_PORT")
+    DB_NAME = _check_and_get_env_variable("ALEMBIC_DB_NAME")
+    return f"{DB_SCHEME}://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 
 
 def run_migrations_offline() -> None:
@@ -48,7 +64,7 @@ def run_migrations_offline() -> None:
 
     """
     context.configure(
-        url=get_db_url(),
+        url=_get_db_url(),
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
@@ -66,7 +82,7 @@ def run_migrations_online() -> None:
 
     """
     configuration = config.get_section(config.config_ini_section, {})
-    configuration["sqlalchemy.url"] = get_db_url()
+    configuration["sqlalchemy.url"] = _get_db_url()
     connectable = engine_from_config(
         configuration,
         prefix="sqlalchemy.",

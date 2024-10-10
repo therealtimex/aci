@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 
 from app import dependencies as deps
 from app import schemas
-from app.database import crud
+from app.db import crud
 
 # Create router instance
 router = APIRouter()

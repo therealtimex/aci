@@ -1,5 +1,4 @@
 import logging
-import os
 from typing import Generator
 
 from authlib.jose import JoseError, jwt
@@ -7,7 +6,8 @@ from fastapi import HTTPException, Security, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 
-from app.database import engine
+from app import config
+from app.db import engine
 
 # Set up logging
 logging.basicConfig(
@@ -15,7 +15,6 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY")
 http_bearer = HTTPBearer()
 
 
@@ -35,7 +34,7 @@ def verify_user(
     token = auth_data.credentials
     try:
         logger.info("Decoding JWT token.")
-        payload = jwt.decode(token, JWT_SECRET_KEY)
+        payload = jwt.decode(token, config.JWT_SECRET_KEY)
         logger.info(f"Decoded token payload: {payload}")
         payload.validate()  # This will raise a JoseError if validation fails
 

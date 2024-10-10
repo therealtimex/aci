@@ -1,6 +1,5 @@
 # import sentry_sdk
 import logging
-import os
 
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
@@ -9,12 +8,9 @@ from pydantic import ValidationError
 from starlette.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 
+from app import config
+
 from .routes import auth, projects
-
-# from app.api.main import api_router
-# from app.core.config import settings
-
-SESSION_SECRET_KEY = os.getenv("SESSION_SECRET_KEY")
 
 
 def custom_generate_unique_id(route: APIRoute) -> str:
@@ -68,7 +64,7 @@ def validation_exception_handler(request: Request, exc: ValidationError) -> JSON
 # app.include_router(apps.router, prefix="/v1/apps", tags=["apps"])
 # app.include_router(actions.router, prefix="/v1/actions", tags=["actions"])
 
-app.add_middleware(SessionMiddleware, secret_key=SESSION_SECRET_KEY)
+app.add_middleware(SessionMiddleware, secret_key=config.SESSION_SECRET_KEY)
 
 app.include_router(auth.router, prefix="/v1/auth", tags=["auth"])
 app.include_router(projects.router, prefix="/v1/projects", tags=["projects"])
