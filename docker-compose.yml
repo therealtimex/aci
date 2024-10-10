@@ -5,11 +5,11 @@ services:
     env_file:
       - .env    
     environment:
-      POSTGRES_USER: ${ALEMBIC_DB_USER?Variable not set}
-      POSTGRES_PASSWORD: ${ALEMBIC_DB_PASSWORD?Variable not set}
-      POSTGRES_DB: ${ALEMBIC_DB_NAME?Variable not set}
+      POSTGRES_USER: ${APP_DB_USER?Variable not set}
+      POSTGRES_PASSWORD: ${APP_DB_PASSWORD?Variable not set}
+      POSTGRES_DB: ${APP_DB_NAME?Variable not set}
     ports:
-      - "${ALEMBIC_DB_PORT?Variable not set}:${ALEMBIC_DB_PORT?Variable not set}"
+      - "${APP_DB_PORT?Variable not set}:${APP_DB_PORT?Variable not set}"
     restart: no
 
   app:
