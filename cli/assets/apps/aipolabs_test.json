@@ -1,0 +1,157 @@
+{
+    "name": "aipolabs_test",
+    "display_name": "aipolabs",
+    "version": "1.0.0",
+    "provider": "aipolabs",
+    "description": "aipolabs test app",
+    "server_url": "https://api.aipolabs.com",
+    "logo": "https://example.com/logo.png",
+    "categories": [
+        "search",
+        "browser"
+    ],
+    "tags": [
+        "test",
+        "search"
+    ],
+    "supported_auth_schemes": {
+        "api_key": {
+            "parameter_name": "X-API-Key",
+            "location": "header"
+        },
+        "http_basic": {
+            "username": "username",
+            "password": "password"
+        },
+        "http_bearer": {
+            "header_name": "Authorization",
+            "token_prefix": "Bearer"
+        },
+        "oauth2": {
+            "authorization_url": "https://example.com/oauth/authorize",
+            "token_url": "https://example.com/oauth/token",
+            "refresh_url": "https://example.com/oauth/refresh",
+            "default_scopes": [
+                "read",
+                "write"
+            ],
+            "available_scopes": [
+                "read",
+                "write",
+                "admin"
+            ],
+            "client_id": "your_client_id",
+            "client_secret": "your_client_secret",
+            "additional_parameters": [
+                {
+                    "name": "redirect_uri",
+                    "required": true
+                },
+                {
+                    "name": "state",
+                    "required": false
+                }
+            ]
+        },
+        "open_id": {
+            "issuer_url": "https://example.com/.well-known/openid-configuration",
+            "client_id": "your_openid_client_id",
+            "client_secret": "your_openid_client_secret",
+            "default_scopes": [
+                "openid",
+                "profile",
+                "email"
+            ],
+            "additional_scopes": [
+                "offline_access"
+            ],
+            "additional_parameters": [
+                {
+                    "name": "nonce",
+                    "required": true
+                }
+            ]
+        }
+    },
+    "functions": [
+        {
+            "name": "AIPOLABS_TEST_CHECK_INVOICE_STATUS",
+            "description": "Check the current status of a payment invoice. This function can be used to verify if the payment has been completed, is still pending, or has failed.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "invoice_id": {
+                        "type": "string",
+                        "description": "The unique identifier of the invoice you want to check."
+                    }
+                },
+                "required": [
+                    "invoice_id"
+                ]
+            }
+        },
+        {
+            "name": "AIPOLABS_TEST_WRITE_REPORT",
+            "description": "Write a report",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "title": {
+                        "type": "string",
+                        "description": "Report title"
+                    },
+                    "content": {
+                        "type": "string",
+                        "description": "Report content"
+                    },
+                    "metadata": {
+                        "type": "object",
+                        "properties": {
+                            "author": {
+                                "type": "string",
+                                "description": "Report author"
+                            },
+                            "tags": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string",
+                                    "description": "Report tags"
+                                }
+                            },
+                            "relatedReports": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "reportId": {
+                                            "type": "string",
+                                            "description": "Related report ID"
+                                        },
+                                        "title": {
+                                            "type": "string",
+                                            "description": "Related report title"
+                                        }
+                                    },
+                                    "required": [
+                                        "reportId",
+                                        "title"
+                                    ]
+                                }
+                            }
+                        },
+                        "required": [
+                            "author",
+                            "tags",
+                            "relatedReports"
+                        ]
+                    }
+                },
+                "required": [
+                    "title",
+                    "content",
+                    "metadata"
+                ]
+            }
+        }
+    ]
+}

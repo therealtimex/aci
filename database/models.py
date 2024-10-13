@@ -161,40 +161,50 @@ class App(Base):
     __tablename__ = "apps"
 
     class AuthType(enum.Enum):
+        CUSTOM = "custom"  # placeholder, not really used yet
         API_KEY = "api_key"
-        OPEN_ID = "open_id"
+        HTTP_BASIC = "http_basic"
+        HTTP_BEARER = "http_bearer"
         OAUTH2 = "oauth2"
-        BASIC_AUTH = "basic_auth"
-        BRERAR_TOKEN = "bearer_token"
+        OPEN_ID = "open_id"
 
-    id = mapped_column(PGUUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id: Mapped[uuid.UUID] = mapped_column(
+        PGUUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
     # e.g., "github", "google". Note there can be another app also named "github" but from a different company,
     # in this case we need to make sure the name is unique by adding some kind of provider field or version or random string.
     # Need it to be unique to support both sdk (where user can specify apps by name) and globally unique function name.
-    name = mapped_column(String(50), nullable=False, unique=True)
-    display_name = mapped_column(String(50), nullable=False)
-    version = mapped_column(String(50), nullable=False, default=APP_DEFAULT_VERSION)
+    name: Mapped[str] = mapped_column(String(50), nullable=False, unique=True)
+    display_name: Mapped[str] = mapped_column(String(50), nullable=False)
+    version: Mapped[str] = mapped_column(String(50), nullable=False, default=APP_DEFAULT_VERSION)
     # provider (or company) of the app, e.g., google, github, or aipolabs or user (if allow user to create custom apps)
-    provider = mapped_column(String(255), nullable=False)
-    description = mapped_column(Text, nullable=False)
-    website = mapped_column(String(255), nullable=True)
-    logo = mapped_column(Text, nullable=True)
-    categories = mapped_column(ARRAY(String), nullable=False)
-    tags = mapped_column(ARRAY(String), nullable=False)
+    provider: Mapped[str] = mapped_column(String(50), nullable=False)
+    description: Mapped[str] = mapped_column(Text, nullable=False)
+    server_url: Mapped[str] = mapped_column(String(255), nullable=False)
+    logo: Mapped[str | None] = mapped_column(Text, nullable=True)
+    categories: Mapped[list[str]] = mapped_column(ARRAY(String), nullable=False)
+    tags: Mapped[list[str]] = mapped_column(ARRAY(String), nullable=False)
     # false if the app does not require customer authentication, e.g., scrapers API
-    auth_required = mapped_column(Boolean, default=True, nullable=False)
-    supported_auth_types = mapped_column(ARRAY(Enum(AuthType)), nullable=False)
+    auth_required: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    supported_auth_types: Mapped[list[AuthType]] = mapped_column(
+        ARRAY(Enum(AuthType)), nullable=False
+    )
+    # key is the auth type, value is the corresponding auth config
+    auth_configs: Mapped[dict] = mapped_column(JSON, nullable=False)
     # controlled by aipolabs
-    enabled = mapped_column(Boolean, default=True, nullable=False)
+    enabled: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     # TODO: currently created with name, description, categories, tags
-    embedding = mapped_column(Vector(EMBEDDING_DIMENTION), nullable=False)
-
-    created_at = mapped_column(DateTime(timezone=False), server_default=func.now(), nullable=False)
-    updated_at = mapped_column(
+    embedding: Mapped[list[float]] = mapped_column(Vector(EMBEDDING_DIMENTION), nullable=False)
+    created_at: Mapped[datetime.datetime] = mapped_column(
+        DateTime(timezone=False), server_default=func.now(), nullable=False
+    )
+    updated_at: Mapped[datetime.datetime] = mapped_column(
         DateTime(timezone=False), server_default=func.now(), onupdate=func.now(), nullable=False
     )
 
-    functions = relationship("Function", lazy="select", cascade="all, delete-orphan")
+    functions: Mapped[list["Function"]] = relationship(
+        "Function", lazy="select", cascade="all, delete-orphan"
+    )
 
 
 # TODO: how to do versioning for app and funcitons to allow backward compatibility, or we don't actually need to
