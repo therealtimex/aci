@@ -2,6 +2,7 @@
 Internal admin CLI tool for Aipolabs to manage apps, functions, users, etc.
 
 ## Commands
+For commands that require database connection, make sure the database you are connecting to is running and the `CLI_DB_` variables in `.env` file is set up correctly.
 
 <details>
   <summary>Upsert App</summary>
