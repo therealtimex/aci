@@ -190,7 +190,7 @@ class App(Base):
         ARRAY(Enum(AuthType)), nullable=False
     )
     # key is the auth type, value is the corresponding auth config
-    auth_configs: Mapped[dict] = mapped_column(JSON, nullable=False)
+    auth_configs: Mapped[dict] = mapped_column(JSON, nullable=True)
     # controlled by aipolabs
     enabled: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     # TODO: currently created with name, description, categories, tags
@@ -225,6 +225,7 @@ class Function(Base):
     # TODO: should response schema be generic (data + execution success of not + optional error) or specific to the function
     response = mapped_column(JSON, nullable=False)
     # TODO: currently created with name, description, parameters, response
+    # TODO: should we provide EMBEDDING_DIMENTION here? which makes it less flexible if we want to change the embedding dimention in the future
     embedding = mapped_column(Vector(EMBEDDING_DIMENTION), nullable=False)
     # controlled by aipolabs
     enabled = mapped_column(Boolean, default=True, nullable=False)

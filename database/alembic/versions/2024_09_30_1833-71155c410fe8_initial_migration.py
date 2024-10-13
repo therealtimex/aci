@@ -40,7 +40,13 @@ def upgrade() -> None:
             "supported_auth_types",
             sa.ARRAY(
                 sa.Enum(
-                    "API_KEY", "OPEN_ID", "OAUTH2", "BASIC_AUTH", "BRERAR_TOKEN", name="authtype"
+                    "CUSTOM",
+                    "API_KEY",
+                    "HTTP_BASIC",
+                    "HTTP_BEARER",
+                    "OAUTH2",
+                    "OPEN_ID",
+                    name="authtype",
                 )
             ),
             nullable=False,
@@ -261,9 +267,9 @@ def downgrade() -> None:
 
     # Drop the Enum types
     op_bind = op.get_bind()
-    sa.Enum("API_KEY", "OPEN_ID", "OAUTH2", "BASIC_AUTH", "BRERAR_TOKEN", name="authtype").drop(
-        op_bind
-    )
+    sa.Enum(
+        "CUSTOM", "API_KEY", "HTTP_BASIC", "HTTP_BEARER", "OAUTH2", "OPEN_ID", name="authtype"
+    ).drop(op_bind)
     sa.Enum("BASIC", "ADMIN", "OWNER", name="orgrole").drop(op_bind)
     sa.Enum("ACTIVE", "DISABLED", "DELETED", name="status").drop(op_bind)
     sa.Enum("FREE", "BASIC", "PRO", "ENTERPRISE", name="plan").drop(op_bind)

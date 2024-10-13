@@ -1,8 +1,19 @@
 import re
 
+from sqlalchemy import create_engine
+from sqlalchemy.orm import Session, sessionmaker
+
+from cli.utils import config
 from cli.utils.logging import get_logger
 
 logger = get_logger()
+
+
+def get_db_session() -> Session:
+    SessionMaker = sessionmaker(
+        autocommit=False, autoflush=False, bind=create_engine(config.DB_FULL_URL)
+    )
+    return SessionMaker()
 
 
 # convert a string with spaces, hyphens, slashes, camel case etc. to screaming snake case
