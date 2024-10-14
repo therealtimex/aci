@@ -1,11 +1,11 @@
 # Aipolabs Core Components
 
 ## Project Structure
-Currently only contains the app server code (and associated database).
-But can be extended to include more services (e.g., separate admin server, sdk, cli, etc.) as a monorepo if needed.
+Currently only contains the app server code, database (shared) and cli,
+but can be extended to include more services (e.g., separate admin server, sdk, etc.) as a monorepo if needed.
 
-## Local Development
-Follow all guidelines below for setting up the development environment, running services and testing locally
+## App Server
+Follow all guidelines below for setting up the development environment, running services and testing locally for the app server.
 
 
 <details>
@@ -74,3 +74,7 @@ Follow all guidelines below for setting up the development environment, running 
   - Run tests
     - `pytest -vv -s`
 </details>
+
+
+## CLI
+Follow the [CLI instructions](cli/README.md) for the cli module.
