@@ -2,6 +2,7 @@ import json
 
 import click
 from openai import OpenAI
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from cli.models.app_file import AppModel
@@ -49,22 +50,25 @@ def upsert_app(app_file: str) -> None:
             with open(app_file, "r") as f:
                 app_model: AppModel = AppModel.model_validate(json.load(f))
 
-            app = get_app_to_upsert(db_session, app_model)
-            db_session.add(app)
-            db_session.commit()
-            # db_session.refresh(app)
+            # make sure app and functions are upserted together
+            with db_session.begin():
+                upsert_app_to_db(db_session, app_model)
+                # upsert_functions_to_db(db_session, app_model)
 
-            # # prepare app and functions database records to upsert
-            # app = get_app_to_upsert(db_session, app_config, app_openapi)
-            # # ensure app id is generated
-            # db_session.add(app)
-            # db_session.flush()
-            # db_session.refresh(app)
-            # get_functions_to_upsert(app, app_openapi)
+                db_session.commit()
+                # db_session.refresh(app)
 
-            # # Commit all changes
-            # db_session.commit()
-            # click.echo("App and functions indexed successfully.")
+                # # prepare app and functions database records to upsert
+                # app = get_app_to_upsert(db_session, app_config, app_openapi)
+                # # ensure app id is generated
+                # db_session.add(app)
+                # db_session.flush()
+                # db_session.refresh(app)
+                # get_functions_to_upsert(app, app_openapi)
+
+                # # Commit all changes
+                # db_session.commit()
+                # click.echo("App and functions indexed successfully.")
 
         except Exception as e:
             db_session.rollback()
@@ -72,7 +76,11 @@ def upsert_app(app_file: str) -> None:
             click.echo(f"Error indexing app and functions: {e}")
 
 
-def get_app_to_upsert(db_session: Session, app_model: AppModel) -> models.App:
+def upsert_functions_to_db(db_session: Session, app_model: AppModel) -> None:
+    pass
+
+
+def upsert_app_to_db(db_session: Session, app_model: AppModel) -> models.App:
     app_embedding = generate_app_embedding(app_model)
 
     if app_model.supported_auth_schemes is None:
@@ -84,6 +92,7 @@ def get_app_to_upsert(db_session: Session, app_model: AppModel) -> models.App:
             if auth_config is not None
         ]
     auth_required = len(supported_auth_types) > 0
+
     db_app = models.App(
         name=app_model.name,
         display_name=app_model.display_name,
@@ -103,7 +112,20 @@ def get_app_to_upsert(db_session: Session, app_model: AppModel) -> models.App:
         ),
         embedding=app_embedding,
     )
-    # # logger.info(vars(db_app))
+
+    # check if the app already exists
+    existing_app = db_session.execute(
+        select(models.App).filter_by(name=app_model.name).with_for_update()
+    ).scalar_one_or_none()
+    if existing_app:
+        logger.info(f"App {app_model.name} already exists, will perform update")
+        db_app.id = existing_app.id
+        db_app = db_session.merge(db_app)
+    else:
+        logger.info(f"App {app_model.name} does not exist, will perform insert")
+        db_session.add(db_app)
+        db_session.flush()
+
     return db_app
 
 
