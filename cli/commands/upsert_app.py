@@ -55,21 +55,6 @@ def upsert_app(app_file: str) -> None:
                 db_app = upsert_app_to_db(db_session, app_model)
                 upsert_functions_to_db(db_session, db_app, app_model)
 
-                db_session.commit()
-                # db_session.refresh(app)
-
-                # # prepare app and functions database records to upsert
-                # app = get_app_to_upsert(db_session, app_config, app_openapi)
-                # # ensure app id is generated
-                # db_session.add(app)
-                # db_session.flush()
-                # db_session.refresh(app)
-                # get_functions_to_upsert(app, app_openapi)
-
-                # # Commit all changes
-                # db_session.commit()
-                # click.echo("App and functions indexed successfully.")
-
         except Exception as e:
             db_session.rollback()
             logger.error(f"Error indexing app and functions: {e}")
