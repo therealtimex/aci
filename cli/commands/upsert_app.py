@@ -5,7 +5,7 @@ from openai import OpenAI
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from cli.models.app_file import AppModel
+from cli.models.app_file import AppModel, FunctionModel
 from cli.utils import config
 from cli.utils.helper import get_db_session
 from cli.utils.logging import get_logger
@@ -52,8 +52,8 @@ def upsert_app(app_file: str) -> None:
 
             # make sure app and functions are upserted together
             with db_session.begin():
-                upsert_app_to_db(db_session, app_model)
-                # upsert_functions_to_db(db_session, app_model)
+                db_app = upsert_app_to_db(db_session, app_model)
+                upsert_functions_to_db(db_session, db_app, app_model)
 
                 db_session.commit()
                 # db_session.refresh(app)
@@ -76,13 +76,53 @@ def upsert_app(app_file: str) -> None:
             click.echo(f"Error indexing app and functions: {e}")
 
 
-def upsert_functions_to_db(db_session: Session, app_model: AppModel) -> None:
-    pass
+# TODO: check for changes before updating? if no changes just skip?
+def upsert_functions_to_db(db_session: Session, db_app: models.App, app_model: AppModel) -> None:
+    # Retrieve all existing functions for the app in one query
+    existing_functions = (
+        (db_session.execute(select(models.Function).filter_by(app_id=db_app.id).with_for_update()))
+        .scalars()
+        .all()
+    )
+    # Create a dictionary of existing functions by name for easy lookup
+    existing_function_dict = {f.name: f for f in existing_functions}
+
+    for function in app_model.functions:
+        db_function = models.Function(
+            name=function.name,
+            description=function.description,
+            parameters=function.parameters,
+            app_id=db_app.id,
+            response={},  # TODO: add response schema
+            embedding=generate_function_embedding(function),
+        )
+        if db_function.name in existing_function_dict:
+            logger.info(f"Function {function.name} already exists, will perform update")
+            # Update existing function
+            db_function.id = existing_function_dict[function.name].id
+            db_function = db_session.merge(db_function)
+        else:
+            logger.info(f"Function {function.name} does not exist, will perform insert")
+            # Insert new function
+            db_session.add(db_function)
+
+    db_session.flush()
+
+
+# TODO: include response schema in the embedding if added
+# TODO: bacth generate function embeddings
+def generate_function_embedding(function: FunctionModel) -> list[float]:
+    text_for_embedding = f"{function.name}\n{function.description}\n{function.parameters}"
+    response = LLM_CLIENT.embeddings.create(
+        input=text_for_embedding,
+        model=config.OPENAI_EMBEDDING_MODEL,
+        dimensions=config.EMBEDDING_DIMENSION,
+    )
+    embedding: list[float] = response.data[0].embedding
+    return embedding
 
 
 def upsert_app_to_db(db_session: Session, app_model: AppModel) -> models.App:
-    app_embedding = generate_app_embedding(app_model)
-
     if app_model.supported_auth_schemes is None:
         supported_auth_types = []
     else:
@@ -110,7 +150,7 @@ def upsert_app_to_db(db_session: Session, app_model: AppModel) -> models.App:
             if app_model.supported_auth_schemes is not None
             else None
         ),
-        embedding=app_embedding,
+        embedding=generate_app_embedding(app_model),
     )
 
     # check if the app already exists
