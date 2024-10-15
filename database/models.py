@@ -215,23 +215,29 @@ class Function(Base):
 
     # TODO: I don't see a reason yet to have a separate id for function as primary key instead of just using function name,
     # but keep it for now for potential future use
-    id = mapped_column(PGUUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id: Mapped[uuid.UUID] = mapped_column(
+        PGUUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
     # Note: the function name is unique across the platform and should have app information, e.g., "github_clone_repo"
     # ideally this should just be <app name>_<function name>
-    name = mapped_column(String(255), nullable=False, unique=True)
-    app_id = mapped_column(PGUUID(as_uuid=True), ForeignKey("apps.id"), nullable=False)
-    description = mapped_column(Text, nullable=False)
-    parameters = mapped_column(JSON, nullable=False)
+    name: Mapped[str] = mapped_column(String(255), nullable=False, unique=True)
+    app_id: Mapped[uuid.UUID] = mapped_column(
+        PGUUID(as_uuid=True), ForeignKey("apps.id"), nullable=False
+    )
+    description: Mapped[str] = mapped_column(Text, nullable=False)
+    parameters: Mapped[dict] = mapped_column(JSON, nullable=False)
     # TODO: should response schema be generic (data + execution success of not + optional error) or specific to the function
-    response = mapped_column(JSON, nullable=False)
+    response: Mapped[dict] = mapped_column(JSON, nullable=False)
     # TODO: currently created with name, description, parameters, response
     # TODO: should we provide EMBEDDING_DIMENTION here? which makes it less flexible if we want to change the embedding dimention in the future
-    embedding = mapped_column(Vector(EMBEDDING_DIMENTION), nullable=False)
+    embedding: Mapped[list[float]] = mapped_column(Vector(EMBEDDING_DIMENTION), nullable=False)
     # controlled by aipolabs
-    enabled = mapped_column(Boolean, default=True, nullable=False)
+    enabled: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
 
-    created_at = mapped_column(DateTime(timezone=False), server_default=func.now(), nullable=False)
-    updated_at = mapped_column(
+    created_at: Mapped[datetime.datetime] = mapped_column(
+        DateTime(timezone=False), server_default=func.now(), nullable=False
+    )
+    updated_at: Mapped[datetime.datetime] = mapped_column(
         DateTime(timezone=False), server_default=func.now(), onupdate=func.now(), nullable=False
     )
 
@@ -247,14 +253,22 @@ class Function(Base):
 class ProjectAppIntegration(Base):
     __tablename__ = "project_app_integrations"
 
-    id = mapped_column(PGUUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    project_id = mapped_column(PGUUID(as_uuid=True), ForeignKey("projects.id"), nullable=False)
-    app_id = mapped_column(PGUUID(as_uuid=True), ForeignKey("apps.id"), nullable=False)
+    id: Mapped[uuid.UUID] = mapped_column(
+        PGUUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    project_id: Mapped[uuid.UUID] = mapped_column(
+        PGUUID(as_uuid=True), ForeignKey("projects.id"), nullable=False
+    )
+    app_id: Mapped[uuid.UUID] = mapped_column(
+        PGUUID(as_uuid=True), ForeignKey("apps.id"), nullable=False
+    )
     # controlled by users
-    enabled = mapped_column(Boolean, default=True, nullable=False)
+    enabled: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
 
-    created_at = mapped_column(DateTime(timezone=False), server_default=func.now(), nullable=False)
-    updated_at = mapped_column(
+    created_at: Mapped[datetime.datetime] = mapped_column(
+        DateTime(timezone=False), server_default=func.now(), nullable=False
+    )
+    updated_at: Mapped[datetime.datetime] = mapped_column(
         DateTime(timezone=False), server_default=func.now(), onupdate=func.now(), nullable=False
     )
 
@@ -266,23 +280,27 @@ class ProjectAppIntegration(Base):
 class ConnectedAccount(Base):
     __tablename__ = "connected_accounts"
 
-    id = mapped_column(PGUUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    project_app_integration_id = mapped_column(
+    id: Mapped[uuid.UUID] = mapped_column(
+        PGUUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    project_app_integration_id: Mapped[uuid.UUID] = mapped_column(
         PGUUID(as_uuid=True), ForeignKey("project_app_integrations.id"), nullable=False
     )
     # account_owner should be unique per app per project (or just per ProjectAppIntegration), it identifies the end user, not the project owner.
     # ideally this should be some user id in client's system that uniquely identify this account owner.
-    account_owner_id = mapped_column(String(255), nullable=False)
+    account_owner_id: Mapped[str] = mapped_column(String(255), nullable=False)
     # TODO: here we assume it's possible to have connected account but no auth is required, in which case auth_type and auth_data will be null
-    auth_type = mapped_column(Enum(App.AuthType), nullable=True)
+    auth_type: Mapped[App.AuthType] = mapped_column(Enum(App.AuthType), nullable=True)
     # auth_data is different for each auth type, e.g., API key, OAuth2 etc
-    auth_data = mapped_column(JSON, nullable=True)
+    auth_data: Mapped[dict] = mapped_column(JSON, nullable=True)
 
-    created_at = mapped_column(DateTime(timezone=False), server_default=func.now(), nullable=False)
-    updated_at = mapped_column(
+    created_at: Mapped[datetime.datetime] = mapped_column(
+        DateTime(timezone=False), server_default=func.now(), nullable=False
+    )
+    updated_at: Mapped[datetime.datetime] = mapped_column(
         DateTime(timezone=False), server_default=func.now(), onupdate=func.now(), nullable=False
     )
-
+    enabled: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     __table_args__ = (
         UniqueConstraint(
             "project_app_integration_id", "account_owner_id", name="uc_project_app_account_owner"
