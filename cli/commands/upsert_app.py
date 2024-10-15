@@ -12,26 +12,7 @@ from cli.utils.logging import get_logger
 from database import models
 
 logger = get_logger()
-
-
 LLM_CLIENT = OpenAI(api_key=config.OPENAI_API_KEY)
-
-
-# existing_app = db_session.execute(
-#     select(models.App).filter_by(name=app_config["name"])
-# ).scalar_one_or_none()
-
-# if existing_app:
-#     for key, value in app_attributes.items():
-#         setattr(existing_app, key, value)
-#     app = existing_app
-#     logger.info(f"Updated existing app: {app_config['name']}")
-# else:
-#     app = models.App(name=app_config["name"], **app_attributes)
-#     db_session.add(app)
-#     logger.info(f"Created new app: {app_config['name']}")
-
-# return app
 
 
 @click.command()
@@ -63,6 +44,7 @@ def upsert_app(app_file: str) -> None:
 
 # TODO: check for changes before updating? if no changes just skip?
 def upsert_functions_to_db(db_session: Session, db_app: models.App, app_model: AppModel) -> None:
+    logger.info(f"Upserting functions for app: {db_app.name}...")
     # Retrieve all existing functions for the app in one query
     existing_functions = (
         (db_session.execute(select(models.Function).filter_by(app_id=db_app.id).with_for_update()))
@@ -82,12 +64,12 @@ def upsert_functions_to_db(db_session: Session, db_app: models.App, app_model: A
             embedding=generate_function_embedding(function),
         )
         if db_function.name in existing_function_dict:
-            logger.info(f"Function {function.name} already exists, will perform update")
+            logger.info(f"Function {function.name} already exists, will update")
             # Update existing function
             db_function.id = existing_function_dict[function.name].id
             db_function = db_session.merge(db_function)
         else:
-            logger.info(f"Function {function.name} does not exist, will perform insert")
+            logger.info(f"Function {function.name} does not exist, will insert")
             # Insert new function
             db_session.add(db_function)
 
@@ -97,6 +79,7 @@ def upsert_functions_to_db(db_session: Session, db_app: models.App, app_model: A
 # TODO: include response schema in the embedding if added
 # TODO: bacth generate function embeddings
 def generate_function_embedding(function: FunctionModel) -> list[float]:
+    logger.info(f"Generating embedding for function: {function.name}...")
     text_for_embedding = f"{function.name}\n{function.description}\n{function.parameters}"
     response = LLM_CLIENT.embeddings.create(
         input=text_for_embedding,
@@ -108,6 +91,7 @@ def generate_function_embedding(function: FunctionModel) -> list[float]:
 
 
 def upsert_app_to_db(db_session: Session, app_model: AppModel) -> models.App:
+    logger.info(f"Upserting app: {app_model.name}...")
     if app_model.supported_auth_schemes is None:
         supported_auth_types = []
     else:
@@ -155,6 +139,7 @@ def upsert_app_to_db(db_session: Session, app_model: AppModel) -> models.App:
 
 
 def generate_app_embedding(app_model: AppModel) -> list[float]:
+    logger.info(f"Generating embedding for app: {app_model.name}...")
     # generate app embeddings based on app config's name, display_name, provider, description, categories, and tags
     text_for_embedding = (
         f"{app_model.name}\n"
