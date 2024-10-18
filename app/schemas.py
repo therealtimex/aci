@@ -11,22 +11,13 @@ class TokenResponse(BaseModel):
     token_type: str
 
 
-"""User models"""
-
-
-class APIKeyBase(BaseModel):
+# TODO: should we hide api key and only show one it time when creating?
+class APIKeyPublic(BaseModel):
+    id: uuid.UUID
     key: str
     agent_id: uuid.UUID
     status: models.APIKey.Status = models.APIKey.Status.ACTIVE
 
-
-class APIKeyCreate(APIKeyBase):
-    pass
-
-
-# TODO: should we hide api key and only show one it time when creating?
-class APIKeyPublic(APIKeyBase):
-    id: uuid.UUID
     created_at: datetime.datetime
     updated_at: datetime.datetime
 
