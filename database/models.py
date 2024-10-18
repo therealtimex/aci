@@ -10,6 +10,7 @@ from sqlalchemy import (
     ARRAY,
     JSON,
     Boolean,
+    CheckConstraint,
     DateTime,
     Enum,
     ForeignKey,
@@ -30,17 +31,22 @@ class Base(DeclarativeBase):
     pass
 
 
+# TODO: org is for future use
+class Organization(Base):
+    __tablename__ = "organizations"
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        PGUUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    name: Mapped[str] = mapped_column(String(255), nullable=False)
+    description: Mapped[str] = mapped_column(Text, nullable=False)
+
+
 # TODO: add indexes for frequently used fields for all tables, including embedding fields. Note we might need to set up index for embedding manually
 # for customizing the similarity search algorithm (https://github.com/pgvector/pgvector)
-# TODO: use incrementing integer as primary key for simplicity and performance
 # TODO: limit auth_provider to a set of values?
 class User(Base):
     __tablename__ = "users"
-
-    class OrgRole(enum.Enum):
-        BASIC = "basic"
-        ADMIN = "admin"
-        OWNER = "owner"
 
     id: Mapped[uuid.UUID] = mapped_column(
         PGUUID(as_uuid=True), primary_key=True, default=uuid.uuid4
@@ -54,13 +60,7 @@ class User(Base):
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     email: Mapped[str | None] = mapped_column(String(255), nullable=True)
     profile_picture: Mapped[str | None] = mapped_column(Text, nullable=True)
-    organization_id: Mapped[uuid.UUID] = mapped_column(
-        PGUUID(as_uuid=True), nullable=False, default=uuid.uuid4
-    )  # TODO: might need a Organization table in the future
 
-    organization_role: Mapped[OrgRole] = mapped_column(
-        Enum(OrgRole), nullable=False, default=OrgRole.OWNER
-    )
     # TODO: consider storing timestap in UTC
     created_at: Mapped[datetime.datetime] = mapped_column(
         DateTime(timezone=False), server_default=func.now(), nullable=False
@@ -80,17 +80,39 @@ class User(Base):
 # TODO: might need to assign projects to organizations
 class Project(Base):
     __tablename__ = "projects"
+
+    class Plan(enum.Enum):
+        FREE = "free"
+        BASIC = "basic"
+        PRO = "pro"
+        ENTERPRISE = "enterprise"
+
     id: Mapped[uuid.UUID] = mapped_column(
         PGUUID(as_uuid=True), primary_key=True, default=uuid.uuid4
     )
+    # TODO: consider having unique constraints on project name
     name: Mapped[str] = mapped_column(String(255), nullable=False)
-    creator_id: Mapped[uuid.UUID] = mapped_column(
+
+    # owner of the project can be a user or an organization
+    owner_user_id: Mapped[uuid.UUID] = mapped_column(
+        PGUUID(as_uuid=True), ForeignKey("users.id"), nullable=True
+    )
+    owner_organization_id: Mapped[uuid.UUID] = mapped_column(
+        PGUUID(as_uuid=True), ForeignKey("organizations.id"), nullable=True
+    )
+
+    """ quota related fields: TODO: TBD how to implement quota system """
+    plan: Mapped[Plan] = mapped_column(Enum(Plan), default=Plan.FREE, nullable=False)
+    daily_quota_used: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    daily_quota_reset_at: Mapped[datetime.datetime] = mapped_column(
+        DateTime(timezone=False), server_default=func.now(), nullable=False
+    )
+    total_quota_used: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+
+    # Note: creator is not necessarily the owner
+    created_by: Mapped[uuid.UUID] = mapped_column(
         PGUUID(as_uuid=True), ForeignKey("users.id"), nullable=False
     )
-    organization_id: Mapped[uuid.UUID] = mapped_column(
-        PGUUID(as_uuid=True), nullable=False, default=uuid.uuid4
-    )  # TODO: might need a Organization table in the future
-
     created_at: Mapped[datetime.datetime] = mapped_column(
         DateTime(timezone=False), server_default=func.now(), nullable=False
     )
@@ -98,14 +120,53 @@ class Project(Base):
         DateTime(timezone=False), server_default=func.now(), onupdate=func.now(), nullable=False
     )
 
-    # TODO: now each project only allow one api key to make quota management easier,
-    # in the future might allow multiple api keys
+    agents: Mapped[list[Agent]] = relationship("Agent", lazy="select", cascade="all, delete-orphan")
+
+    # check constraint to ensure project owner is either a user or an organization
+    __table_args__ = (
+        CheckConstraint(
+            "(owner_user_id IS NOT NULL AND owner_organization_id IS NULL) OR "
+            "(owner_user_id IS NULL AND owner_organization_id IS NOT NULL)",
+            name="cc_project_owner",
+        ),
+    )
+
+
+class Agent(Base):
+    __tablename__ = "agents"
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        PGUUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    project_id: Mapped[uuid.UUID] = mapped_column(
+        PGUUID(as_uuid=True), ForeignKey("projects.id"), nullable=False
+    )
+    name: Mapped[str] = mapped_column(String(255), nullable=False)
+    description: Mapped[str] = mapped_column(Text, nullable=False)
+
+    # agent level control of what apps and functions are not accessible by the agent, apart from the project level control
+    # TODO: reconsider if this should be in a separate table to enforce data integrity, or use periodic task to clean up
+    excluded_apps: Mapped[list[uuid.UUID]] = mapped_column(
+        ARRAY(PGUUID(as_uuid=True)), nullable=False, default=[]
+    )
+    excluded_functions: Mapped[list[uuid.UUID]] = mapped_column(
+        ARRAY(PGUUID(as_uuid=True)), nullable=False, default=[]
+    )
+
+    created_by: Mapped[uuid.UUID] = mapped_column(
+        PGUUID(as_uuid=True), ForeignKey("users.id"), nullable=False
+    )
+    created_at: Mapped[datetime.datetime] = mapped_column(
+        DateTime(timezone=False), server_default=func.now(), nullable=False
+    )
+    updated_at: Mapped[datetime.datetime] = mapped_column(
+        DateTime(timezone=False), server_default=func.now(), onupdate=func.now(), nullable=False
+    )
+
+    # Note: for now each agent has one API key, but we can add more flexibility in the future if needed
     api_keys: Mapped[list[APIKey]] = relationship(
         "APIKey", lazy="select", cascade="all, delete-orphan"
     )
-
-    # TODO: don't have unique constraints on project name / creator / organization combination now as it can complicate
-    # project management and org v.s personal project reconciliation. Maybe it's something frontend can soft-enforce
 
 
 class APIKey(Base):
@@ -118,12 +179,6 @@ class APIKey(Base):
         # TODO: this is soft delete (requested by user), in the future might consider hard delete and keep audit logs somewhere else
         DELETED = "deleted"
 
-    class Plan(enum.Enum):
-        FREE = "free"
-        BASIC = "basic"
-        PRO = "pro"
-        ENTERPRISE = "enterprise"
-
     # id is not the actual API key, it's just a unique identifier to easily reference each API key entry without depending
     # on the API key string itself.
     id: Mapped[uuid.UUID] = mapped_column(
@@ -131,19 +186,10 @@ class APIKey(Base):
     )
     # TODO: the actual API key string that the user will use to authenticate, consider encrypting it
     key: Mapped[str] = mapped_column(String(100), nullable=False, unique=True)
-    project_id: Mapped[uuid.UUID] = mapped_column(
-        PGUUID(as_uuid=True), ForeignKey("projects.id"), unique=True, nullable=False
-    )
-    creator_id: Mapped[uuid.UUID] = mapped_column(
-        PGUUID(as_uuid=True), ForeignKey("users.id"), nullable=False
+    agent_id: Mapped[uuid.UUID] = mapped_column(
+        PGUUID(as_uuid=True), ForeignKey("agents.id"), unique=True, nullable=False
     )
     status: Mapped[Status] = mapped_column(Enum(Status), default=Status.ACTIVE, nullable=False)
-    plan: Mapped[Plan] = mapped_column(Enum(Plan), nullable=False)
-    daily_quota_used: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
-    daily_quota_reset_at: Mapped[datetime.datetime] = mapped_column(
-        DateTime(timezone=False), server_default=func.now(), nullable=False
-    )
-    total_quota_used: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
 
     created_at: Mapped[datetime.datetime] = mapped_column(
         DateTime(timezone=False), server_default=func.now(), nullable=False
