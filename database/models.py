@@ -162,6 +162,7 @@ class App(Base):
 
     class AuthType(enum.Enum):
         CUSTOM = "custom"  # placeholder, not really used yet
+        NO_AUTH = "no_auth"  # for apps that does not require authentication, or only to access functions that does not require auth
         API_KEY = "api_key"
         HTTP_BASIC = "http_basic"
         HTTP_BEARER = "http_bearer"
@@ -184,8 +185,6 @@ class App(Base):
     logo: Mapped[str | None] = mapped_column(Text, nullable=True)
     categories: Mapped[list[str]] = mapped_column(ARRAY(String), nullable=False)
     tags: Mapped[list[str]] = mapped_column(ARRAY(String), nullable=False)
-    # false if the app does not require customer authentication, e.g., scrapers API
-    auth_required: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     supported_auth_types: Mapped[list[AuthType]] = mapped_column(
         ARRAY(Enum(AuthType)), nullable=False
     )
@@ -193,7 +192,6 @@ class App(Base):
     auth_configs: Mapped[dict] = mapped_column(JSON, nullable=True)
     # controlled by aipolabs
     enabled: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
-    # TODO: currently created with name, description, categories, tags
     embedding: Mapped[list[float]] = mapped_column(Vector(EMBEDDING_DIMENTION), nullable=False)
     created_at: Mapped[datetime.datetime] = mapped_column(
         DateTime(timezone=False), server_default=func.now(), nullable=False
@@ -262,8 +260,13 @@ class ProjectAppIntegration(Base):
     app_id: Mapped[uuid.UUID] = mapped_column(
         PGUUID(as_uuid=True), ForeignKey("apps.id"), nullable=False
     )
-    # controlled by users
+    # controlled by users to enable or disable the app integration
     enabled: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    # exclude certain functions from the app.
+    # TODO: Reconsider if this should be in a separate table to enforce data integrity, or use periodic task to clean up
+    excluded_functions: Mapped[list[uuid.UUID]] = mapped_column(
+        ARRAY(PGUUID(as_uuid=True)), nullable=False, default=[]
+    )
 
     created_at: Mapped[datetime.datetime] = mapped_column(
         DateTime(timezone=False), server_default=func.now(), nullable=False
@@ -289,8 +292,8 @@ class ConnectedAccount(Base):
     # account_owner should be unique per app per project (or just per ProjectAppIntegration), it identifies the end user, not the project owner.
     # ideally this should be some user id in client's system that uniquely identify this account owner.
     account_owner_id: Mapped[str] = mapped_column(String(255), nullable=False)
-    # TODO: here we assume it's possible to have connected account but no auth is required, in which case auth_type and auth_data will be null
-    auth_type: Mapped[App.AuthType] = mapped_column(Enum(App.AuthType), nullable=True)
+    # here we assume it's possible to have connected account but no auth is required, in which case auth_data will be null
+    auth_type: Mapped[App.AuthType] = mapped_column(Enum(App.AuthType), nullable=False)
     # auth_data is different for each auth type, e.g., API key, OAuth2 etc
     auth_data: Mapped[dict] = mapped_column(JSON, nullable=True)
 
