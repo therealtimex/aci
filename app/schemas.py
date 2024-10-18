@@ -11,35 +11,13 @@ class TokenResponse(BaseModel):
     token_type: str
 
 
-# User models
-class UserBase(BaseModel):
-    auth_provider: str
-    auth_user_id: str
-    name: str
-    email: str | None = None
-    profile_picture: str | None = None
-
-
-class UserCreate(UserBase):
-    pass
-
-
-# TODO: check UUID behavtior in response
-class User(UserBase):
-    id: uuid.UUID
-    organization_id: uuid.UUID
-    organization_role: models.User.OrgRole
-    created_at: datetime.datetime
-    updated_at: datetime.datetime
-
-    model_config = ConfigDict(from_attributes=True)
+"""User models"""
 
 
 class APIKeyBase(BaseModel):
-    project_id: uuid.UUID
-    creator_id: uuid.UUID
+    key: str
+    agent_id: uuid.UUID
     status: models.APIKey.Status = models.APIKey.Status.ACTIVE
-    plan: models.APIKey.Plan
 
 
 class APIKeyCreate(APIKeyBase):
@@ -47,9 +25,25 @@ class APIKeyCreate(APIKeyBase):
 
 
 # TODO: should we hide api key and only show one it time when creating?
-class APIKey(APIKeyBase):
+class APIKeyPublic(APIKeyBase):
     id: uuid.UUID
-    key: str
+    created_at: datetime.datetime
+    updated_at: datetime.datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class ProjectCreate(BaseModel):
+    name: str
+    owner_organization_id: uuid.UUID | None
+
+
+class ProjectPublic(BaseModel):
+    id: uuid.UUID
+    name: str
+    owner_user_id: uuid.UUID | None
+    owner_organization_id: uuid.UUID | None
+    plan: models.Project.Plan
     daily_quota_used: int
     daily_quota_reset_at: datetime.datetime
     total_quota_used: int
@@ -57,24 +51,30 @@ class APIKey(APIKeyBase):
     created_at: datetime.datetime
     updated_at: datetime.datetime
 
+    agents: list["AgentPublic"]
+
     model_config = ConfigDict(from_attributes=True)
 
 
-class ProjectBase(BaseModel):
+class AgentBase(BaseModel):
+    project_id: uuid.UUID
     name: str
+    description: str
+    excluded_apps: list[uuid.UUID] = []
+    excluded_functions: list[uuid.UUID] = []
+    created_by: uuid.UUID
 
 
-class ProjectCreate(ProjectBase):
+class AgentCreate(AgentBase):
     pass
 
 
-class Project(ProjectBase):
+class AgentPublic(AgentBase):
     id: uuid.UUID
-    creator_id: uuid.UUID
-    organization_id: uuid.UUID
+
     created_at: datetime.datetime
     updated_at: datetime.datetime
 
-    api_keys: list[APIKey]
+    api_keys: list["APIKeyPublic"]
 
     model_config = ConfigDict(from_attributes=True)

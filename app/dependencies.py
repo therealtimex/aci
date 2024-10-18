@@ -1,5 +1,6 @@
 import logging
 from typing import Generator
+from uuid import UUID
 
 from authlib.jose import JoseError, jwt
 from fastapi import HTTPException, Security, status
@@ -30,7 +31,7 @@ def get_db_session() -> Generator[Session, None, None]:
 # used for routes that require user authentication like creating API keys
 def verify_user(
     auth_data: HTTPAuthorizationCredentials = Security(http_bearer),
-) -> str:
+) -> UUID:
     token = auth_data.credentials
     try:
         logger.info("Decoding JWT token.")
@@ -47,7 +48,7 @@ def verify_user(
             )
 
         logger.info(f"Token valid. User ID: {user_id}")
-        return user_id
+        return UUID(user_id)
 
     except JoseError as e:
         logger.error("Token verification failed", exc_info=True)

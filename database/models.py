@@ -58,7 +58,7 @@ class User(Base):
         String(255), nullable=False
     )  # google id, github id, email, etc
     name: Mapped[str] = mapped_column(String(255), nullable=False)
-    email: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    email: Mapped[str | None] = mapped_column(String(255), nullable=False)
     profile_picture: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     # TODO: consider storing timestap in UTC

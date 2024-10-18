@@ -5,7 +5,7 @@ from typing import Any
 
 from authlib.integrations.starlette_client import OAuth
 from authlib.jose import JoseError, jwt
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.orm import Session
 
 from app import config
@@ -113,22 +113,23 @@ async def auth_callback(
         logger.error(f"User ID not found in user information for provider {provider}")
         raise HTTPException(status_code=400, detail="User ID not found from auth provider")
 
-    # Create a unique user identifier
-    user_create = schemas.UserCreate(
-        auth_provider=user_info["iss"],
-        auth_user_id=user_info["sub"],
-        name=user_info["name"],
-        email=user_info["email"],
-        profile_picture=user_info["picture"],
-    )
     try:
-        user = crud.create_or_get_user(db_session, user_create)
-        logger.info(f"User created or retrieved successfully: {vars(user)}")
+        user = crud.get_or_create_user(
+            db_session,
+            user_info["iss"],
+            user_info["sub"],
+            user_info["name"],
+            user_info["email"],
+            user_info["picture"],
+        )
     except Exception as e:
-        logger.error(f"Failed to create or get user: {user_create}", exc_info=True)
+        # TODO: remove PII log
+        logger.error(f"Failed to create or get user: {user_info}", exc_info=True)
         db_session.rollback()
-        # TODO: replace status code with enum
-        raise HTTPException(status_code=400, detail=f"Failed to create user create: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"auth failed: {str(e)}",
+        )
 
     # Generate JWT token for the user
     try:

@@ -1,6 +1,8 @@
 import logging
-import secrets
+
+# import secrets
 from typing import Union
+from uuid import UUID
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -23,38 +25,17 @@ class UserNotFoundError(Exception):
 
 # create a new project and automatically generate an api key
 def create_project(
-    db_session: Session, project: schemas.ProjectCreate, user_id: str
+    db_session: Session, project: schemas.ProjectCreate, user_id: UUID
 ) -> models.Project:
-    # Start a new transaction
-    db_session.begin()
-
-    # Retrieve the user's organization ID
+    # check if user exists
     db_user = db_session.execute(select(models.User).filter_by(id=user_id)).scalar_one_or_none()
     if not db_user:
         raise UserNotFoundError(f"User with ID {user_id} not found")
 
-    # Create a new project instance
-    db_project = models.Project(
-        name=project.name,
-        creator_id=user_id,
-        organization_id=db_user.organization_id,
-    )
+    # create as personal project if no org is specified
+    owner_user_id = user_id if project.owner_organization_id is None else None
+    db_project = models.Project(**project.model_dump(), owner_user_id=owner_user_id)
     db_session.add(db_project)
-    db_session.flush()  # Ensure the project ID is generated
-    db_session.refresh(db_project)
-
-    # Create a new API key instance
-    db_api_key = models.APIKey(
-        key=secrets.token_hex(32),
-        project_id=db_project.id,
-        creator_id=user_id,
-        plan=models.APIKey.Plan.FREE,  # TODO: decide by user or org
-        daily_quota_used=0,
-        total_quota_used=0,
-    )
-    db_session.add(db_api_key)
-
-    # Commit the transaction
     db_session.commit()
 
     db_session.refresh(db_project)
@@ -62,14 +43,21 @@ def create_project(
     return db_project
 
 
-def create_or_get_user(db_session: Session, user: schemas.UserCreate) -> models.User:
+def get_or_create_user(
+    db_session: Session,
+    auth_provider: str,
+    auth_user_id: str,
+    name: str,
+    email: str,
+    profile_picture: str | None = None,
+) -> models.User:
     """Use SELECT FOR UPDATE to handle concurrent access."""
     # Step 1: Acquire a lock on the row to prevent race condition
     db_user: Union[models.User, None] = db_session.execute(
         select(models.User)
         .where(
-            models.User.auth_provider == user.auth_provider,
-            models.User.auth_user_id == user.auth_user_id,
+            models.User.auth_provider == auth_provider,
+            models.User.auth_user_id == auth_user_id,
         )
         .with_for_update()
     ).scalar_one_or_none()
@@ -79,13 +67,25 @@ def create_or_get_user(db_session: Session, user: schemas.UserCreate) -> models.
 
     # Step 2: Create the user if not found
     # TODO: compliance with PII data
-    logger.info(f"Creating user: {user}")
-    db_user = models.User(**user.model_dump())
+    logger.info(f"Creating user: {name}")
+    db_user = models.User(
+        auth_provider=auth_provider,
+        auth_user_id=auth_user_id,
+        name=name,
+        email=email,
+        profile_picture=profile_picture,
+    )
     db_session.add(db_user)
     db_session.commit()
     db_session.refresh(db_user)
 
     return db_user
+
+
+def user_has_admin_access_to_org(db_session: Session, user_id: UUID, org_id: UUID) -> bool:
+    """Check if a user has admin access to an organization."""
+    # TODO: implement this
+    return True
 
 
 # TODO: try catch execption handling somewhere
