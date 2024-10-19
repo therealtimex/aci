@@ -42,7 +42,7 @@ class Organization(Base):
     __tablename__ = "organizations"
 
     id: Mapped[UUID] = mapped_column(
-        PGUUID(as_uuid=True), primary_key=True, default=uuid4, init=False
+        PGUUID(as_uuid=True), primary_key=True, default_factory=uuid4, init=False
     )
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     description: Mapped[str] = mapped_column(Text, nullable=False)
@@ -55,7 +55,7 @@ class User(Base):
     __tablename__ = "users"
 
     id: Mapped[UUID] = mapped_column(
-        PGUUID(as_uuid=True), primary_key=True, default=uuid4, init=False
+        PGUUID(as_uuid=True), primary_key=True, default_factory=uuid4, init=False
     )
     auth_provider: Mapped[str] = mapped_column(
         String(255), nullable=False
@@ -98,7 +98,7 @@ class Project(Base):
         ENTERPRISE = "enterprise"
 
     id: Mapped[UUID] = mapped_column(
-        PGUUID(as_uuid=True), primary_key=True, default=uuid4, init=False
+        PGUUID(as_uuid=True), primary_key=True, default_factory=uuid4, init=False
     )
     # TODO: consider having unique constraints on project name
     name: Mapped[str] = mapped_column(String(255), nullable=False)
@@ -111,6 +111,11 @@ class Project(Base):
         PGUUID(as_uuid=True), ForeignKey("organizations.id"), nullable=True
     )
 
+    # Note: creator is not necessarily the owner
+    created_by: Mapped[UUID] = mapped_column(
+        PGUUID(as_uuid=True), ForeignKey("users.id"), nullable=False
+    )
+
     """ quota related fields: TODO: TBD how to implement quota system """
     plan: Mapped[Plan] = mapped_column(Enum(Plan), default=Plan.FREE, nullable=False)
     daily_quota_used: Mapped[int] = mapped_column(Integer, default=0, nullable=False, init=False)
@@ -119,10 +124,6 @@ class Project(Base):
     )
     total_quota_used: Mapped[int] = mapped_column(Integer, default=0, nullable=False, init=False)
 
-    # Note: creator is not necessarily the owner
-    created_by: Mapped[UUID] = mapped_column(
-        PGUUID(as_uuid=True), ForeignKey("users.id"), nullable=False
-    )
     created_at: Mapped[datetime.datetime] = mapped_column(
         DateTime(timezone=False), server_default=func.now(), nullable=False, init=False
     )
@@ -152,26 +153,25 @@ class Agent(Base):
     __tablename__ = "agents"
 
     id: Mapped[UUID] = mapped_column(
-        PGUUID(as_uuid=True), primary_key=True, default=uuid4, init=False
+        PGUUID(as_uuid=True), primary_key=True, default_factory=uuid4, init=False
     )
     project_id: Mapped[UUID] = mapped_column(
         PGUUID(as_uuid=True), ForeignKey("projects.id"), nullable=False
     )
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     description: Mapped[str] = mapped_column(Text, nullable=False)
-
-    # agent level control of what apps and functions are not accessible by the agent, apart from the project level control
-    # TODO: reconsider if this should be in a separate table to enforce data integrity, or use periodic task to clean up
-    excluded_apps: Mapped[list[UUID]] = mapped_column(
-        ARRAY(PGUUID(as_uuid=True)), nullable=False, default=[]
-    )
-    excluded_functions: Mapped[list[UUID]] = mapped_column(
-        ARRAY(PGUUID(as_uuid=True)), nullable=False, default=[]
-    )
-
     created_by: Mapped[UUID] = mapped_column(
         PGUUID(as_uuid=True), ForeignKey("users.id"), nullable=False
     )
+    # agent level control of what apps and functions are not accessible by the agent, apart from the project level control
+    # TODO: reconsider if this should be in a separate table to enforce data integrity, or use periodic task to clean up
+    excluded_apps: Mapped[list[UUID]] = mapped_column(
+        ARRAY(PGUUID(as_uuid=True)), nullable=False, default_factory=list
+    )
+    excluded_functions: Mapped[list[UUID]] = mapped_column(
+        ARRAY(PGUUID(as_uuid=True)), nullable=False, default_factory=list
+    )
+
     created_at: Mapped[datetime.datetime] = mapped_column(
         DateTime(timezone=False), server_default=func.now(), nullable=False, init=False
     )
@@ -202,7 +202,7 @@ class APIKey(Base):
     # id is not the actual API key, it's just a unique identifier to easily reference each API key entry without depending
     # on the API key string itself.
     id: Mapped[UUID] = mapped_column(
-        PGUUID(as_uuid=True), primary_key=True, default=uuid4, init=False
+        PGUUID(as_uuid=True), primary_key=True, default_factory=uuid4, init=False
     )
     # TODO: the actual API key string that the user will use to authenticate, consider encrypting it
     key: Mapped[str] = mapped_column(String(100), nullable=False, unique=True)
@@ -240,14 +240,13 @@ class App(Base):
         OPEN_ID = "open_id"
 
     id: Mapped[UUID] = mapped_column(
-        PGUUID(as_uuid=True), primary_key=True, default=uuid4, init=False
+        PGUUID(as_uuid=True), primary_key=True, default_factory=uuid4, init=False
     )
     # e.g., "github", "google". Note there can be another app also named "github" but from a different company,
     # in this case we need to make sure the name is unique by adding some kind of provider field or version or random string.
     # Need it to be unique to support both sdk (where user can specify apps by name) and globally unique function name.
     name: Mapped[str] = mapped_column(String(50), nullable=False, unique=True)
     display_name: Mapped[str] = mapped_column(String(50), nullable=False)
-    version: Mapped[str] = mapped_column(String(50), nullable=False, default=APP_DEFAULT_VERSION)
     # provider (or company) of the app, e.g., google, github, or aipolabs or user (if allow user to create custom apps)
     provider: Mapped[str] = mapped_column(String(50), nullable=False)
     description: Mapped[str] = mapped_column(Text, nullable=False)
@@ -260,9 +259,10 @@ class App(Base):
     )
     # key is the auth type, value is the corresponding auth config
     auth_configs: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    embedding: Mapped[list[float]] = mapped_column(Vector(EMBEDDING_DIMENTION), nullable=False)
+    version: Mapped[str] = mapped_column(String(50), nullable=False, default=APP_DEFAULT_VERSION)
     # controlled by aipolabs
     enabled: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
-    embedding: Mapped[list[float]] = mapped_column(Vector(EMBEDDING_DIMENTION), nullable=False)
     created_at: Mapped[datetime.datetime] = mapped_column(
         DateTime(timezone=False), server_default=func.now(), nullable=False, init=False
     )
@@ -288,7 +288,7 @@ class Function(Base):
     # TODO: I don't see a reason yet to have a separate id for function as primary key instead of just using function name,
     # but keep it for now for potential future use
     id: Mapped[UUID] = mapped_column(
-        PGUUID(as_uuid=True), primary_key=True, default=uuid4, init=False
+        PGUUID(as_uuid=True), primary_key=True, default_factory=uuid4, init=False
     )
     # Note: the function name is unique across the platform and should have app information, e.g., "github_clone_repo"
     # ideally this should just be <app name>_<function name>
@@ -330,7 +330,7 @@ class ProjectAppIntegration(Base):
     __tablename__ = "project_app_integrations"
 
     id: Mapped[UUID] = mapped_column(
-        PGUUID(as_uuid=True), primary_key=True, default=uuid4, init=False
+        PGUUID(as_uuid=True), primary_key=True, default_factory=uuid4, init=False
     )
     project_id: Mapped[UUID] = mapped_column(
         PGUUID(as_uuid=True), ForeignKey("projects.id"), nullable=False
@@ -343,7 +343,7 @@ class ProjectAppIntegration(Base):
     # exclude certain functions from the app.
     # TODO: Reconsider if this should be in a separate table to enforce data integrity, or use periodic task to clean up
     excluded_functions: Mapped[list[UUID]] = mapped_column(
-        ARRAY(PGUUID(as_uuid=True)), nullable=False, default=[]
+        ARRAY(PGUUID(as_uuid=True)), nullable=False, default_factory=list
     )
 
     created_at: Mapped[datetime.datetime] = mapped_column(
@@ -366,7 +366,7 @@ class ConnectedAccount(Base):
     __tablename__ = "connected_accounts"
 
     id: Mapped[UUID] = mapped_column(
-        PGUUID(as_uuid=True), primary_key=True, default=uuid4, init=False
+        PGUUID(as_uuid=True), primary_key=True, default_factory=uuid4, init=False
     )
     project_app_integration_id: Mapped[UUID] = mapped_column(
         PGUUID(as_uuid=True), ForeignKey("project_app_integrations.id"), nullable=False
