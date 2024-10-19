@@ -7,6 +7,7 @@ from sqlalchemy import inspect
 from sqlalchemy.engine.reflection import Inspector
 from sqlalchemy.orm import Session
 
+from app import schemas
 from app.db import crud
 from app.db.engine import SessionMaker
 from app.main import app
@@ -56,6 +57,15 @@ def dummy_user(db_session: Session) -> models.User:
 @pytest.fixture(scope="module")
 def dummy_user_bearer_token(dummy_user: models.User) -> str:
     return create_access_token(str(dummy_user.id), timedelta(minutes=15))
+
+
+@pytest.fixture(scope="module")
+def dummy_project(db_session: Session, dummy_user: models.User) -> models.Project:
+    return crud.create_project(
+        db_session,
+        schemas.ProjectCreate(name="Dummy Project", owner_organization_id=None),
+        dummy_user.id,
+    )
 
 
 @pytest.fixture(scope="session")

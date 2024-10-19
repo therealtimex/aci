@@ -42,13 +42,12 @@ def create_project(
     is defined as foreign key to users.id.
     TODO: handle creating project under an organization
     """
-    with db_session.begin():
-        owner_user_id = user_id if project.owner_organization_id is None else None
-        db_project = models.Project(
-            **project.model_dump(), owner_user_id=owner_user_id, created_by=user_id
-        )
-        db_session.add(db_project)
-
+    owner_user_id = user_id if project.owner_organization_id is None else None
+    db_project = models.Project(
+        **project.model_dump(), owner_user_id=owner_user_id, created_by=user_id
+    )
+    db_session.add(db_project)
+    db_session.commit()
     db_session.refresh(db_project)
 
     return db_project
@@ -62,31 +61,31 @@ def get_or_create_user(
     email: str,
     profile_picture: str | None = None,
 ) -> models.User:
-    with db_session.begin():
-        # Step 1: Acquire a lock on the row to prevent race condition
-        db_user: Union[models.User, None] = db_session.execute(
-            select(models.User)
-            .where(
-                models.User.auth_provider == auth_provider,
-                models.User.auth_user_id == auth_user_id,
-            )
-            .with_for_update()
-        ).scalar_one_or_none()
-
-        if db_user:
-            return db_user  # Return the existing user if found
-
-        # Step 2: Create the user if not found
-        # TODO: compliance with PII data
-        logger.info(f"Creating user: {name}")
-        db_user = models.User(
-            auth_provider=auth_provider,
-            auth_user_id=auth_user_id,
-            name=name,
-            email=email,
-            profile_picture=profile_picture,
+    # Step 1: Acquire a lock on the row to prevent race condition
+    db_user: Union[models.User, None] = db_session.execute(
+        select(models.User)
+        .where(
+            models.User.auth_provider == auth_provider,
+            models.User.auth_user_id == auth_user_id,
         )
-        db_session.add(db_user)
+        .with_for_update()
+    ).scalar_one_or_none()
+
+    if db_user:
+        return db_user  # Return the existing user if found
+
+    # Step 2: Create the user if not found
+    # TODO: compliance with PII data
+    logger.info(f"Creating user: {name}")
+    db_user = models.User(
+        auth_provider=auth_provider,
+        auth_user_id=auth_user_id,
+        name=name,
+        email=email,
+        profile_picture=profile_picture,
+    )
+    db_session.add(db_user)
+    db_session.commit()
 
     db_session.refresh(db_user)
     return db_user
@@ -100,15 +99,15 @@ def create_agent(
     Assume user's access to the project has been checked.
     TODO: a more unified way to handle access control?
     """
-    with db_session.begin():
-        # Create the agent
-        db_agent = models.Agent(**agent.model_dump(), project_id=project_id, creator_id=user_id)
-        db_session.add(db_agent)
-        db_session.flush()  # Flush to get the agent's ID
+    # Create the agent
+    db_agent = models.Agent(**agent.model_dump(), project_id=project_id, created_by=user_id)
+    db_session.add(db_agent)
+    db_session.flush()  # Flush to get the agent's ID
 
-        # Create the API key for the agent
-        api_key = models.APIKey(key=secrets.token_hex(32), agent_id=db_agent.id)
-        db_session.add(api_key)
+    # Create the API key for the agent
+    api_key = models.APIKey(key=secrets.token_hex(32), agent_id=db_agent.id)
+    db_session.add(api_key)
+    db_session.commit()
 
     db_session.refresh(db_agent)
     return db_agent
