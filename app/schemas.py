@@ -5,6 +5,8 @@ from pydantic import BaseModel, ConfigDict
 
 from database import models
 
+# TODO: add Field to validate fields like str length as defined in database models
+
 
 class TokenResponse(BaseModel):
     access_token: str
@@ -52,7 +54,6 @@ class AgentCreate(BaseModel):
     description: str
     excluded_apps: list[UUID] = []
     excluded_functions: list[UUID] = []
-    created_by: UUID
 
 
 class AgentPublic(BaseModel):

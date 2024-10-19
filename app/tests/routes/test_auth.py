@@ -2,14 +2,11 @@ import pytest
 from authlib.jose import jwt
 from fastapi import Request, status
 from fastapi.testclient import TestClient
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app import config
-from app.main import app
 from database import models
-
-# disable following redirects for testing login
-test_client = TestClient(app, follow_redirects=False)
 
 MOCK_USER_GOOGLE_AUTH_DATA = {
     "sub": "123",
@@ -40,7 +37,7 @@ def mock_oauth_provider(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr("app.routes.auth.oauth.create_client", mock_create_client)
 
 
-def test_login_google() -> None:
+def test_login_google(test_client: TestClient) -> None:
     # TODO configutr version prefix in setting and use constant for "auth"
     # This is a redirect response, but we are not following the redirect
     response = test_client.get("/v1/auth/login/google")
@@ -49,7 +46,9 @@ def test_login_google() -> None:
 
 
 # mock_oauth_provider to mock google Oauth user info
-def test_callback_google(mock_oauth_provider: None, db_session: Session) -> None:
+def test_callback_google(
+    test_client: TestClient, mock_oauth_provider: None, db_session: Session
+) -> None:
     response = test_client.get("/v1/auth/callback/google")
     data = response.json()
     assert response.status_code == 200
@@ -61,7 +60,10 @@ def test_callback_google(mock_oauth_provider: None, db_session: Session) -> None
     payload.validate()
     user_id = payload.get("sub")
     # get user by id and check user is created
-    user = db_session.query(models.User).filter(models.User.id == user_id).first()
+
+    user = db_session.execute(
+        select(models.User).filter(models.User.id == user_id)
+    ).scalar_one_or_none()
     assert user is not None
     assert user.auth_provider == MOCK_USER_GOOGLE_AUTH_DATA["iss"]
     assert user.auth_user_id == MOCK_USER_GOOGLE_AUTH_DATA["sub"]

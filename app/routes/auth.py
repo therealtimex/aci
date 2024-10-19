@@ -119,7 +119,6 @@ async def auth_callback(
     except Exception as e:
         # TODO: remove PII log
         logger.error(f"Failed to create or get user: {user_info}", exc_info=True)
-        db_session.rollback()
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"auth failed: {str(e)}",

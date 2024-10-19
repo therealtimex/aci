@@ -1,4 +1,4 @@
-# import secrets
+import secrets
 from typing import Union
 from uuid import UUID
 
@@ -18,20 +18,36 @@ class UserNotFoundError(Exception):
     pass
 
 
-# create a new project and automatically generate an api key
+class ProjectNotFoundError(Exception):
+    """Exception raised when a project is not found in the database."""
+
+    pass
+
+
+def user_exists(db_session: Session, user_id: UUID) -> bool:
+    """Check if a user exists in the database."""
+    return (
+        db_session.execute(select(models.User).filter_by(id=user_id)).scalar_one_or_none()
+        is not None
+    )
+
+
 def create_project(
     db_session: Session, project: schemas.ProjectCreate, user_id: UUID
 ) -> models.Project:
-    # check if user exists
-    db_user = db_session.execute(select(models.User).filter_by(id=user_id)).scalar_one_or_none()
-    if not db_user:
-        raise UserNotFoundError(f"User with ID {user_id} not found")
-
-    # create as personal project if no org is specified
-    owner_user_id = user_id if project.owner_organization_id is None else None
-    db_project = models.Project(**project.model_dump(), owner_user_id=owner_user_id)
-    db_session.add(db_project)
-    db_session.commit()
+    """
+    Create a new project.
+    Create as personal project if owner_organization_id is not specified in ProjectCreate.
+    Assume user exists, if not, the database will raise an error becuase owner_user_id
+    is defined as foreign key to users.id.
+    TODO: handle creating project under an organization
+    """
+    with db_session.begin():
+        owner_user_id = user_id if project.owner_organization_id is None else None
+        db_project = models.Project(
+            **project.model_dump(), owner_user_id=owner_user_id, created_by=user_id
+        )
+        db_session.add(db_project)
 
     db_session.refresh(db_project)
 
@@ -46,41 +62,74 @@ def get_or_create_user(
     email: str,
     profile_picture: str | None = None,
 ) -> models.User:
-    """Use SELECT FOR UPDATE to handle concurrent access."""
-    # Step 1: Acquire a lock on the row to prevent race condition
-    db_user: Union[models.User, None] = db_session.execute(
-        select(models.User)
-        .where(
-            models.User.auth_provider == auth_provider,
-            models.User.auth_user_id == auth_user_id,
+    with db_session.begin():
+        # Step 1: Acquire a lock on the row to prevent race condition
+        db_user: Union[models.User, None] = db_session.execute(
+            select(models.User)
+            .where(
+                models.User.auth_provider == auth_provider,
+                models.User.auth_user_id == auth_user_id,
+            )
+            .with_for_update()
+        ).scalar_one_or_none()
+
+        if db_user:
+            return db_user  # Return the existing user if found
+
+        # Step 2: Create the user if not found
+        # TODO: compliance with PII data
+        logger.info(f"Creating user: {name}")
+        db_user = models.User(
+            auth_provider=auth_provider,
+            auth_user_id=auth_user_id,
+            name=name,
+            email=email,
+            profile_picture=profile_picture,
         )
-        .with_for_update()
-    ).scalar_one_or_none()
+        db_session.add(db_user)
 
-    if db_user:
-        return db_user  # Return the existing user if found
-
-    # Step 2: Create the user if not found
-    # TODO: compliance with PII data
-    logger.info(f"Creating user: {name}")
-    db_user = models.User(
-        auth_provider=auth_provider,
-        auth_user_id=auth_user_id,
-        name=name,
-        email=email,
-        profile_picture=profile_picture,
-    )
-    db_session.add(db_user)
-    db_session.commit()
     db_session.refresh(db_user)
-
     return db_user
+
+
+def create_agent(
+    db_session: Session, agent: schemas.AgentCreate, project_id: UUID, user_id: UUID
+) -> models.Agent:
+    """
+    Create a new agent under a project, and create a new API key for the agent.
+    Assume user's access to the project has been checked.
+    TODO: a more unified way to handle access control?
+    """
+    with db_session.begin():
+        # Create the agent
+        db_agent = models.Agent(**agent.model_dump(), project_id=project_id, creator_id=user_id)
+        db_session.add(db_agent)
+        db_session.flush()  # Flush to get the agent's ID
+
+        # Create the API key for the agent
+        api_key = models.APIKey(key=secrets.token_hex(32), agent_id=db_agent.id)
+        db_session.add(api_key)
+
+    db_session.refresh(db_agent)
+    return db_agent
 
 
 def user_has_admin_access_to_org(db_session: Session, user_id: UUID, org_id: UUID) -> bool:
     """Check if a user has admin access to an organization."""
     # TODO: implement this
     return True
+
+
+def user_has_admin_access_to_project(db_session: Session, user_id: UUID, project_id: UUID) -> bool:
+    """Check if a user has admin access to a project."""
+    # TODO: implement properly with organization and project access control
+    # for now, just check if project owner is the user
+    db_project = db_session.execute(
+        select(models.Project).filter_by(id=project_id)
+    ).scalar_one_or_none()
+    if not db_project:
+        raise ProjectNotFoundError(f"Project with ID {project_id} not found")
+    return db_project.owner_user_id is not None and db_project.owner_user_id == user_id
 
 
 # TODO: try catch execption handling somewhere
