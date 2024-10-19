@@ -88,10 +88,10 @@ class Project(Base):
     name: Mapped[str] = mapped_column(String(255), nullable=False)
 
     # owner of the project can be a user or an organization
-    owner_user_id: Mapped[UUID] = mapped_column(
+    owner_user_id: Mapped[UUID | None] = mapped_column(
         PGUUID(as_uuid=True), ForeignKey("users.id"), nullable=True
     )
-    owner_organization_id: Mapped[UUID] = mapped_column(
+    owner_organization_id: Mapped[UUID | None] = mapped_column(
         PGUUID(as_uuid=True), ForeignKey("organizations.id"), nullable=True
     )
 
@@ -223,7 +223,7 @@ class App(Base):
         ARRAY(Enum(AuthType)), nullable=False
     )
     # key is the auth type, value is the corresponding auth config
-    auth_configs: Mapped[dict] = mapped_column(JSON, nullable=True)
+    auth_configs: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     # controlled by aipolabs
     enabled: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     embedding: Mapped[list[float]] = mapped_column(Vector(EMBEDDING_DIMENTION), nullable=False)
@@ -323,7 +323,7 @@ class ConnectedAccount(Base):
     # here we assume it's possible to have connected account but no auth is required, in which case auth_data will be null
     auth_type: Mapped[App.AuthType] = mapped_column(Enum(App.AuthType), nullable=False)
     # auth_data is different for each auth type, e.g., API key, OAuth2 etc
-    auth_data: Mapped[dict] = mapped_column(JSON, nullable=True)
+    auth_data: Mapped[dict | None] = mapped_column(JSON, nullable=True)
 
     created_at: Mapped[datetime.datetime] = mapped_column(
         DateTime(timezone=False), server_default=func.now(), nullable=False
