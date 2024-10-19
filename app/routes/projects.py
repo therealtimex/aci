@@ -1,4 +1,3 @@
-import logging
 from typing import Any
 from uuid import UUID
 
@@ -8,15 +7,11 @@ from sqlalchemy.orm import Session
 from app import dependencies as deps
 from app import schemas
 from app.db import crud
+from app.logging import get_logger
 
 # Create router instance
 router = APIRouter()
-
-# Set up logging
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 @router.post("/", response_model=schemas.ProjectPublic)

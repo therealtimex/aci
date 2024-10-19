@@ -1,6 +1,4 @@
 # import sentry_sdk
-import logging
-
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from fastapi.routing import APIRoute
@@ -9,6 +7,7 @@ from starlette.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 
 from app import config
+from app.logging import get_logger, setup_logging
 
 from .routes import auth, projects
 
@@ -21,11 +20,8 @@ def custom_generate_unique_id(route: APIRoute) -> str:
 #     sentry_sdk.init(dsn=str(settings.SENTRY_DSN), enable_tracing=True)
 
 # Configure logging
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
-logger = logging.getLogger(__name__)
-
+setup_logging()
+logger = get_logger(__name__)
 
 app = FastAPI(
     title="Aipolabs",

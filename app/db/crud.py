@@ -1,5 +1,3 @@
-import logging
-
 # import secrets
 from typing import Union
 from uuid import UUID
@@ -8,13 +6,10 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app import schemas
+from app.logging import get_logger
 from database import models
 
-# Set up logging
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class UserNotFoundError(Exception):

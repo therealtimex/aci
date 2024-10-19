@@ -1,4 +1,3 @@
-import logging
 from typing import Generator
 from uuid import UUID
 
@@ -9,13 +8,9 @@ from sqlalchemy.orm import Session
 
 from app import config
 from app.db import engine
+from app.logging import get_logger
 
-# Set up logging
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
-logger = logging.getLogger(__name__)
-
+logger = get_logger(__name__)
 http_bearer = HTTPBearer()
 
 

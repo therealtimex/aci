@@ -1,4 +1,3 @@
-import logging
 from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Any
@@ -12,14 +11,9 @@ from app import config
 from app import dependencies as deps
 from app import schemas
 from app.db import crud
+from app.logging import get_logger
 
-# Set up logging
-# TODO: consider adding %(data)s - %(error)s and abstract to a common logging file
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
-logger = logging.getLogger(__name__)
-
+logger = get_logger(__name__)
 # Create router instance
 router = APIRouter()
 oauth = OAuth()
