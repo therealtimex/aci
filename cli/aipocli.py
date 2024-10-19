@@ -1,10 +1,7 @@
 import click
 
 from cli.commands import upsert_app
-from cli.utils.logging import get_logger
-
-# Initialize logging
-logger = get_logger()
+from cli.utils.logging import setup_logging
 
 
 @click.group()
@@ -17,4 +14,5 @@ def cli() -> None:
 cli.add_command(upsert_app.upsert_app)
 
 if __name__ == "__main__":
+    setup_logging()
     cli()

@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session, sessionmaker
 from cli.utils import config
 from cli.utils.logging import get_logger
 
-logger = get_logger()
+logger = get_logger(__name__)
 
 
 def get_db_session() -> Session:

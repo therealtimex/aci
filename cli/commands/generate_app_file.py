@@ -17,9 +17,6 @@
 # import copy
 
 
-# logger = get_logger()
-
-
 # SessionMaker = sessionmaker(
 #     autocommit=False, autoflush=False, bind=create_engine(config.DB_FULL_URL)
 # )

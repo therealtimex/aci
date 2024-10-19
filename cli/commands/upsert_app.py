@@ -11,7 +11,7 @@ from cli.utils.helper import get_db_session
 from cli.utils.logging import get_logger
 from database import models
 
-logger = get_logger()
+logger = get_logger(__name__)
 LLM_CLIENT = OpenAI(api_key=config.OPENAI_API_KEY)
 
 

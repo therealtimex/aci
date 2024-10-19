@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 
 from cli.utils.logging import get_logger
 
-logger = get_logger()
+logger = get_logger(__name__)
 
 load_dotenv()
 
