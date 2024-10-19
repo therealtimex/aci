@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import datetime
 import enum
-import uuid
+from uuid import UUID, uuid4
 
 from pgvector.sqlalchemy import Vector
 from sqlalchemy import (
@@ -35,9 +35,7 @@ class Base(DeclarativeBase):
 class Organization(Base):
     __tablename__ = "organizations"
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        PGUUID(as_uuid=True), primary_key=True, default=uuid.uuid4
-    )
+    id: Mapped[UUID] = mapped_column(PGUUID(as_uuid=True), primary_key=True, default=uuid4)
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     description: Mapped[str] = mapped_column(Text, nullable=False)
 
@@ -48,9 +46,7 @@ class Organization(Base):
 class User(Base):
     __tablename__ = "users"
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        PGUUID(as_uuid=True), primary_key=True, default=uuid.uuid4
-    )
+    id: Mapped[UUID] = mapped_column(PGUUID(as_uuid=True), primary_key=True, default=uuid4)
     auth_provider: Mapped[str] = mapped_column(
         String(255), nullable=False
     )  # google, github, email, etc
@@ -87,17 +83,15 @@ class Project(Base):
         PRO = "pro"
         ENTERPRISE = "enterprise"
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        PGUUID(as_uuid=True), primary_key=True, default=uuid.uuid4
-    )
+    id: Mapped[UUID] = mapped_column(PGUUID(as_uuid=True), primary_key=True, default=uuid4)
     # TODO: consider having unique constraints on project name
     name: Mapped[str] = mapped_column(String(255), nullable=False)
 
     # owner of the project can be a user or an organization
-    owner_user_id: Mapped[uuid.UUID] = mapped_column(
+    owner_user_id: Mapped[UUID] = mapped_column(
         PGUUID(as_uuid=True), ForeignKey("users.id"), nullable=True
     )
-    owner_organization_id: Mapped[uuid.UUID] = mapped_column(
+    owner_organization_id: Mapped[UUID] = mapped_column(
         PGUUID(as_uuid=True), ForeignKey("organizations.id"), nullable=True
     )
 
@@ -110,7 +104,7 @@ class Project(Base):
     total_quota_used: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
 
     # Note: creator is not necessarily the owner
-    created_by: Mapped[uuid.UUID] = mapped_column(
+    created_by: Mapped[UUID] = mapped_column(
         PGUUID(as_uuid=True), ForeignKey("users.id"), nullable=False
     )
     created_at: Mapped[datetime.datetime] = mapped_column(
@@ -135,10 +129,8 @@ class Project(Base):
 class Agent(Base):
     __tablename__ = "agents"
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        PGUUID(as_uuid=True), primary_key=True, default=uuid.uuid4
-    )
-    project_id: Mapped[uuid.UUID] = mapped_column(
+    id: Mapped[UUID] = mapped_column(PGUUID(as_uuid=True), primary_key=True, default=uuid4)
+    project_id: Mapped[UUID] = mapped_column(
         PGUUID(as_uuid=True), ForeignKey("projects.id"), nullable=False
     )
     name: Mapped[str] = mapped_column(String(255), nullable=False)
@@ -146,14 +138,14 @@ class Agent(Base):
 
     # agent level control of what apps and functions are not accessible by the agent, apart from the project level control
     # TODO: reconsider if this should be in a separate table to enforce data integrity, or use periodic task to clean up
-    excluded_apps: Mapped[list[uuid.UUID]] = mapped_column(
+    excluded_apps: Mapped[list[UUID]] = mapped_column(
         ARRAY(PGUUID(as_uuid=True)), nullable=False, default=[]
     )
-    excluded_functions: Mapped[list[uuid.UUID]] = mapped_column(
+    excluded_functions: Mapped[list[UUID]] = mapped_column(
         ARRAY(PGUUID(as_uuid=True)), nullable=False, default=[]
     )
 
-    created_by: Mapped[uuid.UUID] = mapped_column(
+    created_by: Mapped[UUID] = mapped_column(
         PGUUID(as_uuid=True), ForeignKey("users.id"), nullable=False
     )
     created_at: Mapped[datetime.datetime] = mapped_column(
@@ -181,12 +173,10 @@ class APIKey(Base):
 
     # id is not the actual API key, it's just a unique identifier to easily reference each API key entry without depending
     # on the API key string itself.
-    id: Mapped[uuid.UUID] = mapped_column(
-        PGUUID(as_uuid=True), primary_key=True, default=uuid.uuid4
-    )
+    id: Mapped[UUID] = mapped_column(PGUUID(as_uuid=True), primary_key=True, default=uuid4)
     # TODO: the actual API key string that the user will use to authenticate, consider encrypting it
     key: Mapped[str] = mapped_column(String(100), nullable=False, unique=True)
-    agent_id: Mapped[uuid.UUID] = mapped_column(
+    agent_id: Mapped[UUID] = mapped_column(
         PGUUID(as_uuid=True), ForeignKey("agents.id"), unique=True, nullable=False
     )
     status: Mapped[Status] = mapped_column(Enum(Status), default=Status.ACTIVE, nullable=False)
@@ -215,9 +205,7 @@ class App(Base):
         OAUTH2 = "oauth2"
         OPEN_ID = "open_id"
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        PGUUID(as_uuid=True), primary_key=True, default=uuid.uuid4
-    )
+    id: Mapped[UUID] = mapped_column(PGUUID(as_uuid=True), primary_key=True, default=uuid4)
     # e.g., "github", "google". Note there can be another app also named "github" but from a different company,
     # in this case we need to make sure the name is unique by adding some kind of provider field or version or random string.
     # Need it to be unique to support both sdk (where user can specify apps by name) and globally unique function name.
@@ -259,13 +247,11 @@ class Function(Base):
 
     # TODO: I don't see a reason yet to have a separate id for function as primary key instead of just using function name,
     # but keep it for now for potential future use
-    id: Mapped[uuid.UUID] = mapped_column(
-        PGUUID(as_uuid=True), primary_key=True, default=uuid.uuid4
-    )
+    id: Mapped[UUID] = mapped_column(PGUUID(as_uuid=True), primary_key=True, default=uuid4)
     # Note: the function name is unique across the platform and should have app information, e.g., "github_clone_repo"
     # ideally this should just be <app name>_<function name>
     name: Mapped[str] = mapped_column(String(255), nullable=False, unique=True)
-    app_id: Mapped[uuid.UUID] = mapped_column(
+    app_id: Mapped[UUID] = mapped_column(
         PGUUID(as_uuid=True), ForeignKey("apps.id"), nullable=False
     )
     description: Mapped[str] = mapped_column(Text, nullable=False)
@@ -297,20 +283,18 @@ class Function(Base):
 class ProjectAppIntegration(Base):
     __tablename__ = "project_app_integrations"
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        PGUUID(as_uuid=True), primary_key=True, default=uuid.uuid4
-    )
-    project_id: Mapped[uuid.UUID] = mapped_column(
+    id: Mapped[UUID] = mapped_column(PGUUID(as_uuid=True), primary_key=True, default=uuid4)
+    project_id: Mapped[UUID] = mapped_column(
         PGUUID(as_uuid=True), ForeignKey("projects.id"), nullable=False
     )
-    app_id: Mapped[uuid.UUID] = mapped_column(
+    app_id: Mapped[UUID] = mapped_column(
         PGUUID(as_uuid=True), ForeignKey("apps.id"), nullable=False
     )
     # controlled by users to enable or disable the app integration
     enabled: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     # exclude certain functions from the app.
     # TODO: Reconsider if this should be in a separate table to enforce data integrity, or use periodic task to clean up
-    excluded_functions: Mapped[list[uuid.UUID]] = mapped_column(
+    excluded_functions: Mapped[list[UUID]] = mapped_column(
         ARRAY(PGUUID(as_uuid=True)), nullable=False, default=[]
     )
 
@@ -329,10 +313,8 @@ class ProjectAppIntegration(Base):
 class ConnectedAccount(Base):
     __tablename__ = "connected_accounts"
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        PGUUID(as_uuid=True), primary_key=True, default=uuid.uuid4
-    )
-    project_app_integration_id: Mapped[uuid.UUID] = mapped_column(
+    id: Mapped[UUID] = mapped_column(PGUUID(as_uuid=True), primary_key=True, default=uuid4)
+    project_app_integration_id: Mapped[UUID] = mapped_column(
         PGUUID(as_uuid=True), ForeignKey("project_app_integrations.id"), nullable=False
     )
     # account_owner should be unique per app per project (or just per ProjectAppIntegration), it identifies the end user, not the project owner.

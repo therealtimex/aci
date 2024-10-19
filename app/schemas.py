@@ -1,5 +1,5 @@
 import datetime
-import uuid
+from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict
 
@@ -13,9 +13,9 @@ class TokenResponse(BaseModel):
 
 # TODO: should we hide api key and only show one it time when creating?
 class APIKeyPublic(BaseModel):
-    id: uuid.UUID
+    id: UUID
     key: str
-    agent_id: uuid.UUID
+    agent_id: UUID
     status: models.APIKey.Status = models.APIKey.Status.ACTIVE
 
     created_at: datetime.datetime
@@ -26,14 +26,14 @@ class APIKeyPublic(BaseModel):
 
 class ProjectCreate(BaseModel):
     name: str
-    owner_organization_id: uuid.UUID | None
+    owner_organization_id: UUID | None
 
 
 class ProjectPublic(BaseModel):
-    id: uuid.UUID
+    id: UUID
     name: str
-    owner_user_id: uuid.UUID | None
-    owner_organization_id: uuid.UUID | None
+    owner_user_id: UUID | None
+    owner_organization_id: UUID | None
     plan: models.Project.Plan
     daily_quota_used: int
     daily_quota_reset_at: datetime.datetime
@@ -47,21 +47,22 @@ class ProjectPublic(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
-class AgentBase(BaseModel):
-    project_id: uuid.UUID
+class AgentCreate(BaseModel):
     name: str
     description: str
-    excluded_apps: list[uuid.UUID] = []
-    excluded_functions: list[uuid.UUID] = []
-    created_by: uuid.UUID
+    excluded_apps: list[UUID] = []
+    excluded_functions: list[UUID] = []
+    created_by: UUID
 
 
-class AgentCreate(AgentBase):
-    pass
-
-
-class AgentPublic(AgentBase):
-    id: uuid.UUID
+class AgentPublic(BaseModel):
+    id: UUID
+    project_id: UUID
+    name: str
+    description: str
+    excluded_apps: list[UUID] = []
+    excluded_functions: list[UUID] = []
+    created_by: UUID
 
     created_at: datetime.datetime
     updated_at: datetime.datetime
