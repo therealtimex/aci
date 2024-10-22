@@ -18,6 +18,7 @@ openai_service = OpenAIService()
 class AppFilterParams(BaseModel):
     """
     Parameters for filtering applications.
+    TODO: add flag to include detailed app info? (e.g., dev portal will need this)
     TODO: add sorted_by field?
     TODO: category enum?
     TODO: add tags field?
@@ -58,8 +59,8 @@ class AppFilterParams(BaseModel):
 # TODO: implement api key validation and project quota checks
 # (middleware or dependency? and for mvp can probably just use memory for daily quota limit instead of checking and updating db every time)
 # TODO: filter out disabled apps first before doing any other filtering
-@router.get("/", response_model=list[schemas.AppPublic], response_model_exclude_unset=True)
-async def get_apps(
+@router.get("/search", response_model=list[schemas.AppPublic], response_model_exclude_unset=True)
+async def search_apps(
     filter_params: Annotated[AppFilterParams, Query()],
     db_session: Session = Depends(get_db_session),
 ) -> list[schemas.AppPublic]:
@@ -74,7 +75,7 @@ async def get_apps(
             else None
         )
         logger.debug(f"Generated intent embedding: {intent_embedding}")
-        apps_with_scores = crud.get_apps(
+        apps_with_scores = crud.search_apps(
             db_session,
             filter_params.categories,
             intent_embedding,

@@ -143,7 +143,7 @@ def get_api_key(db_session: Session, api_key: str) -> models.APIKey | None:
 # TODO: return total count of apps matching the filter?
 # TODO: combine with postgres full text search for a hybrid search? https://github.com/pgvector/pgvector?tab=readme-ov-file#hybrid-search
 # TODO: filter out unnecessary columns
-def get_apps(
+def search_apps(
     db_session: Session,
     categories: list[str] | None,
     intent_embedding: list[float] | None,
