@@ -116,6 +116,7 @@ async def auth_callback(
             user_info["email"],
             user_info["picture"],
         )
+        db_session.commit()
     except Exception as e:
         # TODO: remove PII log
         logger.error(f"Failed to create or get user: {user_info}", exc_info=True)

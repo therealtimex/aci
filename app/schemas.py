@@ -71,3 +71,11 @@ class AgentPublic(BaseModel):
     api_keys: list["APIKeyPublic"]
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class AppPublic(BaseModel):
+    id: UUID
+    name: str
+    description: str
+
+    model_config = ConfigDict(from_attributes=True)

@@ -33,9 +33,11 @@ async def create_project(
                 )
 
         db_project = crud.create_project(db_session, project, user_id)
+        db_session.commit()
         logger.info(f"Created project: {schemas.ProjectPublic.model_validate(db_project)}")
         return db_project
     except Exception:
+        # TODO: need rollback?
         logger.error("Error in creating project", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -66,6 +68,7 @@ async def create_agent(
             project_id,
             user_id,
         )
+        db_session.commit()
         logger.info(f"Created agent: {schemas.AgentPublic.model_validate(db_agent)}")
         return db_agent
     except Exception:

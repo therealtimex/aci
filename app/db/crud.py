@@ -47,7 +47,7 @@ def create_project(
         **project.model_dump(), owner_user_id=owner_user_id, created_by=user_id
     )
     db_session.add(db_project)
-    db_session.commit()
+    db_session.flush()
     db_session.refresh(db_project)
 
     return db_project
@@ -85,7 +85,7 @@ def get_or_create_user(
         profile_picture=profile_picture,
     )
     db_session.add(db_user)
-    db_session.commit()
+    db_session.flush()
 
     db_session.refresh(db_user)
     return db_user
@@ -107,7 +107,7 @@ def create_agent(
     # Create the API key for the agent
     api_key = models.APIKey(key=secrets.token_hex(32), agent_id=db_agent.id)
     db_session.add(api_key)
-    db_session.commit()
+    db_session.flush()
 
     db_session.refresh(db_agent)
     return db_agent
@@ -128,49 +128,43 @@ def user_has_admin_access_to_project(db_session: Session, user_id: UUID, project
     ).scalar_one_or_none()
     if not db_project:
         raise ProjectNotFoundError(f"Project with ID {project_id} not found")
+
     return db_project.owner_user_id is not None and db_project.owner_user_id == user_id
 
 
-# TODO: try catch execption handling somewhere
-# def soft_delete_api_key(session: Session, id: str):
-#     api_key = session.query(APIKey).filter(APIKey.id == id).first()
-#     api_key.status = APIKey.Status.DELETED
-#     session.commit()
+def get_api_key(db_session: Session, api_key: str) -> models.APIKey | None:
+    db_api_key: models.APIKey | None = db_session.execute(
+        select(models.APIKey).filter_by(key=api_key)
+    ).scalar_one_or_none()
+
+    return db_api_key
 
 
-# def create_api_key(db_session: Session, user_id: str) -> str:
-#     # get user and make sure they exist
-#     user = db_session.execute(select(db.User).where(db.User.id == user_id)).scalar_one_or_none()
-#     if not user:
-#         raise UserNotFoundError(f"User {user_id} not found")
+# TODO: return total count of apps matching the filter?
+# TODO: combine with postgres full text search for a hybrid search? https://github.com/pgvector/pgvector?tab=readme-ov-file#hybrid-search
+# TODO: filter out unnecessary columns
+def get_apps(
+    db_session: Session,
+    categories: list[str] | None,
+    query_embedding: list[float] | None,
+    limit: int,
+    offset: int,
+) -> list[models.App]:
+    """Get a list of apps with optional filtering by categories and sorting by vector similarity to query. and pagination."""
+    statement = select(models.App)
+    if categories and len(categories) > 0:
+        # TODO: if the PostgreSQL && (array overlap) operator is more efficient?
+        statement = statement.filter(models.App.categories.any(categories))
+    if query_embedding:
+        # TODO: typing for cosine_distance
+        # TODO: include similarity score in the result
+        statement = statement.order_by(models.App.embedding.cosine_distance(query_embedding))
 
-#     # Create a new APIKey instance
-#     new_api_key = db.APIKey(
-#         key=secrets.token_hex(32),
-#         project_id=project_id,
-#         creator_id=creator_id,
-#         status=APIKey.Status.ACTIVE,
-#         plan=APIKey.Plan.FREE,
-#         daily_quota_used=0,
-#         total_quota_used=0,
-#     )
+    statement = statement.offset(offset).limit(limit)
+    logger.debug(f"Executing statement: {statement}")
+    db_apps: list[models.App] = db_session.execute(statement).scalars().all()
 
-#     # Add the new APIKey to the session
-#     db.add(new_api_key)
-#     # Commit the session to save the new APIKey to the database
-#     db.commit()
-
-#     return new_api_key
-
-
-# def increment_api_key_usage(session: Session, id: str) -> None:
-#     statement = (
-#         update(APIKey)
-#         .where(APIKey.id == id)
-#         .values(daily_quota_used=APIKey.daily_quota_used + 1, total_requests_made=APIKey.total_quota_used + 1)
-#     )
-#     session.execute(statement)
-#     session.commit()
+    return db_apps
 
 
 # TODO: error handling and logging

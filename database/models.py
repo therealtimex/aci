@@ -79,6 +79,15 @@ class User(Base):
         init=False,
     )
 
+    # deleting user will delete all projects owned by the user
+    owned_projects: Mapped[list[Project]] = relationship(
+        "Project",
+        lazy="select",
+        cascade="all, delete-orphan",
+        foreign_keys="Project.owner_user_id",
+        init=False,
+    )
+
     __table_args__ = (
         UniqueConstraint("auth_provider", "auth_user_id", name="uc_auth_provider_user"),
     )
@@ -135,6 +144,7 @@ class Project(Base):
         init=False,
     )
 
+    # deleting project will delete all agents under the project
     agents: Mapped[list[Agent]] = relationship(
         "Agent", lazy="select", cascade="all, delete-orphan", init=False
     )
@@ -184,6 +194,7 @@ class Agent(Base):
     )
 
     # Note: for now each agent has one API key, but we can add more flexibility in the future if needed
+    # deleting agent will delete all API keys under the agent
     api_keys: Mapped[list[APIKey]] = relationship(
         "APIKey", lazy="select", cascade="all, delete-orphan", init=False
     )
@@ -259,7 +270,8 @@ class App(Base):
     )
     # key is the auth type, value is the corresponding auth config
     auth_configs: Mapped[dict | None] = mapped_column(JSON, nullable=True)
-    embedding: Mapped[list[float]] = mapped_column(Vector(EMBEDDING_DIMENTION), nullable=False)
+    # TODO: should Functions of the App be included when generating embedding?
+    embedding: Mapped[Vector] = mapped_column(Vector(EMBEDDING_DIMENTION), nullable=False)
     version: Mapped[str] = mapped_column(String(50), nullable=False, default=APP_DEFAULT_VERSION)
     # controlled by aipolabs
     enabled: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
@@ -274,6 +286,7 @@ class App(Base):
         init=False,
     )
 
+    # deleting app will delete all functions under the app
     functions: Mapped[list["Function"]] = relationship(
         "Function", lazy="select", cascade="all, delete-orphan", init=False
     )
@@ -302,7 +315,7 @@ class Function(Base):
     response: Mapped[dict] = mapped_column(JSON, nullable=False)
     # TODO: currently created with name, description, parameters, response
     # TODO: should we provide EMBEDDING_DIMENTION here? which makes it less flexible if we want to change the embedding dimention in the future
-    embedding: Mapped[list[float]] = mapped_column(Vector(EMBEDDING_DIMENTION), nullable=False)
+    embedding: Mapped[Vector] = mapped_column(Vector(EMBEDDING_DIMENTION), nullable=False)
     # controlled by aipolabs
     enabled: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
 

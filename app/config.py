@@ -14,6 +14,12 @@ def check_and_get_env_variable(name: str) -> str:
     return value
 
 
+# LLM
+OPENAI_API_KEY = check_and_get_env_variable("APP_OPENAI_API_KEY")
+OPENAI_EMBEDDING_MODEL = check_and_get_env_variable("APP_OPENAI_EMBEDDING_MODEL")
+OPENAI_EMBEDDING_DIMENSION = int(check_and_get_env_variable("APP_EMBEDDING_DIMENSION"))
+
+# JWT
 JWT_SECRET_KEY = check_and_get_env_variable("APP_JWT_SECRET_KEY")
 JWT_ALGORITHM = check_and_get_env_variable("APP_JWT_ALGORITHM")
 JWT_ACCESS_TOKEN_EXPIRE_MINUTES = int(

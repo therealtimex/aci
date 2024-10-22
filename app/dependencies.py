@@ -10,8 +10,13 @@ from app import config
 from app.db import engine
 from app.logging import get_logger
 
+# from fastapi.security import APIKeyHeader
+
 logger = get_logger(__name__)
 http_bearer = HTTPBearer()
+# api_key_header = APIKeyHeader(
+#     name="X-API-KEY", description="API key for authentication", auto_error=True
+# )
 
 
 def get_db_session() -> Generator[Session, None, None]:
