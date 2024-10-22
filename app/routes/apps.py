@@ -24,9 +24,9 @@ class AppFilterParams(BaseModel):
     TODO: filter by similarity score?
     """
 
-    query: str | None = Field(
+    intent: str | None = Field(
         default=None,
-        description="Natural language query for vector similarity search. Results will be sorted by relevance to the query.",
+        description="Natural language intent for vector similarity sorting. Results will be sorted by relevance to the intent.",
     )
     categories: list[str] | None = Field(
         default=None, description="List of categories for filtering."
@@ -36,7 +36,7 @@ class AppFilterParams(BaseModel):
     )
     offset: int = Field(default=0, ge=0, description="Pagination offset.")
 
-    # need this in case user set {"categories": None} which will translate to [''] in the query params
+    # need this in case user set {"categories": None} which will translate to [''] in the params
     @field_validator("categories")
     def validate_categories(cls, v: list[str] | None) -> list[str] | None:
         if v is not None:
@@ -47,9 +47,9 @@ class AppFilterParams(BaseModel):
                 return None
         return v
 
-    # empty query or string with spaces should be treated as None
-    @field_validator("query")
-    def validate_query(cls, v: str | None) -> str | None:
+    # empty intent or string with spaces should be treated as None
+    @field_validator("intent")
+    def validate_intent(cls, v: str | None) -> str | None:
         if v is not None and v.strip() == "":
             return None
         return v
@@ -68,14 +68,16 @@ async def get_apps(
     """
     try:
         logger.info(f"Getting apps with filter params: {filter_params}")
-        query_embedding = (
-            openai_service.generate_embedding(filter_params.query) if filter_params.query else None
+        intent_embedding = (
+            openai_service.generate_embedding(filter_params.intent)
+            if filter_params.intent
+            else None
         )
-        logger.debug(f"Generated query embedding: {query_embedding}")
+        logger.debug(f"Generated intent embedding: {intent_embedding}")
         apps_with_scores = crud.get_apps(
             db_session,
             filter_params.categories,
-            query_embedding,
+            intent_embedding,
             filter_params.limit,
             filter_params.offset,
         )

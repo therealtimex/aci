@@ -9,10 +9,10 @@ from database import models
 logger = logging.getLogger(__name__)
 
 
-def test_get_apps_with_query(test_client: TestClient, dummy_apps: list[models.App]) -> None:
+def test_get_apps_with_intent(test_client: TestClient, dummy_apps: list[models.App]) -> None:
     # try with intent to find github app
     filter_params = {
-        "query": "i want to create a new code repo for my project",
+        "intent": "i want to create a new code repo for my project",
         "categories": [],
         "limit": 100,
         "offset": 0,
@@ -28,7 +28,7 @@ def test_get_apps_with_query(test_client: TestClient, dummy_apps: list[models.Ap
     assert apps[0].name == "github"
 
     # try with intent to find google app
-    filter_params["query"] = "i want to search the web"
+    filter_params["intent"] = "i want to search the web"
     response = test_client.get(
         "/v1/apps/",
         params=filter_params,
@@ -40,7 +40,7 @@ def test_get_apps_with_query(test_client: TestClient, dummy_apps: list[models.Ap
     assert apps[0].name == "google"
 
 
-def test_get_apps_without_query(test_client: TestClient, dummy_apps: list[models.App]) -> None:
+def test_get_apps_without_intent(test_client: TestClient, dummy_apps: list[models.App]) -> None:
     response = test_client.get("/v1/apps/")
 
     assert response.status_code == 200
@@ -54,7 +54,7 @@ def test_get_apps_without_query(test_client: TestClient, dummy_apps: list[models
 
 def test_get_apps_with_categories(test_client: TestClient) -> None:
     filter_params = {
-        "query": None,
+        "intent": None,
         "categories": ["testcategory"],
         "limit": 100,
         "offset": 0,
@@ -67,9 +67,9 @@ def test_get_apps_with_categories(test_client: TestClient) -> None:
     assert apps[0].name == "test_app"
 
 
-def test_get_apps_with_categories_and_query(test_client: TestClient) -> None:
+def test_get_apps_with_categories_and_intent(test_client: TestClient) -> None:
     filter_params = {
-        "query": "i want to create a new code repo for my project",
+        "intent": "i want to create a new code repo for my project",
         "categories": ["testcategory-2"],
         "limit": 100,
         "offset": 0,
@@ -87,7 +87,7 @@ def test_pagination(test_client: TestClient, dummy_apps: list[models.App]) -> No
     assert len(dummy_apps) > 2
 
     filter_params: dict[str, Any] = {
-        "query": None,
+        "intent": None,
         "categories": [],
         "limit": len(dummy_apps) - 1,
         "offset": 0,

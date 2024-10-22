@@ -146,18 +146,18 @@ def get_api_key(db_session: Session, api_key: str) -> models.APIKey | None:
 def get_apps(
     db_session: Session,
     categories: list[str] | None,
-    query_embedding: list[float] | None,
+    intent_embedding: list[float] | None,
     limit: int,
     offset: int,
 ) -> list[tuple[models.App, float | None]]:
-    """Get a list of apps with optional filtering by categories and sorting by vector similarity to query. and pagination."""
+    """Get a list of apps with optional filtering by categories and sorting by vector similarity to intent. and pagination."""
     statement = select(models.App)
 
     # TODO: Is there any way to get typing for cosine_distance, label, overlap?
     if categories and len(categories) > 0:
         statement = statement.filter(models.App.categories.overlap(categories))
-    if query_embedding:
-        similarity_score = models.App.embedding.cosine_distance(query_embedding)
+    if intent_embedding:
+        similarity_score = models.App.embedding.cosine_distance(intent_embedding)
         statement = statement.add_columns(similarity_score.label("similarity_score"))
         statement = statement.order_by("similarity_score")
 
@@ -167,7 +167,7 @@ def get_apps(
 
     results = db_session.execute(statement).all()
 
-    if query_embedding:
+    if intent_embedding:
         return [(app, score) for app, score in results]
     else:
         return [(app, None) for app, in results]
