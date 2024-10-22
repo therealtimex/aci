@@ -51,7 +51,7 @@ def test_get_apps_without_query(test_client: TestClient, dummy_apps: list[models
     assert len(apps) == len(dummy_apps)
 
 
-def test_get_apps_with_categories(test_client: TestClient, dummy_apps: list[models.App]) -> None:
+def test_get_apps_with_categories(test_client: TestClient) -> None:
     filter_params = {
         "query": None,
         "categories": ["testcategory"],
@@ -66,9 +66,7 @@ def test_get_apps_with_categories(test_client: TestClient, dummy_apps: list[mode
     assert apps[0].name == "test_app"
 
 
-def test_get_apps_with_categories_and_query(
-    test_client: TestClient, dummy_apps: list[models.App]
-) -> None:
+def test_get_apps_with_categories_and_query(test_client: TestClient) -> None:
     filter_params = {
         "query": "i want to create a new code repo for my project",
         "categories": ["testcategory-2"],

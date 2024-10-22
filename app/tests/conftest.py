@@ -46,13 +46,20 @@ def db_setup_and_cleanup() -> Generator[None, None, None]:
         session.commit()
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture(scope="session")
+def test_client() -> Generator[TestClient, None, None]:
+    # disable following redirects for testing login
+    with TestClient(fastapi_app, follow_redirects=False) as c:
+        yield c
+
+
+@pytest.fixture(scope="module")
 def db_session() -> Generator[Session, None, None]:
     with SessionMaker() as db_session:
         yield db_session
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture(scope="module", autouse=True)
 def dummy_user(db_session: Session) -> Generator[models.User, None, None]:
     dummy_user = crud.get_or_create_user(
         db_session, "dummy_auth_provider", "dummy_user_id", "Dummy User", "dummy@example.com"
@@ -63,12 +70,12 @@ def dummy_user(db_session: Session) -> Generator[models.User, None, None]:
     db_session.commit()
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture(scope="module", autouse=True)
 def dummy_user_bearer_token(dummy_user: models.User) -> str:
     return create_access_token(str(dummy_user.id), timedelta(minutes=15))
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture(scope="module", autouse=True)
 def dummy_project(
     db_session: Session, dummy_user: models.User
 ) -> Generator[models.Project, None, None]:
@@ -83,7 +90,7 @@ def dummy_project(
     db_session.commit()
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture(scope="module", autouse=True)
 def dummy_apps(db_session: Session) -> Generator[list[models.App], None, None]:
     dummy_apps = helper.create_dummy_apps(db_session)
     db_session.commit()
@@ -91,10 +98,3 @@ def dummy_apps(db_session: Session) -> Generator[list[models.App], None, None]:
     for dummy_app in dummy_apps:
         db_session.delete(dummy_app)
     db_session.commit()
-
-
-@pytest.fixture(scope="session")
-def test_client() -> Generator[TestClient, None, None]:
-    # disable following redirects for testing login
-    with TestClient(fastapi_app, follow_redirects=False) as c:
-        yield c
