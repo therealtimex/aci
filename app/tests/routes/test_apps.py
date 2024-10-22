@@ -32,7 +32,35 @@ def test_get_apps_with_query(test_client: TestClient, dummy_apps: list[models.Ap
         "/v1/apps/",
         params=filter_params,
     )
+
     assert response.status_code == 200
     apps = [schemas.AppPublic.model_validate(response_app) for response_app in response.json()]
     assert len(apps) == len(dummy_apps)
     assert apps[0].name == "google"
+
+
+def test_get_apps_without_query(test_client: TestClient, dummy_apps: list[models.App]) -> None:
+    response = test_client.get("/v1/apps/")
+
+    assert response.status_code == 200
+    # similarity scores should not exist
+    for app in response.json():
+        assert "similarity_score" not in app
+
+    apps = [schemas.AppPublic.model_validate(response_app) for response_app in response.json()]
+    assert len(apps) == len(dummy_apps)
+
+
+def test_get_apps_with_categories(test_client: TestClient, dummy_apps: list[models.App]) -> None:
+    filter_params = {
+        "query": None,
+        "categories": ["testcategory"],
+        "limit": 100,
+        "offset": 0,
+    }
+    response = test_client.get("/v1/apps/", params=filter_params)
+
+    assert response.status_code == 200
+    apps = [schemas.AppPublic.model_validate(response_app) for response_app in response.json()]
+    assert len(apps) == 1
+    assert apps[0].name == "test_app"

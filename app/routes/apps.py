@@ -9,7 +9,6 @@ from app.db import crud
 from app.dependencies import get_db_session
 from app.logging import get_logger
 from app.openai_service import OpenAIService
-from database import models
 
 logger = get_logger(__name__)
 router = APIRouter()
@@ -48,17 +47,22 @@ class AppFilterParams(BaseModel):
                 return None
         return v
 
+    # empty query or string with spaces should be treated as None
+    @field_validator("query")
+    def validate_query(cls, v: str | None) -> str | None:
+        if v is not None and v.strip() == "":
+            return None
+        return v
+
 
 # TODO: implement api key validation and project quota checks
 # (middleware or dependency? and for mvp can probably just use memory for daily quota limit instead of checking and updating db every time)
-# TODO: implement app category filtering
 # TODO: filter out disabled apps first before doing any other filtering
-# TODO: more efficient pagination?
-@router.get("/", response_model=list[schemas.AppPublic])
+@router.get("/", response_model=list[schemas.AppPublic], response_model_exclude_unset=True)
 async def get_apps(
     filter_params: Annotated[AppFilterParams, Query()],
     db_session: Session = Depends(get_db_session),
-) -> list[models.App]:
+) -> list[schemas.AppPublic]:
     """
     Returns a list of applications (name and description).
     """
@@ -68,14 +72,23 @@ async def get_apps(
             openai_service.generate_embedding(filter_params.query) if filter_params.query else None
         )
         logger.debug(f"Generated query embedding: {query_embedding}")
-        apps = crud.get_apps(
+        apps_with_scores = crud.get_apps(
             db_session,
             filter_params.categories,
             query_embedding,
             filter_params.limit,
             filter_params.offset,
         )
+        # build apps list with similarity scores if they exist
+        apps: list[schemas.AppPublic] = []
+        for app, score in apps_with_scores:
+            app = schemas.AppPublic.model_validate(app)
+            if score is not None:
+                app.similarity_score = score
+            apps.append(app)
+
         return apps
 
     except Exception as e:
+        logger.error("Error getting apps", exc_info=True)
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))

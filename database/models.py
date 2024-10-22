@@ -7,7 +7,6 @@ from uuid import UUID, uuid4
 
 from pgvector.sqlalchemy import Vector
 from sqlalchemy import (
-    ARRAY,
     JSON,
     Boolean,
     CheckConstraint,
@@ -20,6 +19,9 @@ from sqlalchemy import (
     UniqueConstraint,
     func,
 )
+
+# Note: need to use postgresqlr ARRAY in order to use overlap operator
+from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.dialects.postgresql import UUID as PGUUID
 from sqlalchemy.orm import (
     DeclarativeBase,

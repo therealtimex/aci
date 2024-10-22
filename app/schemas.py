@@ -28,14 +28,14 @@ class APIKeyPublic(BaseModel):
 
 class ProjectCreate(BaseModel):
     name: str
-    owner_organization_id: UUID | None
+    owner_organization_id: UUID | None = None
 
 
 class ProjectPublic(BaseModel):
     id: UUID
     name: str
-    owner_user_id: UUID | None
-    owner_organization_id: UUID | None
+    owner_user_id: UUID | None = None
+    owner_organization_id: UUID | None = None
     plan: models.Project.Plan
     daily_quota_used: int
     daily_quota_reset_at: datetime.datetime
@@ -77,5 +77,6 @@ class AppPublic(BaseModel):
     id: UUID
     name: str
     description: str
+    similarity_score: float | None = None
 
     model_config = ConfigDict(from_attributes=True)

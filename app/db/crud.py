@@ -149,22 +149,28 @@ def get_apps(
     query_embedding: list[float] | None,
     limit: int,
     offset: int,
-) -> list[models.App]:
+) -> list[tuple[models.App, float | None]]:
     """Get a list of apps with optional filtering by categories and sorting by vector similarity to query. and pagination."""
     statement = select(models.App)
+
+    # TODO: Is there any way to get typing for cosine_distance, label, overlap?
     if categories and len(categories) > 0:
-        # TODO: if the PostgreSQL && (array overlap) operator is more efficient?
-        statement = statement.filter(models.App.categories.any(categories))
+        statement = statement.filter(models.App.categories.overlap(categories))
     if query_embedding:
-        # TODO: typing for cosine_distance
-        # TODO: include similarity score in the result
-        statement = statement.order_by(models.App.embedding.cosine_distance(query_embedding))
+        similarity_score = models.App.embedding.cosine_distance(query_embedding)
+        statement = select(models.App, similarity_score.label("similarity_score"))
+        statement = statement.order_by("similarity_score")
 
     statement = statement.offset(offset).limit(limit)
-    logger.debug(f"Executing statement: {statement}")
-    db_apps: list[models.App] = db_session.execute(statement).scalars().all()
 
-    return db_apps
+    logger.warning(f"Executing statement: {statement}")
+
+    results = db_session.execute(statement).all()
+
+    if query_embedding:
+        return [(app, score) for app, score in results]
+    else:
+        return [(app, None) for app, in results]
 
 
 # TODO: error handling and logging
