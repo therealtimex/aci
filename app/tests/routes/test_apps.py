@@ -1,4 +1,5 @@
 import logging
+from typing import Any
 
 from fastapi.testclient import TestClient
 
@@ -80,3 +81,27 @@ def test_get_apps_with_categories_and_query(test_client: TestClient) -> None:
     assert len(apps) == 2
     assert apps[0].name == "github"
     assert apps[1].name == "google"
+
+
+def test_pagination(test_client: TestClient, dummy_apps: list[models.App]) -> None:
+    assert len(dummy_apps) > 2
+
+    filter_params: dict[str, Any] = {
+        "query": None,
+        "categories": [],
+        "limit": len(dummy_apps) - 1,
+        "offset": 0,
+    }
+
+    response = test_client.get("/v1/apps/", params=filter_params)
+
+    assert response.status_code == 200
+    apps = [schemas.AppPublic.model_validate(response_app) for response_app in response.json()]
+    assert len(apps) == len(dummy_apps) - 1
+
+    filter_params["offset"] = len(dummy_apps) - 1
+    response = test_client.get("/v1/apps/", params=filter_params)
+
+    assert response.status_code == 200
+    apps = [schemas.AppPublic.model_validate(response_app) for response_app in response.json()]
+    assert len(apps) == 1
