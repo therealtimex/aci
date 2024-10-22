@@ -7,7 +7,8 @@
     "server_url": "https://api.github.com",
     "logo": "https://example.com/logo.png",
     "categories": [
-        "devtools"
+        "devtools",
+        "testcategory-2"
     ],
     "tags": [
         "code",

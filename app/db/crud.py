@@ -158,7 +158,7 @@ def get_apps(
         statement = statement.filter(models.App.categories.overlap(categories))
     if query_embedding:
         similarity_score = models.App.embedding.cosine_distance(query_embedding)
-        statement = select(models.App, similarity_score.label("similarity_score"))
+        statement = statement.add_columns(similarity_score.label("similarity_score"))
         statement = statement.order_by("similarity_score")
 
     statement = statement.offset(offset).limit(limit)
