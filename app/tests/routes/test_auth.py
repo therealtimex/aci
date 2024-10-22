@@ -71,6 +71,10 @@ def test_callback_google(
     assert user.name == MOCK_USER_GOOGLE_AUTH_DATA["name"]
     assert user.profile_picture == MOCK_USER_GOOGLE_AUTH_DATA["picture"]
 
+    # Clean up: Delete the created user
+    db_session.delete(user)
+    db_session.commit()
+
 
 # def test_login_unsupported_provider():
 #     response = client.get("/login/unsupported")

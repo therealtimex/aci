@@ -11,6 +11,7 @@ class FunctionModel(BaseModel):
 
 
 # validation model for app file
+# TODO: consolidate with model in app and abstract to a common module
 class AppModel(BaseModel):
     name: str
     display_name: str

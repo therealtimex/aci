@@ -32,9 +32,9 @@ def upsert_app(app_file: str) -> None:
                 app_model: AppModel = AppModel.model_validate(json.load(f))
 
             # make sure app and functions are upserted together
-            with db_session.begin():
-                db_app = upsert_app_to_db(db_session, app_model)
-                upsert_functions_to_db(db_session, db_app, app_model)
+            db_app = upsert_app_to_db(db_session, app_model)
+            upsert_functions_to_db(db_session, db_app, app_model)
+            db_session.commit()
 
         except Exception as e:
             db_session.rollback()
@@ -100,7 +100,6 @@ def upsert_app_to_db(db_session: Session, app_model: AppModel) -> models.App:
             for auth_type, auth_config in vars(app_model.supported_auth_schemes).items()
             if auth_config is not None
         ]
-    auth_required = len(supported_auth_types) > 0
 
     db_app = models.App(
         name=app_model.name,
@@ -112,7 +111,6 @@ def upsert_app_to_db(db_session: Session, app_model: AppModel) -> models.App:
         logo=app_model.logo,
         categories=app_model.categories,
         tags=app_model.tags,
-        auth_required=auth_required,
         supported_auth_types=supported_auth_types,
         auth_configs=(
             app_model.supported_auth_schemes.model_dump(mode="json")

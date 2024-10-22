@@ -35,6 +35,8 @@ def test_create_project(
         project_public.model_dump() == schemas.ProjectPublic.model_validate(db_project).model_dump()
     )
 
+    # Clean up: no need to delete project, it will be deleted when dummy_user is deleted
+
 
 def test_create_agent(
     test_client: TestClient,
@@ -74,3 +76,5 @@ def test_create_agent(
     assert db_api_key is not None
     assert len(agent_public.api_keys) == 1
     assert agent_public.api_keys[0].key == db_api_key.key
+
+    # Clean up: no need to delete agent and api key, it will be deleted when dummy_project is deleted
