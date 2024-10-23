@@ -83,7 +83,6 @@ class AppBasicPublic(BaseModel):
 
 
 class FunctionBasicPublic(BaseModel):
-    id: UUID
     name: str
     description: str
 

@@ -98,3 +98,11 @@ def dummy_apps(db_session: Session) -> Generator[list[models.App], None, None]:
     for dummy_app in dummy_apps:
         db_session.delete(dummy_app)
     db_session.commit()
+
+
+@pytest.fixture(scope="module", autouse=True)
+def dummy_functions(dummy_apps: list[models.App]) -> list[models.Function]:
+    dummy_functions: list[models.Function] = []
+    for dummy_app in dummy_apps:
+        dummy_functions.extend(dummy_app.functions)
+    return dummy_functions

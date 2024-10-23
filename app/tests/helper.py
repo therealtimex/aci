@@ -177,7 +177,7 @@ def insert_functions_to_db(db_session: Session, db_app: models.App, app_model: A
 
 
 def generate_app_embedding(app_model: AppModel) -> list[float]:
-    logger.info(f"Generating embedding for app: {app_model.name}...")
+    logger.debug(f"Generating embedding for app: {app_model.name}...")
     # generate app embeddings based on app config's name, display_name, provider, description, categories, and tags
     text_for_embedding = (
         f"{app_model.name}\n"
@@ -191,7 +191,7 @@ def generate_app_embedding(app_model: AppModel) -> list[float]:
 
 
 def generate_function_embedding(function: FunctionModel) -> list[float]:
-    logger.info(f"Generating embedding for function: {function.name}...")
+    logger.debug(f"Generating embedding for function: {function.name}...")
     text_for_embedding = f"{function.name}\n{function.description}\n{function.parameters}"
 
     return openai_service.generate_embedding(text_for_embedding)

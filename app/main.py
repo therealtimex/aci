@@ -9,7 +9,7 @@ from starlette.middleware.sessions import SessionMiddleware
 from app import config
 from app.logging import get_logger, setup_logging
 
-from .routes import apps, auth, projects
+from .routes import apps, auth, functions, projects
 
 
 def custom_generate_unique_id(route: APIRoute) -> str:
@@ -65,3 +65,4 @@ app.add_middleware(SessionMiddleware, secret_key=config.SESSION_SECRET_KEY)
 app.include_router(auth.router, prefix="/v1/auth", tags=["auth"])
 app.include_router(projects.router, prefix="/v1/projects", tags=["projects"])
 app.include_router(apps.router, prefix="/v1/apps", tags=["apps"])
+app.include_router(functions.router, prefix="/v1/functions", tags=["functions"])

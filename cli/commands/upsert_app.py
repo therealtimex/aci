@@ -79,7 +79,7 @@ def upsert_functions_to_db(db_session: Session, db_app: models.App, app_model: A
 # TODO: include response schema in the embedding if added
 # TODO: bacth generate function embeddings
 def generate_function_embedding(function: FunctionModel) -> list[float]:
-    logger.info(f"Generating embedding for function: {function.name}...")
+    logger.debug(f"Generating embedding for function: {function.name}...")
     text_for_embedding = f"{function.name}\n{function.description}\n{function.parameters}"
     response = LLM_CLIENT.embeddings.create(
         input=text_for_embedding,
@@ -137,7 +137,7 @@ def upsert_app_to_db(db_session: Session, app_model: AppModel) -> models.App:
 
 
 def generate_app_embedding(app_model: AppModel) -> list[float]:
-    logger.info(f"Generating embedding for app: {app_model.name}...")
+    logger.debug(f"Generating embedding for app: {app_model.name}...")
     # generate app embeddings based on app config's name, display_name, provider, description, categories, and tags
     text_for_embedding = (
         f"{app_model.name}\n"

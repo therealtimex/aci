@@ -140,7 +140,7 @@ def get_api_key(db_session: Session, api_key: str) -> models.APIKey | None:
     return db_api_key
 
 
-# TODO: return total count of apps matching the filter?
+# TODO: return total count of apps, or return remaining count for pagination?
 # TODO: combine with postgres full text search for a hybrid search? https://github.com/pgvector/pgvector?tab=readme-ov-file#hybrid-search
 # TODO: filter out unnecessary columns
 def search_apps(
@@ -171,6 +171,29 @@ def search_apps(
         return [(app, score) for app, score in results]
     else:
         return [(app, None) for app, in results]
+
+
+# TODO: filter out unnecessary columns like embedding if not needed?
+# TODO: return total count of functions, or return remaining count for pagination?
+def search_functions(
+    db_session: Session,
+    app_names: list[str] | None,
+    intent_embedding: list[float] | None,
+    limit: int,
+    offset: int,
+) -> list[models.Function]:
+    statement = select(models.Function)
+
+    if app_names and len(app_names) > 0:
+        statement = statement.join(models.App).filter(models.App.name.in_(app_names))
+    if intent_embedding:
+        similarity_score = models.Function.embedding.cosine_distance(intent_embedding)
+        statement = statement.order_by(similarity_score)
+
+    statement = statement.offset(offset).limit(limit)
+    logger.warning(f"Executing statement: {statement}")
+    results: list[models.Function] = db_session.execute(statement).scalars().all()
+    return results
 
 
 # TODO: error handling and logging

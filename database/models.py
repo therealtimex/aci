@@ -273,7 +273,7 @@ class App(Base):
     # key is the auth type, value is the corresponding auth config
     auth_configs: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     # TODO: should Functions of the App be included when generating embedding?
-    embedding: Mapped[Vector] = mapped_column(Vector(EMBEDDING_DIMENTION), nullable=False)
+    embedding: Mapped[list[float]] = mapped_column(Vector(EMBEDDING_DIMENTION), nullable=False)
     version: Mapped[str] = mapped_column(String(50), nullable=False, default=APP_DEFAULT_VERSION)
     # controlled by aipolabs
     enabled: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
@@ -317,7 +317,7 @@ class Function(Base):
     response: Mapped[dict] = mapped_column(JSON, nullable=False)
     # TODO: currently created with name, description, parameters, response
     # TODO: should we provide EMBEDDING_DIMENTION here? which makes it less flexible if we want to change the embedding dimention in the future
-    embedding: Mapped[Vector] = mapped_column(Vector(EMBEDDING_DIMENTION), nullable=False)
+    embedding: Mapped[list[float]] = mapped_column(Vector(EMBEDDING_DIMENTION), nullable=False)
     # controlled by aipolabs
     enabled: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
 
