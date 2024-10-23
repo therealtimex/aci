@@ -59,11 +59,13 @@ class AppFilterParams(BaseModel):
 # TODO: implement api key validation and project quota checks
 # (middleware or dependency? and for mvp can probably just use memory for daily quota limit instead of checking and updating db every time)
 # TODO: filter out disabled apps first before doing any other filtering
-@router.get("/search", response_model=list[schemas.AppPublic], response_model_exclude_unset=True)
+@router.get(
+    "/search", response_model=list[schemas.AppBasicPublic], response_model_exclude_unset=True
+)
 async def search_apps(
     filter_params: Annotated[AppFilterParams, Query()],
     db_session: Session = Depends(get_db_session),
-) -> list[schemas.AppPublic]:
+) -> list[schemas.AppBasicPublic]:
     """
     Returns a list of applications (name and description).
     """
@@ -83,9 +85,9 @@ async def search_apps(
             filter_params.offset,
         )
         # build apps list with similarity scores if they exist
-        apps: list[schemas.AppPublic] = []
+        apps: list[schemas.AppBasicPublic] = []
         for app, score in apps_with_scores:
-            app = schemas.AppPublic.model_validate(app)
+            app = schemas.AppBasicPublic.model_validate(app)
             if score is not None:
                 app.similarity_score = score
             apps.append(app)

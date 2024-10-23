@@ -73,10 +73,18 @@ class AgentPublic(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
-class AppPublic(BaseModel):
-    id: UUID
+# TODO: remove app.id and function.id from the response?
+class AppBasicPublic(BaseModel):
     name: str
     description: str
     similarity_score: float | None = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class FunctionBasicPublic(BaseModel):
+    id: UUID
+    name: str
+    description: str
 
     model_config = ConfigDict(from_attributes=True)

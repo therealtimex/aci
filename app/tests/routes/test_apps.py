@@ -23,7 +23,7 @@ def test_search_apps_with_intent(test_client: TestClient, dummy_apps: list[model
     )
 
     assert response.status_code == 200
-    apps = [schemas.AppPublic.model_validate(response_app) for response_app in response.json()]
+    apps = [schemas.AppBasicPublic.model_validate(response_app) for response_app in response.json()]
     assert len(apps) == len(dummy_apps)
     assert apps[0].name == "GITHUB"
 
@@ -35,7 +35,7 @@ def test_search_apps_with_intent(test_client: TestClient, dummy_apps: list[model
     )
 
     assert response.status_code == 200
-    apps = [schemas.AppPublic.model_validate(response_app) for response_app in response.json()]
+    apps = [schemas.AppBasicPublic.model_validate(response_app) for response_app in response.json()]
     assert len(apps) == len(dummy_apps)
     assert apps[0].name == "GOOGLE"
 
@@ -48,7 +48,7 @@ def test_search_apps_without_intent(test_client: TestClient, dummy_apps: list[mo
     for app in response.json():
         assert "similarity_score" not in app
 
-    apps = [schemas.AppPublic.model_validate(response_app) for response_app in response.json()]
+    apps = [schemas.AppBasicPublic.model_validate(response_app) for response_app in response.json()]
     assert len(apps) == len(dummy_apps)
 
 
@@ -62,7 +62,7 @@ def test_search_apps_with_categories(test_client: TestClient) -> None:
     response = test_client.get("/v1/apps/search", params=filter_params)
 
     assert response.status_code == 200
-    apps = [schemas.AppPublic.model_validate(response_app) for response_app in response.json()]
+    apps = [schemas.AppBasicPublic.model_validate(response_app) for response_app in response.json()]
     assert len(apps) == 1
     assert apps[0].name == "TEST_APP"
 
@@ -77,7 +77,7 @@ def test_search_apps_with_categories_and_intent(test_client: TestClient) -> None
     response = test_client.get("/v1/apps/search", params=filter_params)
 
     assert response.status_code == 200
-    apps = [schemas.AppPublic.model_validate(response_app) for response_app in response.json()]
+    apps = [schemas.AppBasicPublic.model_validate(response_app) for response_app in response.json()]
     assert len(apps) == 2
     assert apps[0].name == "GITHUB"
     assert apps[1].name == "GOOGLE"
@@ -96,12 +96,12 @@ def test_search_apps_pagination(test_client: TestClient, dummy_apps: list[models
     response = test_client.get("/v1/apps/search", params=filter_params)
 
     assert response.status_code == 200
-    apps = [schemas.AppPublic.model_validate(response_app) for response_app in response.json()]
+    apps = [schemas.AppBasicPublic.model_validate(response_app) for response_app in response.json()]
     assert len(apps) == len(dummy_apps) - 1
 
     filter_params["offset"] = len(dummy_apps) - 1
     response = test_client.get("/v1/apps/search", params=filter_params)
 
     assert response.status_code == 200
-    apps = [schemas.AppPublic.model_validate(response_app) for response_app in response.json()]
+    apps = [schemas.AppBasicPublic.model_validate(response_app) for response_app in response.json()]
     assert len(apps) == 1
