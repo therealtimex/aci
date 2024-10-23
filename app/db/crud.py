@@ -196,6 +196,15 @@ def search_functions(
     return results
 
 
+def get_function(db_session: Session, function_name: str) -> models.Function | None:
+
+    function: models.Function | None = db_session.execute(
+        select(models.Function).filter_by(name=function_name)
+    ).scalar_one_or_none()
+
+    return function
+
+
 # TODO: error handling and logging
 # def handle_api_request(session: Session, api_key_str: str, daily_limit: int) -> Tuple[bool, str]:
 #     """

@@ -116,3 +116,18 @@ def test_search_functions_pagination(
         for response_function in response.json()
     ]
     assert len(functions) == 1
+
+
+def test_get_function(test_client: TestClient, dummy_functions: list[models.Function]) -> None:
+    function_name = "GITHUB__CREATE_REPOSITORY"
+    response = test_client.get(f"/v1/functions/{function_name}")
+
+    assert response.status_code == 200
+    function = schemas.FunctionPublic.model_validate(response.json())
+    assert function.name == function_name
+    # check if parameters and description are the same as the same function from dummy_functions
+    dummy_function = next(
+        function for function in dummy_functions if function.name == function_name
+    )
+    assert function.parameters == dummy_function.parameters
+    assert function.description == dummy_function.description

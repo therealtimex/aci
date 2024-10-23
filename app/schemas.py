@@ -87,3 +87,12 @@ class FunctionBasicPublic(BaseModel):
     description: str
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class FunctionPublic(BaseModel):
+    name: str
+    description: str
+    parameters: dict
+    response: dict
+
+    model_config = ConfigDict(from_attributes=True)

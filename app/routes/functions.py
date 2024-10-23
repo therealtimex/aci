@@ -81,29 +81,22 @@ async def search_functions(
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
 
-# @router.get("/{function_id}", response_model=FunctionSignature)
-# async def get_function_signature(
-#     function_id: UUID = Path(..., description="Unique identifier of the function."),
-#     llm_model: str = Query("gpt", description='LLM model name (default to "gpt").'),
-#     api_key: str = Depends(get_api_key),
-# ):
-#     """
-#     Returns the full function signature to be used for LLM function call.
-#     """
-#     try:
-#         function_signature = get_function_signature_data(function_id)
-#         if not function_signature:
-#             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Function not found.")
+@router.get("/{function_name}", response_model=schemas.FunctionPublic)
+async def get_function(
+    function_name: str,
+    db_session: Session = Depends(get_db_session),
+) -> models.Function:
+    """
+    Returns the full function signature to be used for LLM function call.
+    """
+    try:
+        function = crud.get_function(db_session, function_name)
+        if not function:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Function not found.")
+        return function
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
-#         # Optionally modify the signature based on llm_model
-#         # For now, we'll ignore llm_model in this example
-
-#         return function_signature
-
-#     except HTTPException as he:
-#         raise he
-#     except Exception as e:
-#         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
 # @router.post("/{function_id}/execute", response_model=FunctionExecutionResponse)
 # async def execute_function(
