@@ -1,8 +1,9 @@
 import json
 import logging
+import re
 from pathlib import Path
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from sqlalchemy.orm import Session
 
 from app.openai_service import OpenAIService
@@ -70,6 +71,12 @@ class FunctionModel(BaseModel):
     description: str
     parameters: dict
 
+    @field_validator("name")
+    def validate_name(cls, v: str) -> str:
+        if not re.match(r"^[A-Z_]+$", v):
+            raise ValueError("name must be uppercase and contain only letters and underscores")
+        return v
+
 
 # validation model for app file
 class AppModel(BaseModel):
@@ -84,6 +91,12 @@ class AppModel(BaseModel):
     tags: list[str]
     supported_auth_schemes: SupportedAuthSchemes | None = None
     functions: list[FunctionModel] = Field(..., min_length=1)
+
+    @field_validator("name")
+    def validate_name(cls, v: str) -> str:
+        if not re.match(r"^[A-Z_]+$", v):
+            raise ValueError("name must be uppercase and contain only letters and underscores")
+        return v
 
 
 # TODO: duplicate code with cli's upsert_app command

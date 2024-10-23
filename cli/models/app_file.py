@@ -1,4 +1,6 @@
-from pydantic import BaseModel, Field
+import re
+
+from pydantic import BaseModel, Field, field_validator
 
 from cli.models import auth
 
@@ -8,6 +10,12 @@ class FunctionModel(BaseModel):
     name: str
     description: str
     parameters: dict
+
+    @field_validator("name")
+    def validate_name(cls, v: str) -> str:
+        if not re.match(r"^[A-Z_]+$", v):
+            raise ValueError("name must be uppercase and contain only letters and underscores")
+        return v
 
 
 # validation model for app file
@@ -24,3 +32,9 @@ class AppModel(BaseModel):
     tags: list[str]
     supported_auth_schemes: auth.SupportedAuthSchemes | None = None
     functions: list[FunctionModel] = Field(..., min_items=1)
+
+    @field_validator("name")
+    def validate_name(cls, v: str) -> str:
+        if not re.match(r"^[A-Z_]+$", v):
+            raise ValueError("name must be uppercase and contain only letters and underscores")
+        return v

@@ -1,5 +1,5 @@
 {
-    "name": "test_app",
+    "name": "TEST_APP",
     "display_name": "Test App",
     "version": "1.0.0",
     "provider": "test_provider",

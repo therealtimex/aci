@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 
 def test_search_apps_with_intent(test_client: TestClient, dummy_apps: list[models.App]) -> None:
-    # try with intent to find github app
+    # try with intent to find GITHUB app
     filter_params = {
         "intent": "i want to create a new code repo for my project",
         "categories": [],
@@ -25,9 +25,9 @@ def test_search_apps_with_intent(test_client: TestClient, dummy_apps: list[model
     assert response.status_code == 200
     apps = [schemas.AppPublic.model_validate(response_app) for response_app in response.json()]
     assert len(apps) == len(dummy_apps)
-    assert apps[0].name == "github"
+    assert apps[0].name == "GITHUB"
 
-    # try with intent to find google app
+    # try with intent to find GOOGLE app
     filter_params["intent"] = "i want to search the web"
     response = test_client.get(
         "/v1/apps/search",
@@ -37,7 +37,7 @@ def test_search_apps_with_intent(test_client: TestClient, dummy_apps: list[model
     assert response.status_code == 200
     apps = [schemas.AppPublic.model_validate(response_app) for response_app in response.json()]
     assert len(apps) == len(dummy_apps)
-    assert apps[0].name == "google"
+    assert apps[0].name == "GOOGLE"
 
 
 def test_search_apps_without_intent(test_client: TestClient, dummy_apps: list[models.App]) -> None:
@@ -64,7 +64,7 @@ def test_search_apps_with_categories(test_client: TestClient) -> None:
     assert response.status_code == 200
     apps = [schemas.AppPublic.model_validate(response_app) for response_app in response.json()]
     assert len(apps) == 1
-    assert apps[0].name == "test_app"
+    assert apps[0].name == "TEST_APP"
 
 
 def test_search_apps_with_categories_and_intent(test_client: TestClient) -> None:
@@ -79,8 +79,8 @@ def test_search_apps_with_categories_and_intent(test_client: TestClient) -> None
     assert response.status_code == 200
     apps = [schemas.AppPublic.model_validate(response_app) for response_app in response.json()]
     assert len(apps) == 2
-    assert apps[0].name == "github"
-    assert apps[1].name == "google"
+    assert apps[0].name == "GITHUB"
+    assert apps[1].name == "GOOGLE"
 
 
 def test_search_apps_pagination(test_client: TestClient, dummy_apps: list[models.App]) -> None:
