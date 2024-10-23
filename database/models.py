@@ -297,6 +297,7 @@ class App(Base):
 # TODO: how to do versioning for app and funcitons to allow backward compatibility, or we don't actually need to
 # because function schema is loaded dynamically from the database to user
 # TODO: do we need auth_required on function level?
+# TODO: add tags
 class Function(Base):
     __tablename__ = "functions"
 

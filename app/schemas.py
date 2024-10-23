@@ -1,4 +1,5 @@
 import datetime
+from typing import Literal
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict
@@ -93,6 +94,23 @@ class FunctionPublic(BaseModel):
     name: str
     description: str
     parameters: dict
-    response: dict
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class OpenAIFunctionDefinition(BaseModel):
+    class OpenAIFunction(BaseModel):
+        name: str
+        strict: bool | None = None
+        description: str
+        parameters: dict
+
+    type: Literal["function"] = "function"
+    function: OpenAIFunction
+
+
+class AnthropicFunctionDefinition(BaseModel):
+    name: str
+    description: str
+    # equivalent to openai's parameters
+    input_schema: dict

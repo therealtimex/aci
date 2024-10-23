@@ -1,3 +1,4 @@
+from enum import Enum
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
@@ -81,19 +82,71 @@ async def search_functions(
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
 
+# TODO: get list of functions by list of names
 @router.get("/{function_name}", response_model=schemas.FunctionPublic)
 async def get_function(
     function_name: str,
     db_session: Session = Depends(get_db_session),
 ) -> models.Function:
     """
-    Returns the full function signature to be used for LLM function call.
+    Returns the full function data.
     """
     try:
         function = crud.get_function(db_session, function_name)
         if not function:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Function not found.")
         return function
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+
+
+class InferenceProvider(str, Enum):
+    OPENAI = "openai"
+    ANTHROPIC = "anthropic"
+
+
+# TODO: have "structured_outputs" flag ("structured_outputs_if_possible") to support openai's structured outputs function calling?
+# which need "strict: true" and only support a subset of json schema and a bunch of other restrictions like "All fields must be required"
+# If you turn on Structured Outputs by supplying strict: true and call the API with an unsupported JSON Schema, you will receive an error.
+# TODO: client sdk can use pydantic to validate model output for parameters used for function execution
+# TODO: "flatten" flag to make sure nested parameters are flattened?
+@router.get(
+    "/{function_name}/definition",
+    response_model=schemas.OpenAIFunctionDefinition | schemas.AnthropicFunctionDefinition,
+    response_model_exclude_none=True,  # having this to exclude "strict" field in openai's function definition if not set
+)
+async def get_function_definition(
+    function_name: str,
+    inference_provider: InferenceProvider = Query(
+        default=InferenceProvider.OPENAI,
+        description="The inference provider, which determines the format of the function definition.",
+    ),
+    db_session: Session = Depends(get_db_session),
+) -> models.Function:
+    """
+    Return the function definition that can be used directly by LLM.
+    The actual content depends on the intended model (inference provider, e.g., OpenAI, Anthropic, etc.) and the function itself.
+    """
+    try:
+        function = crud.get_function(db_session, function_name)
+        if not function:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Function not found.")
+
+        if inference_provider == InferenceProvider.OPENAI:
+            function_definition = schemas.OpenAIFunctionDefinition(
+                function={
+                    "name": function.name,
+                    "description": function.description,
+                    "parameters": function.parameters,
+                }
+            )
+        elif inference_provider == InferenceProvider.ANTHROPIC:
+            function_definition = schemas.AnthropicFunctionDefinition(
+                name=function.name,
+                description=function.description,
+                input_schema=function.parameters,
+            )
+        return function_definition
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 

@@ -30,24 +30,3 @@ class OpenAIService:
         except Exception:
             logger.error("Error generating embedding", exc_info=True)
             raise
-
-    # def reconstruct_schema(self, schema: dict[str, Any]) -> dict[str, Any]:
-    #     """
-    #     Reconstruct schema using GPT.
-    #     """
-    #     try:
-    #         # Implement your schema reconstruction logic here
-    #         # This is just a placeholder
-    #         response = openai.ChatCompletion.create(
-    #             model="gpt-3.5-turbo",
-    #             messages=[
-    #                 {"role": "system", "content": "You are a helpful assistant that reconstructs schemas."},
-    #                 {"role": "user", "content": f"Please reconstruct this schema: {schema}"}
-    #             ]
-    #         )
-    #         return response.choices[0].message['content']
-    #     except Exception as e:
-    #         logger.error(f"Error reconstructing schema: {e}")
-    #         raise
-
-    # Add other OpenAI-related methods here
