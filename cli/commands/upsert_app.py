@@ -15,6 +15,7 @@ logger = get_logger(__name__)
 LLM_CLIENT = OpenAI(api_key=config.OPENAI_API_KEY)
 
 
+# TODO: funciton name is prefixed with app name and double underscores, e.g., GITHUB__CREATE_REPOSITORY (force this check when validating)
 @click.command()
 @click.option(
     "--app-file",

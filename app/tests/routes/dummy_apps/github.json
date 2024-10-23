@@ -75,7 +75,7 @@
     },
     "functions": [
         {
-            "name": "GITHUB_CREATE_REPOSITORY",
+            "name": "GITHUB__CREATE_REPOSITORY",
             "description": "Create a new repository",
             "parameters": {
                 "type": "object",
@@ -101,7 +101,7 @@
             }
         },
         {
-            "name": "GITHUB_CREATE_ISSUE",
+            "name": "GITHUB__CREATE_ISSUE",
             "description": "Create a new issue in a repository",
             "parameters": {
                 "type": "object",
@@ -122,7 +122,7 @@
             }
         },
         {
-            "name": "GITHUB_CREATE_PULL_REQUEST",
+            "name": "GITHUB__CREATE_PULL_REQUEST",
             "description": "Create a new pull request in a repository",
             "parameters": {
                 "type": "object",

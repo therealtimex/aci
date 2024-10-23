@@ -75,7 +75,7 @@
     },
     "functions": [
         {
-            "name": "GOOGLE_CALENDAR_CREATE_EVENT",
+            "name": "GOOGLE__CALENDAR_CREATE_EVENT",
             "description": "Create a new event in Google Calendar",
             "parameters": {
                 "type": "object",
@@ -127,7 +127,7 @@
             }
         },
         {
-            "name": "GOOGLE_DRIVE_UPLOAD_FILE",
+            "name": "GOOGLE__DRIVE_UPLOAD_FILE",
             "description": "Upload a file to Google Drive",
             "parameters": {
                 "type": "object",

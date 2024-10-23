@@ -49,7 +49,7 @@
     },
     "functions": [
         {
-            "name": "TWITTER_POST_TWEET",
+            "name": "TWITTER__POST_TWEET",
             "description": "Post a new tweet",
             "parameters": {
                 "type": "object",
@@ -72,7 +72,7 @@
             }
         },
         {
-            "name": "TWITTER_RETWEET",
+            "name": "TWITTER__RETWEET",
             "description": "Retweet an existing tweet",
             "parameters": {
                 "type": "object",
@@ -88,7 +88,7 @@
             }
         },
         {
-            "name": "TWITTER_FOLLOW_USER",
+            "name": "TWITTER__FOLLOW_USER",
             "description": "Follow a user on Twitter",
             "parameters": {
                 "type": "object",
@@ -104,7 +104,7 @@
             }
         },
         {
-            "name": "TWITTER_SEND_DIRECT_MESSAGE",
+            "name": "TWITTER__SEND_DIRECT_MESSAGE",
             "description": "Send a direct message to a user",
             "parameters": {
                 "type": "object",

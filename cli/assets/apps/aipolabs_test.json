@@ -75,7 +75,7 @@
     },
     "functions": [
         {
-            "name": "AIPOLABS_TEST_CHECK_INVOICE_STATUS",
+            "name": "AIPOLABS_TEST__CHECK_INVOICE_STATUS",
             "description": "Check the current status of a payment invoice. This function can be used to verify if the payment has been completed, is still pending, or has failed.",
             "parameters": {
                 "type": "object",
@@ -91,7 +91,7 @@
             }
         },
         {
-            "name": "AIPOLABS_TEST_WRITE_REPORT",
+            "name": "AIPOLABS_TEST__WRITE_REPORT",
             "description": "Write a report",
             "parameters": {
                 "type": "object",
