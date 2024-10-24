@@ -9,7 +9,7 @@ from cli.models import auth
 class FunctionModel(BaseModel):
     name: str
     description: str
-    parameters: dict
+    parameters: dict = Field(default_factory=dict)
 
     @field_validator("name")
     def validate_name(cls, v: str) -> str:

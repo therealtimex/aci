@@ -54,6 +54,13 @@ class FunctionSearchParams(BaseModel):
         return v
 
 
+class FunctionExecutionParams(BaseModel):
+    function_input: dict[str, Any] = Field(
+        default_factory=dict, description="The input parameters for the function."
+    )
+    # TODO: can add other params like account_id
+
+
 @router.get("/search", response_model=list[schemas.FunctionBasicPublic])
 async def search_functions(
     search_params: Annotated[FunctionSearchParams, Query()],
@@ -169,7 +176,7 @@ async def get_function_definition(
 )
 async def execute(
     function_name: str,
-    function_input_params: dict[str, Any],
+    function_execution_params: FunctionExecutionParams,
     db_session: Session = Depends(get_db_session),
 ) -> schemas.FunctionExecutionResponse:
     try:
@@ -183,10 +190,10 @@ async def execute(
         app_instance: AppBase = app_factory.get_app_instance(function_name)
 
         # validate input
-        app_instance.validate_input(function.parameters, function_input_params)
+        app_instance.validate_input(function.parameters, function_execution_params.function_input)
 
         # Execute the function
-        return app_instance.execute(function_name, function_input_params)
+        return app_instance.execute(function_name, function_execution_params.function_input)
 
     except ValueError as e:
         logger.exception(f"Error executing function {function_name}")

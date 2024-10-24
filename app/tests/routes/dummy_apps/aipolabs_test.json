@@ -52,6 +52,10 @@
     },
     "functions": [
         {
+            "name": "AIPOLABS_TEST__HELLO_WORLD_NO_ARGS",
+            "description": "Say hello to the world with no args"
+        },
+        {
             "name": "AIPOLABS_TEST__HELLO_WORLD",
             "description": "Say hello to the world",
             "parameters": {

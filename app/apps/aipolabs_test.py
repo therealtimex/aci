@@ -39,3 +39,7 @@ class AipolabsTest(AppBase):
         return {
             "message": f"{greeting}, {person.title} {person.name} in {location.city}, {location.country}!"
         }
+
+    def hello_world_no_args(self) -> dict:
+        logger.info("executing hello_world_no_args")
+        return {"message": "Hello, world!"}

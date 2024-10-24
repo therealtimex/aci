@@ -11,6 +11,7 @@ GOOGLE__CALENDAR_CREATE_EVENT = "GOOGLE__CALENDAR_CREATE_EVENT"
 GITHUB__CREATE_REPOSITORY = "GITHUB__CREATE_REPOSITORY"
 AIPOLABS_TEST__HELLO_WORLD = "AIPOLABS_TEST__HELLO_WORLD"
 AIPOLABS_TEST__HELLO_WORLD_NESTED_ARGS = "AIPOLABS_TEST__HELLO_WORLD_NESTED_ARGS"
+AIPOLABS_TEST__HELLO_WORLD_NO_ARGS = "AIPOLABS_TEST__HELLO_WORLD_NO_ARGS"
 GITHUB = "GITHUB"
 GOOGLE = "GOOGLE"
 
@@ -182,10 +183,8 @@ def test_get_function_definition_anthropic(
 
 def test_execute_function(test_client: TestClient) -> None:
     function_name = AIPOLABS_TEST__HELLO_WORLD
-    function_input_params = {"name": "John", "greeting": "Hello"}
-    response = test_client.post(
-        f"/v1/functions/{function_name}/execute", json=function_input_params
-    )
+    body = {"function_input": {"name": "John", "greeting": "Hello"}}
+    response = test_client.post(f"/v1/functions/{function_name}/execute", json=body)
     logger.info(f"test_execute_function response: \n {response.json()}")
     assert response.status_code == 200, response.json()
     assert "error" not in response.json()
@@ -196,27 +195,44 @@ def test_execute_function(test_client: TestClient) -> None:
 
 def test_execute_function_with_invalid_input(test_client: TestClient) -> None:
     function_name = AIPOLABS_TEST__HELLO_WORLD
-    function_input_params = {"name": "John"}
-    response = test_client.post(
-        f"/v1/functions/{function_name}/execute", json=function_input_params
-    )
+    body = {"function_input": {"name": "John"}}
+    response = test_client.post(f"/v1/functions/{function_name}/execute", json=body)
     logger.info(f"test_execute_function_with_invalid_input response: \n {response.json()}")
     assert response.status_code == 400, response.json()
 
 
 def test_execute_function_with_nested_args(test_client: TestClient) -> None:
     function_name = AIPOLABS_TEST__HELLO_WORLD_NESTED_ARGS
-    function_input_params = {
-        "person": {"name": "John", "title": "Mr"},
-        "greeting": "Hello",
-        "location": {"city": "New York", "country": "USA"},
+    body = {
+        "function_input": {
+            "person": {"name": "John", "title": "Mr"},
+            "greeting": "Hello",
+            "location": {"city": "New York", "country": "USA"},
+        }
     }
-    response = test_client.post(
-        f"/v1/functions/{function_name}/execute", json=function_input_params
-    )
+    response = test_client.post(f"/v1/functions/{function_name}/execute", json=body)
     logger.info(f"test_execute_function_with_nested_args response: \n {response.json()}")
     assert response.status_code == 200, response.json()
     assert "error" not in response.json()
     function_execution_response = schemas.FunctionExecutionResponse.model_validate(response.json())
     assert function_execution_response.success
     assert function_execution_response.data == {"message": "Hello, Mr John in New York, USA!"}
+
+
+def test_execute_function_with_no_args(test_client: TestClient) -> None:
+    # empty body
+    function_name = AIPOLABS_TEST__HELLO_WORLD_NO_ARGS
+    response = test_client.post(f"/v1/functions/{function_name}/execute", json={})
+    assert response.status_code == 200, response.json()
+    function_execution_response = schemas.FunctionExecutionResponse.model_validate(response.json())
+    assert function_execution_response.success
+    assert function_execution_response.data == {"message": "Hello, world!"}
+
+    # empty function_input
+    response = test_client.post(
+        f"/v1/functions/{function_name}/execute", json={"function_input": {}}
+    )
+    assert response.status_code == 200, response.json()
+    function_execution_response = schemas.FunctionExecutionResponse.model_validate(response.json())
+    assert function_execution_response.success
+    assert function_execution_response.data == {"message": "Hello, world!"}

@@ -54,9 +54,9 @@ class AppBase(ABC):
             return schemas.FunctionExecutionResponse(success=False, error=str(e))
 
     @staticmethod
-    def validate_input(function_parameters_schema: dict, function_input_params: dict) -> None:
+    def validate_input(function_parameters_schema: dict, function_input: dict) -> None:
         try:
-            validate(instance=function_input_params, schema=function_parameters_schema)
+            validate(instance=function_input, schema=function_parameters_schema)
         except ValidationError as e:
             raise ValueError(f"Invalid input: {e.message}") from e
 

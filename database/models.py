@@ -313,12 +313,13 @@ class Function(Base):
         PGUUID(as_uuid=True), ForeignKey("apps.id"), nullable=False
     )
     description: Mapped[str] = mapped_column(Text, nullable=False)
-    parameters: Mapped[dict] = mapped_column(JSON, nullable=False)
     # TODO: should response schema be generic (data + execution success of not + optional error) or specific to the function
     response: Mapped[dict] = mapped_column(JSON, nullable=False)
     # TODO: currently created with name, description, parameters, response
     # TODO: should we provide EMBEDDING_DIMENTION here? which makes it less flexible if we want to change the embedding dimention in the future
     embedding: Mapped[list[float]] = mapped_column(Vector(EMBEDDING_DIMENTION), nullable=False)
+    # empty dict for function that takes no args
+    parameters: Mapped[dict] = mapped_column(JSON, nullable=False, default_factory=dict)
     # controlled by aipolabs
     enabled: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
 

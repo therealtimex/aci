@@ -69,7 +69,8 @@ class SupportedAuthSchemes(BaseModel):
 class FunctionModel(BaseModel):
     name: str
     description: str
-    parameters: dict
+    # use empty dict for function definition that doesn't take any args (doesn't have parameters field)
+    parameters: dict = Field(default_factory=dict)
 
     @field_validator("name")
     def validate_name(cls, v: str) -> str:
