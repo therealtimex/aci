@@ -1,5 +1,5 @@
 import datetime
-from typing import Literal
+from typing import Any, Literal
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict
@@ -114,3 +114,10 @@ class AnthropicFunctionDefinition(BaseModel):
     description: str
     # equivalent to openai's parameters
     input_schema: dict
+
+
+# TODO: data could be None even if success is True?
+class FunctionExecutionResponse(BaseModel):
+    success: bool
+    data: Any | None = None  # adding "| None" just for clarity
+    error: str | None = None

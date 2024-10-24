@@ -1,11 +1,12 @@
 from enum import Enum
-from typing import Annotated
+from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, Field, field_validator
 from sqlalchemy.orm import Session
 
 from app import schemas
+from app.apps.base import AppBase, AppFactory
 from app.db import crud
 from app.dependencies import get_db_session
 from app.logging import get_logger
@@ -15,6 +16,7 @@ from database import models
 router = APIRouter()
 logger = get_logger(__name__)
 openai_service = OpenAIService()
+app_factory = AppFactory()
 
 
 # TODO: convert app names to lowercase (in crud or here) to avoid case sensitivity issues?
@@ -94,9 +96,13 @@ async def get_function(
     try:
         function = crud.get_function(db_session, function_name)
         if not function:
+            logger.error(f"Function {function_name} not found.")
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Function not found.")
         return function
+    except HTTPException as e:
+        raise e
     except Exception as e:
+        logger.exception(f"Error getting function for {function_name}")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
 
@@ -130,6 +136,7 @@ async def get_function_definition(
     try:
         function = crud.get_function(db_session, function_name)
         if not function:
+            logger.error(f"Function {function_name} not found.")
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Function not found.")
 
         if inference_provider == InferenceProvider.OPENAI:
@@ -147,52 +154,49 @@ async def get_function_definition(
                 input_schema=function.parameters,
             )
         return function_definition
+    except HTTPException as e:
+        raise e
     except Exception as e:
+        logger.exception(f"Error getting function definition for {function_name}")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
 
-# @router.post("/{function_id}/execute", response_model=FunctionExecutionResponse)
-# async def execute_function(
-#     function_id: UUID = Path(..., description="Unique identifier of the function."),
-#     request: FunctionExecutionRequest = None,
-#     api_key: str = Depends(get_api_key),
-# ):
-#     """
-#     Executes the function and returns the execution result.
-#     """
-#     try:
-#         function_signature = get_function_signature_data(function_id)
-#         if not function_signature:
-#             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Function not found.")
+# TODO: rate limit with fastapi-limiter and redis?
+@router.post(
+    "/{function_name}/execute",
+    response_model=schemas.FunctionExecutionResponse,
+    response_model_exclude_none=True,
+)
+async def execute(
+    function_name: str,
+    function_input_params: dict[str, Any],
+    db_session: Session = Depends(get_db_session),
+) -> schemas.FunctionExecutionResponse:
+    try:
+        # Fetch function definition
+        function = crud.get_function(db_session, function_name)
+        if not function:
+            logger.error(f"Function {function_name} not found.")
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Function not found.")
 
-#         parameters = request.parameters
+        # get the child class instance of AppBase based on function name
+        app_instance: AppBase = app_factory.get_app_instance(function_name)
 
-#         # Validate required parameters
-#         missing_params = [
-#             param.name for param in function_signature.parameters
-#             if param.required and param.name not in parameters
-#         ]
-#         if missing_params:
-#             return FunctionExecutionResponse(
-#                 success=False,
-#                 error=f"Missing required parameters: {', '.join(missing_params)}"
-#             )
+        # validate input
+        app_instance.validate_input(function.parameters, function_input_params)
 
-#         # Simulate function execution
-#         if function_signature.name == "resizeImage":
-#             # Simulate a successful execution
-#             return FunctionExecutionResponse(
-#                 success=True,
-#                 result={"outputPath": "/path/to/resized_image.jpg"}
-#             )
-#         else:
-#             # Function execution not implemented
-#             return FunctionExecutionResponse(
-#                 success=False,
-#                 error="Function execution not implemented."
-#             )
+        # Execute the function
+        return app_instance.execute(function_name, function_input_params)
 
-#     except HTTPException as he:
-#         raise he
-#     except Exception as e:
-#         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+    except ValueError as e:
+        logger.exception(f"Error executing function {function_name}")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    except HTTPException as e:
+        raise e
+    except Exception:
+        logger.exception(
+            f"An unexpected error occurred during function execution for {function_name}"
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error."
+        )

@@ -392,7 +392,7 @@ class ConnectedAccount(Base):
     account_owner_id: Mapped[str] = mapped_column(String(255), nullable=False)
     # here we assume it's possible to have connected account but no auth is required, in which case auth_data will be null
     auth_type: Mapped[App.AuthType] = mapped_column(Enum(App.AuthType), nullable=False)
-    # auth_data is different for each auth type, e.g., API key, OAuth2 etc
+    # auth_data is different for each auth type, e.g., API key, OAuth2 (access token, refresh token, scope, etc) etc
     auth_data: Mapped[dict | None] = mapped_column(JSON, nullable=True)
 
     created_at: Mapped[datetime.datetime] = mapped_column(

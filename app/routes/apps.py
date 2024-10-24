@@ -95,5 +95,5 @@ async def search_apps(
         return apps
 
     except Exception as e:
-        logger.error("Error getting apps", exc_info=True)
+        logger.exception(f"Error getting apps with filter params: {filter_params}")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))

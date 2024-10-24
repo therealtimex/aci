@@ -8,6 +8,10 @@ from database import models
 
 logger = logging.getLogger(__name__)
 
+AIPOLABS_TEST = "AIPOLABS_TEST"
+GITHUB = "GITHUB"
+GOOGLE = "GOOGLE"
+
 
 def test_search_apps_with_intent(test_client: TestClient, dummy_apps: list[models.App]) -> None:
     # try with intent to find GITHUB app
@@ -25,7 +29,7 @@ def test_search_apps_with_intent(test_client: TestClient, dummy_apps: list[model
     assert response.status_code == 200
     apps = [schemas.AppBasicPublic.model_validate(response_app) for response_app in response.json()]
     assert len(apps) == len(dummy_apps)
-    assert apps[0].name == "GITHUB"
+    assert apps[0].name == GITHUB
 
     # try with intent to find GOOGLE app
     filter_params["intent"] = "i want to search the web"
@@ -37,7 +41,7 @@ def test_search_apps_with_intent(test_client: TestClient, dummy_apps: list[model
     assert response.status_code == 200
     apps = [schemas.AppBasicPublic.model_validate(response_app) for response_app in response.json()]
     assert len(apps) == len(dummy_apps)
-    assert apps[0].name == "GOOGLE"
+    assert apps[0].name == GOOGLE
 
 
 def test_search_apps_without_intent(test_client: TestClient, dummy_apps: list[models.App]) -> None:
@@ -64,7 +68,7 @@ def test_search_apps_with_categories(test_client: TestClient) -> None:
     assert response.status_code == 200
     apps = [schemas.AppBasicPublic.model_validate(response_app) for response_app in response.json()]
     assert len(apps) == 1
-    assert apps[0].name == "TEST_APP"
+    assert apps[0].name == AIPOLABS_TEST
 
 
 def test_search_apps_with_categories_and_intent(test_client: TestClient) -> None:
@@ -79,8 +83,8 @@ def test_search_apps_with_categories_and_intent(test_client: TestClient) -> None
     assert response.status_code == 200
     apps = [schemas.AppBasicPublic.model_validate(response_app) for response_app in response.json()]
     assert len(apps) == 2
-    assert apps[0].name == "GITHUB"
-    assert apps[1].name == "GOOGLE"
+    assert apps[0].name == GITHUB
+    assert apps[1].name == GOOGLE
 
 
 def test_search_apps_pagination(test_client: TestClient, dummy_apps: list[models.App]) -> None:
