@@ -1,7 +1,7 @@
 from openai import OpenAI
 
-from app import config
-from app.logging import get_logger
+from server import config
+from server.logging import get_logger
 
 logger = get_logger(__name__)
 

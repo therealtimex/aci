@@ -5,9 +5,9 @@ from uuid import UUID
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app import schemas
-from app.logging import get_logger
 from database import models
+from server import schemas
+from server.logging import get_logger
 
 logger = get_logger(__name__)
 

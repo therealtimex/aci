@@ -5,13 +5,13 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, Field, field_validator
 from sqlalchemy.orm import Session
 
-from app import schemas
-from app.apps.base import AppBase, AppFactory
-from app.db import crud
-from app.dependencies import get_db_session
-from app.logging import get_logger
-from app.openai_service import OpenAIService
 from database import models
+from server import schemas
+from server.apps.base import AppBase, AppFactory
+from server.db import crud
+from server.dependencies import get_db_session
+from server.logging import get_logger
+from server.openai_service import OpenAIService
 
 router = APIRouter()
 logger = get_logger(__name__)

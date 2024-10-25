@@ -6,8 +6,8 @@ from pydantic import ValidationError
 from starlette.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 
-from app import config
-from app.logging import get_logger, setup_logging
+from server import config
+from server.logging import get_logger, setup_logging
 
 from .routes import apps, auth, functions, projects
 

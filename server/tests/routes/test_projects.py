@@ -2,8 +2,8 @@ from fastapi.testclient import TestClient
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app import schemas
 from database import models
+from server import schemas
 
 
 def test_create_project(

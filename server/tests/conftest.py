@@ -8,13 +8,13 @@ from sqlalchemy import inspect
 from sqlalchemy.engine.reflection import Inspector
 from sqlalchemy.orm import Session
 
-from app import schemas
-from app.db import crud
-from app.db.engine import SessionMaker
-from app.main import app as fastapi_app
-from app.routes.auth import create_access_token
-from app.tests import helper
 from database import models
+from server import schemas
+from server.db import crud
+from server.db.engine import SessionMaker
+from server.main import app as fastapi_app
+from server.routes.auth import create_access_token
+from server.tests import helper
 
 logger = logging.getLogger(__name__)
 

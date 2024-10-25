@@ -1,11 +1,11 @@
 # Aipolabs Core Components
 
 ## Project Structure
-Currently only contains the app server code, database (shared) and cli,
+Currently only contains the server code, database (shared) and cli,
 but can be extended to include more services (e.g., separate admin server, sdk, etc.) as a monorepo if needed.
 
-## App Server
-Follow all guidelines below for setting up the development environment, running services and testing locally for the app server.
+## Server
+Follow all guidelines below for setting up the development environment, running services and testing locally for the server.
 
 
 <details>
@@ -38,9 +38,9 @@ Follow all guidelines below for setting up the development environment, running 
 </details>
 
 <details>
-  <summary>Run postgreSQL and app server in Docker locally</summary>
+  <summary>Run postgreSQL and server in Docker locally</summary>
 
-  - Build app server and start the database and app server
+  - Build server and start the database and server
     - `docker-compose up --build`
   - Set up the database (running in docker) with the latest migration 
     - `alembic upgrade head`
@@ -68,7 +68,7 @@ Follow all guidelines below for setting up the development environment, running 
 <details>
   <summary>Run pytest</summary>
 
-  - Make sure a local db is running by `docker-compose up db` (no need to run `app` server for `pytest`)
+  - Make sure a local db is running by `docker-compose up db` (no need to run `server` for `pytest`)
   - Make sure you have applied the latest migrations to the database, and all tables are empty
     - `alembic upgrade head`
   - Run tests

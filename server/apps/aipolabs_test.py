@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 
-from app.apps.base import AppBase
-from app.logging import get_logger
+from server.apps.base import AppBase
+from server.logging import get_logger
 
 logger = get_logger(__name__)
 

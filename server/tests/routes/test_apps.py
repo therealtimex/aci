@@ -3,8 +3,8 @@ from typing import Any
 
 from fastapi.testclient import TestClient
 
-from app import schemas
 from database import models
+from server import schemas
 
 logger = logging.getLogger(__name__)
 

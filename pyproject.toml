@@ -1,7 +1,7 @@
 [tool.poetry]
-name = "aipolabs-app"
+name = "aipolabs"
 version = "0.0.1"
-description = "aipolabs app"
+description = "aipolabs"
 authors = ["Aipolabs <team@aipolabs.xyz>"]
 package-mode = false
 [tool.poetry.dependencies]

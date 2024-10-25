@@ -6,9 +6,9 @@ from fastapi import HTTPException, Security, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 
-from app import config
-from app.db import engine
-from app.logging import get_logger
+from server import config
+from server.db import engine
+from server.logging import get_logger
 
 # from fastapi.security import APIKeyHeader
 

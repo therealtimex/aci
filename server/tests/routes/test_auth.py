@@ -5,8 +5,8 @@ from fastapi.testclient import TestClient
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app import config
 from database import models
+from server import config
 
 MOCK_USER_GOOGLE_AUTH_DATA = {
     "sub": "123",
@@ -33,8 +33,8 @@ def mock_oauth_provider(monkeypatch: pytest.MonkeyPatch) -> None:
         return MockOAuthClient()
 
     # Mock the OAuth provider registry
-    monkeypatch.setattr("app.routes.auth.oauth._registry", {"google": "mock_google_client"})
-    monkeypatch.setattr("app.routes.auth.oauth.create_client", mock_create_client)
+    monkeypatch.setattr("server.routes.auth.oauth._registry", {"google": "mock_google_client"})
+    monkeypatch.setattr("server.routes.auth.oauth.create_client", mock_create_client)
 
 
 def test_login_google(test_client: TestClient) -> None:

@@ -4,8 +4,8 @@ from typing import Type
 
 from jsonschema import ValidationError, validate
 
-from app import schemas
-from app.logging import get_logger
+from server import schemas
+from server.logging import get_logger
 
 logger = get_logger(__name__)
 
@@ -18,11 +18,11 @@ class InvalidFunctionNameException(Exception):
 def parse_function_name(function_name: str) -> tuple[str, str, str]:
     """
     Parse function name to get module name, class name and method name.
-    e.g. "AIPOLABS_TEST__HELLO_WORLD" -> "app.apps.aipolabs_test", "AipolabsTest", "hello_world"
+    e.g. "AIPOLABS_TEST__HELLO_WORLD" -> "server.apps.aipolabs_test", "AipolabsTest", "hello_world"
     """
     try:
         app_name, method_name = function_name.split("__", 1)
-        module_name = f"app.apps.{app_name.lower()}"
+        module_name = f"server.apps.{app_name.lower()}"
         class_name = "".join(word.capitalize() for word in app_name.split("_"))
         method_name = method_name.lower()
 

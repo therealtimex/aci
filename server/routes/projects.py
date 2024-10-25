@@ -4,10 +4,10 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from app import dependencies as deps
-from app import schemas
-from app.db import crud
-from app.logging import get_logger
+from server import dependencies as deps
+from server import schemas
+from server.db import crud
+from server.logging import get_logger
 
 # Create router instance
 router = APIRouter()

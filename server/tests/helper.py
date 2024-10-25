@@ -6,8 +6,8 @@ from pathlib import Path
 from pydantic import BaseModel, Field, field_validator
 from sqlalchemy.orm import Session
 
-from app.openai_service import OpenAIService
 from database import models
+from server.openai_service import OpenAIService
 
 # TODO: move log setup to conftest
 logger = logging.getLogger(__name__)
@@ -104,7 +104,7 @@ class AppModel(BaseModel):
 def create_dummy_apps(db_session: Session) -> list[models.App]:
     # for each json file in the dummy_apps directory, create an app using cli's upsert_app command
     dummy_apps: list[models.App] = []
-    for file in Path("app/tests/routes/dummy_apps").glob("*.json"):
+    for file in Path("server/tests/routes/dummy_apps").glob("*.json"):
         logger.info(f"creating app and functionsfrom file: {file}")
         dummy_apps.append(insert_app(db_session, file))
     return dummy_apps
