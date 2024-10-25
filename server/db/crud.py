@@ -132,9 +132,9 @@ def user_has_admin_access_to_project(db_session: Session, user_id: UUID, project
     return db_project.owner_user_id is not None and db_project.owner_user_id == user_id
 
 
-def get_api_key(db_session: Session, api_key: str) -> models.APIKey | None:
+def get_api_key(db_session: Session, key: str) -> models.APIKey | None:
     db_api_key: models.APIKey | None = db_session.execute(
-        select(models.APIKey).filter_by(key=api_key)
+        select(models.APIKey).filter_by(key=key)
     ).scalar_one_or_none()
 
     return db_api_key

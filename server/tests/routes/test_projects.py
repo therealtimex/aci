@@ -19,7 +19,7 @@ def test_create_project(
         json=project_create.model_dump(),
         headers={"Authorization": f"Bearer {dummy_user_bearer_token}"},
     )
-    assert response.status_code == 200
+    assert response.status_code == 200, response.json()
     project_public = schemas.ProjectPublic.model_validate(response.json())
     assert project_public.name == project_create.name
     assert project_public.owner_organization_id == project_create.owner_organization_id
@@ -54,7 +54,7 @@ def test_create_agent(
         json=agent_create.model_dump(),
         headers={"Authorization": f"Bearer {dummy_user_bearer_token}"},
     )
-    assert response.status_code == 200
+    assert response.status_code == 200, response.json()
     agent_public = schemas.AgentPublic.model_validate(response.json())
     assert agent_public.name == agent_create.name
     assert agent_public.description == agent_create.description

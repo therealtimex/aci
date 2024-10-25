@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta, timezone
 from enum import Enum
-from typing import Any
+from typing import Annotated, Any
 
 from authlib.integrations.starlette_client import OAuth
 from authlib.jose import JoseError, jwt
@@ -77,7 +77,7 @@ async def login(request: Request, provider: str) -> Any:
 # TODO: decision between long-lived JWT v.s session based v.s refresh token based auth
 @router.get("/callback/{provider}", name="auth_callback", response_model=schemas.TokenResponse)
 async def auth_callback(
-    request: Request, provider: str, db_session: Session = Depends(deps.get_db_session)
+    request: Request, provider: str, db_session: Annotated[Session, Depends(deps.get_db_session)]
 ) -> Any:
     logger.info(f"Callback received for provider: {provider}")
     if provider not in oauth._registry:

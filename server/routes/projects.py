@@ -17,7 +17,7 @@ logger = get_logger(__name__)
 @router.post("/", response_model=schemas.ProjectPublic)
 async def create_project(
     project: schemas.ProjectCreate,
-    user_id: Annotated[UUID, Depends(deps.verify_user)],
+    user_id: Annotated[UUID, Depends(deps.validate_http_bearer)],
     db_session: Annotated[Session, Depends(deps.get_db_session)],
 ) -> Any:
     try:
@@ -49,7 +49,7 @@ async def create_project(
 async def create_agent(
     project_id: UUID,
     agent: schemas.AgentCreate,
-    user_id: Annotated[UUID, Depends(deps.verify_user)],
+    user_id: Annotated[UUID, Depends(deps.validate_http_bearer)],
     db_session: Annotated[Session, Depends(deps.get_db_session)],
 ) -> Any:
     try:

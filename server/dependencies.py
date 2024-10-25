@@ -1,22 +1,21 @@
-from typing import Generator
+from typing import Annotated, Generator
 from uuid import UUID
 
 from authlib.jose import JoseError, jwt
-from fastapi import HTTPException, Security, status
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from fastapi import Depends, HTTPException, Security, status
+from fastapi.security import APIKeyHeader, HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 
+from database import models
 from server import config
-from server.db import engine
+from server.db import crud, engine
 from server.logging import get_logger
 
-# from fastapi.security import APIKeyHeader
-
 logger = get_logger(__name__)
-http_bearer = HTTPBearer()
-# api_key_header = APIKeyHeader(
-#     name="X-API-KEY", description="API key for authentication", auto_error=True
-# )
+http_bearer = HTTPBearer(auto_error=True, description="login to receive a JWT token")
+api_key_header = APIKeyHeader(
+    name="X-API-KEY", description="API key for authentication", auto_error=True
+)
 
 
 def get_db_session() -> Generator[Session, None, None]:
@@ -27,11 +26,16 @@ def get_db_session() -> Generator[Session, None, None]:
         db_session.close()
 
 
-# dependency function to verify and decode JWT token
-# used for routes that require user authentication like creating API keys
-def verify_user(
-    auth_data: HTTPAuthorizationCredentials = Security(http_bearer),
+def validate_http_bearer(
+    auth_data: Annotated[HTTPAuthorizationCredentials, Security(http_bearer)],
 ) -> UUID:
+    """
+    Validate HTTP Bearer token and return user ID.
+    HTTP Bearer token is generated after a user logs in to dev portal.
+    Used for some routes like /projects that should not be accessed programmatically.
+    """
+    # TODO: remove logging
+    logger.warning(f"Validating HTTP Bearer token: {auth_data.credentials}")
     token = auth_data.credentials
     try:
         logger.info("Decoding JWT token.")
@@ -55,3 +59,23 @@ def verify_user(
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail=f"Invalid token: {str(e)}"
         )
+
+
+def validate_api_key(
+    db_session: Annotated[Session, Depends(get_db_session)],
+    api_key: Annotated[str, Security(api_key_header)],
+) -> UUID:
+    """Validate API key and return the API key ID. (not the actual API key string)"""
+    # TODO: remove logging
+    logger.warning(f"Validating API key: {api_key}")
+    db_api_key = crud.get_api_key(db_session, api_key)
+    if db_api_key is None:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid API key")
+
+    if db_api_key.status == models.APIKey.Status.DISABLED:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="API key is disabled")
+    elif db_api_key.status == models.APIKey.Status.DELETED:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="API key is deleted")
+
+    api_key_id: UUID = db_api_key.id
+    return api_key_id

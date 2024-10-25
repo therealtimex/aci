@@ -42,7 +42,7 @@ def test_login_google(test_client: TestClient) -> None:
     # This is a redirect response, but we are not following the redirect
     response = test_client.get("/v1/auth/login/google")
     assert response.headers["location"].startswith(MOCK_GOOGLE_AUTH_REDIRECT_URI_PREFIX)
-    assert response.status_code == status.HTTP_302_FOUND
+    assert response.status_code == status.HTTP_302_FOUND, response.json()
 
 
 # mock_oauth_provider to mock google Oauth user info
@@ -51,7 +51,7 @@ def test_callback_google(
 ) -> None:
     response = test_client.get("/v1/auth/callback/google")
     data = response.json()
-    assert response.status_code == 200
+    assert response.status_code == 200, response.json()
     # check jwt token is generated
     assert data["access_token"] is not None
     assert data["token_type"] == "bearer"

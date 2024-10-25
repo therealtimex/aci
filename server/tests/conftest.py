@@ -91,6 +91,22 @@ def dummy_project(
 
 
 @pytest.fixture(scope="module", autouse=True)
+def dummy_api_key(
+    db_session: Session, dummy_project: models.Project, dummy_user: models.User
+) -> Generator[str, None, None]:
+    dummy_agent = crud.create_agent(
+        db_session,
+        schemas.AgentCreate(name="Dummy Agent", description="Dummy Agent"),
+        dummy_project.id,
+        dummy_user.id,
+    )
+    db_session.commit()
+    yield dummy_agent.api_keys[0].key
+    db_session.delete(dummy_agent)
+    db_session.commit()
+
+
+@pytest.fixture(scope="module", autouse=True)
 def dummy_apps(db_session: Session) -> Generator[list[models.App], None, None]:
     dummy_apps = helper.create_dummy_apps(db_session)
     db_session.commit()
