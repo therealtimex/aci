@@ -23,9 +23,11 @@ services:
     environment:
       # override the default SERVER_DB_HOST value in .env
       SERVER_DB_HOST: db
+      # TODO: double check if this makes sense
+      SERVER_ENVIRONMENT: local
     # useful for development, changes take effect in the container without needing to rebuild the image.
     volumes:
-      - ./server:/backend/server
+      - ./aipolabs/server:/aipolabs/server
     ports:
       - "8000:8000"
     depends_on:
