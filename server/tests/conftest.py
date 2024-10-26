@@ -49,7 +49,7 @@ def db_setup_and_cleanup() -> Generator[None, None, None]:
 @pytest.fixture(scope="session")
 def test_client() -> Generator[TestClient, None, None]:
     # disable following redirects for testing login
-    with TestClient(fastapi_app, follow_redirects=False) as c:
+    with TestClient(fastapi_app, base_url="https://testclient", follow_redirects=False) as c:
         yield c
 
 

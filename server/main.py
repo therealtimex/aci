@@ -4,13 +4,15 @@ from fastapi.responses import JSONResponse
 from fastapi.routing import APIRoute
 from pydantic import ValidationError
 from starlette.middleware.cors import CORSMiddleware
+from starlette.middleware.httpsredirect import HTTPSRedirectMiddleware
 from starlette.middleware.sessions import SessionMiddleware
+from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 
 from server import config
 from server import dependencies as deps
 from server.logging import get_logger, setup_logging
-
-from .routes import apps, auth, functions, projects
+from server.middleware.ratelimit import RateLimitMiddleware
+from server.routes import apps, auth, functions, projects
 
 
 def custom_generate_unique_id(route: APIRoute) -> str:
@@ -32,9 +34,12 @@ app = FastAPI(
     generate_unique_id_function=custom_generate_unique_id,
 )
 
-
-# Set all CORS enabled origins
-# if settings.all_cors_origins:
+"""middlewares are executed in the reverse order"""
+app.add_middleware(RateLimitMiddleware)
+# TODO: adjust trusted hosts?
+app.add_middleware(ProxyHeadersMiddleware, trusted_hosts=["127.0.0.1"])
+app.add_middleware(SessionMiddleware, secret_key=config.SESSION_SECRET_KEY)
+app.add_middleware(HTTPSRedirectMiddleware)
 # TODO: configure CORS properly
 app.add_middleware(
     CORSMiddleware,
@@ -46,7 +51,7 @@ app.add_middleware(
 )
 
 
-# TODO: global exception handler
+# TODO: global exception handler. can switch to use middleware?
 @app.exception_handler(ValidationError)
 def validation_exception_handler(request: Request, exc: ValidationError) -> JSONResponse:
     logger.error(f"Validation error, request: {request}, error: {exc.errors()}")
@@ -55,8 +60,6 @@ def validation_exception_handler(request: Request, exc: ValidationError) -> JSON
         content={"detail": "Internal validation error"},
     )
 
-
-app.add_middleware(SessionMiddleware, secret_key=config.SESSION_SECRET_KEY)
 
 app.include_router(auth.router, prefix="/v1/auth", tags=["auth"])
 app.include_router(

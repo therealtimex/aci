@@ -7,14 +7,14 @@ from fastapi.security import APIKeyHeader, HTTPAuthorizationCredentials, HTTPBea
 from sqlalchemy.orm import Session
 
 from database import models
-from server import config
+from server.config import AOPOLABS_API_KEY_NAME, JWT_SECRET_KEY
 from server.db import crud, engine
 from server.logging import get_logger
 
 logger = get_logger(__name__)
 http_bearer = HTTPBearer(auto_error=True, description="login to receive a JWT token")
 api_key_header = APIKeyHeader(
-    name="X-API-KEY", description="API key for authentication", auto_error=True
+    name=AOPOLABS_API_KEY_NAME, description="API key for authentication", auto_error=True
 )
 
 
@@ -39,7 +39,7 @@ def validate_http_bearer(
     token = auth_data.credentials
     try:
         logger.info("Decoding JWT token.")
-        payload = jwt.decode(token, config.JWT_SECRET_KEY)
+        payload = jwt.decode(token, JWT_SECRET_KEY)
         logger.info(f"Decoded token payload: {payload}")
         payload.validate()  # This will raise a JoseError if validation fails
 
