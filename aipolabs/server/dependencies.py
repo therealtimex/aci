@@ -6,10 +6,11 @@ from fastapi import Depends, HTTPException, Security, status
 from fastapi.security import APIKeyHeader, HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 
-from aipolabs.common import sql_models
+from aipolabs.common import sql_models, utils
 from aipolabs.common.logging import get_logger
+from aipolabs.server import config
 from aipolabs.server.config import AOPOLABS_API_KEY_NAME, JWT_SECRET_KEY
-from aipolabs.server.db import crud, engine
+from aipolabs.server.db import crud
 
 logger = get_logger(__name__)
 http_bearer = HTTPBearer(auto_error=True, description="login to receive a JWT token")
@@ -19,7 +20,7 @@ api_key_header = APIKeyHeader(
 
 
 def get_db_session() -> Generator[Session, None, None]:
-    db_session = engine.SessionMaker()
+    db_session = utils.create_db_session(config.DB_FULL_URL)
     try:
         yield db_session
     finally:

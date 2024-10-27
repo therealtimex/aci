@@ -8,10 +8,9 @@ from sqlalchemy import inspect
 from sqlalchemy.engine.reflection import Inspector
 from sqlalchemy.orm import Session
 
-from aipolabs.common import sql_models
-from aipolabs.server import schemas
+from aipolabs.common import sql_models, utils
+from aipolabs.server import config, schemas
 from aipolabs.server.db import crud
-from aipolabs.server.db.engine import SessionMaker
 from aipolabs.server.main import app as fastapi_app
 from aipolabs.server.routes.auth import create_access_token
 from aipolabs.server.tests import helper
@@ -22,7 +21,7 @@ logger = logging.getLogger(__name__)
 @pytest.fixture(scope="session", autouse=True)
 def db_setup_and_cleanup() -> Generator[None, None, None]:
     # Use 'with' to manage the session context
-    with SessionMaker() as session:
+    with utils.create_db_session(config.DB_FULL_URL) as session:
         inspector = cast(Inspector, inspect(session.bind))
 
         # Check if all tables defined in models are created in the db
@@ -55,7 +54,7 @@ def test_client() -> Generator[TestClient, None, None]:
 
 @pytest.fixture(scope="session", autouse=True)
 def dummy_user() -> Generator[sql_models.User, None, None]:
-    with SessionMaker() as fixture_db_session:
+    with utils.create_db_session(config.DB_FULL_URL) as fixture_db_session:
         dummy_user = crud.get_or_create_user(
             fixture_db_session,
             "dummy_auth_provider",
@@ -76,7 +75,7 @@ def dummy_user_bearer_token(dummy_user: sql_models.User) -> str:
 
 @pytest.fixture(scope="session", autouse=True)
 def dummy_project(dummy_user: sql_models.User) -> Generator[sql_models.Project, None, None]:
-    with SessionMaker() as fixture_db_session:
+    with utils.create_db_session(config.DB_FULL_URL) as fixture_db_session:
         dummy_project = crud.create_project(
             fixture_db_session,
             schemas.ProjectCreate(name="Dummy Project", owner_organization_id=None),
@@ -92,7 +91,7 @@ def dummy_project(dummy_user: sql_models.User) -> Generator[sql_models.Project, 
 def dummy_api_key(
     dummy_project: sql_models.Project, dummy_user: sql_models.User
 ) -> Generator[str, None, None]:
-    with SessionMaker() as fixture_db_session:
+    with utils.create_db_session(config.DB_FULL_URL) as fixture_db_session:
         dummy_agent = crud.create_agent(
             fixture_db_session,
             schemas.AgentCreate(name="Dummy Agent", description="Dummy Agent"),
@@ -107,7 +106,7 @@ def dummy_api_key(
 
 @pytest.fixture(scope="session", autouse=True)
 def dummy_apps() -> Generator[list[sql_models.App], None, None]:
-    with SessionMaker() as fixture_db_session:
+    with utils.create_db_session(config.DB_FULL_URL) as fixture_db_session:
         dummy_apps = helper.create_dummy_apps(fixture_db_session)
         fixture_db_session.commit()
         yield dummy_apps
@@ -126,5 +125,5 @@ def dummy_functions(dummy_apps: list[sql_models.App]) -> list[sql_models.Functio
 
 @pytest.fixture(scope="module")
 def db_session() -> Generator[Session, None, None]:
-    with SessionMaker() as db_session:
+    with utils.create_db_session(config.DB_FULL_URL) as db_session:
         yield db_session
