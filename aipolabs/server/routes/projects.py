@@ -18,7 +18,7 @@ logger = get_logger(__name__)
 async def create_project(
     project: schemas.ProjectCreate,
     user_id: Annotated[UUID, Depends(deps.validate_http_bearer)],
-    db_session: Annotated[Session, Depends(deps.get_db_session)],
+    db_session: Annotated[Session, Depends(deps.yield_db_session)],
 ) -> Any:
     try:
         logger.info(f"Creating project: {project}, user_id: {user_id}")
@@ -50,7 +50,7 @@ async def create_agent(
     project_id: UUID,
     agent: schemas.AgentCreate,
     user_id: Annotated[UUID, Depends(deps.validate_http_bearer)],
-    db_session: Annotated[Session, Depends(deps.get_db_session)],
+    db_session: Annotated[Session, Depends(deps.yield_db_session)],
 ) -> Any:
     try:
         logger.info(f"Creating agent in project: {project_id}, user_id: {user_id}")

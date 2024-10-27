@@ -11,7 +11,7 @@ from aipolabs.common.openai_service import OpenAIService
 from aipolabs.server import schemas
 from aipolabs.server.apps.base import AppBase, AppFactory
 from aipolabs.server.db import crud
-from aipolabs.server.dependencies import get_db_session
+from aipolabs.server.dependencies import yield_db_session
 
 router = APIRouter()
 logger = get_logger(__name__)
@@ -64,7 +64,7 @@ class FunctionExecutionParams(BaseModel):
 @router.get("/search", response_model=list[schemas.FunctionBasicPublic])
 async def search_functions(
     search_params: Annotated[FunctionSearchParams, Query()],
-    db_session: Session = Depends(get_db_session),
+    db_session: Session = Depends(yield_db_session),
 ) -> list[sql_models.Function]:
     """
     Returns the basic information of a list of functions.
@@ -95,7 +95,7 @@ async def search_functions(
 @router.get("/{function_name}", response_model=schemas.FunctionPublic)
 async def get_function(
     function_name: str,
-    db_session: Session = Depends(get_db_session),
+    db_session: Session = Depends(yield_db_session),
 ) -> sql_models.Function:
     """
     Returns the full function data.
@@ -134,7 +134,7 @@ async def get_function_definition(
         default=InferenceProvider.OPENAI,
         description="The inference provider, which determines the format of the function definition.",
     ),
-    db_session: Session = Depends(get_db_session),
+    db_session: Session = Depends(yield_db_session),
 ) -> sql_models.Function:
     """
     Return the function definition that can be used directly by LLM.
@@ -177,7 +177,7 @@ async def get_function_definition(
 async def execute(
     function_name: str,
     function_execution_params: FunctionExecutionParams,
-    db_session: Session = Depends(get_db_session),
+    db_session: Session = Depends(yield_db_session),
 ) -> schemas.FunctionExecutionResponse:
     try:
         # Fetch function definition

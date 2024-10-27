@@ -19,7 +19,7 @@ api_key_header = APIKeyHeader(
 )
 
 
-def get_db_session() -> Generator[Session, None, None]:
+def yield_db_session() -> Generator[Session, None, None]:
     db_session = utils.create_db_session(config.DB_FULL_URL)
     try:
         yield db_session
@@ -63,7 +63,7 @@ def validate_http_bearer(
 
 
 def validate_api_key(
-    db_session: Annotated[Session, Depends(get_db_session)],
+    db_session: Annotated[Session, Depends(yield_db_session)],
     api_key: Annotated[str, Security(api_key_header)],
 ) -> UUID:
     """Validate API key and return the API key ID. (not the actual API key string)"""

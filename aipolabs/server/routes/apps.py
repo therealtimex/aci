@@ -8,7 +8,7 @@ from aipolabs.common.logging import get_logger
 from aipolabs.common.openai_service import OpenAIService
 from aipolabs.server import schemas
 from aipolabs.server.db import crud
-from aipolabs.server.dependencies import get_db_session
+from aipolabs.server.dependencies import yield_db_session
 
 logger = get_logger(__name__)
 router = APIRouter()
@@ -64,7 +64,7 @@ class AppFilterParams(BaseModel):
 )
 async def search_apps(
     filter_params: Annotated[AppFilterParams, Query()],
-    db_session: Session = Depends(get_db_session),
+    db_session: Session = Depends(yield_db_session),
 ) -> list[schemas.AppBasicPublic]:
     """
     Returns a list of applications (name and description).
