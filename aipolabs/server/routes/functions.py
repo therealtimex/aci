@@ -8,14 +8,16 @@ from sqlalchemy.orm import Session
 from aipolabs.common import sql_models
 from aipolabs.common.logging import get_logger
 from aipolabs.common.openai_service import OpenAIService
-from aipolabs.server import schemas
+from aipolabs.server import config, schemas
 from aipolabs.server.apps.base import AppBase, AppFactory
 from aipolabs.server.db import crud
 from aipolabs.server.dependencies import yield_db_session
 
 router = APIRouter()
 logger = get_logger(__name__)
-openai_service = OpenAIService()
+openai_service = OpenAIService(
+    config.OPENAI_API_KEY, config.OPENAI_EMBEDDING_MODEL, config.OPENAI_EMBEDDING_DIMENSION
+)
 app_factory = AppFactory()
 
 

@@ -4,12 +4,15 @@ from pathlib import Path
 
 from sqlalchemy.orm import Session
 
-from aipolabs.common import sql_models
+from aipolabs.common import sql_models, utils
 from aipolabs.common.openai_service import OpenAIService
-from aipolabs.common.schemas import AppFileModel, FunctionFileModel
+from aipolabs.common.schemas import AppFileModel
+from aipolabs.server import config
 
 logger = logging.getLogger(__name__)
-openai_service = OpenAIService()
+openai_service = OpenAIService(
+    config.OPENAI_API_KEY, config.OPENAI_EMBEDDING_MODEL, config.OPENAI_EMBEDDING_DIMENSION
+)
 
 
 # TODO: duplicate code with cli's upsert_app command
@@ -62,7 +65,7 @@ def insert_app_to_db(db_session: Session, app: AppFileModel) -> sql_models.App:
             if app.supported_auth_schemes is not None
             else None
         ),
-        embedding=generate_app_embedding(app),
+        embedding=utils.generate_app_embedding(app, openai_service),
     )
 
     db_session.add(db_app)
@@ -81,30 +84,9 @@ def insert_functions_to_db(db_session: Session, db_app: sql_models.App, app: App
             parameters=function.parameters,
             app_id=db_app.id,
             response={},
-            embedding=generate_function_embedding(function),
+            embedding=utils.generate_function_embedding(function, openai_service),
         )
 
         db_session.add(db_function)
 
     db_session.flush()
-
-
-def generate_app_embedding(app: AppFileModel) -> list[float]:
-    logger.debug(f"Generating embedding for app: {app.name}...")
-    # generate app embeddings based on app config's name, display_name, provider, description, categories, and tags
-    text_for_embedding = (
-        f"{app.name}\n"
-        f"{app.display_name}\n"
-        f"{app.provider}\n"
-        f"{app.description}\n"
-        f"{' '.join(app.categories)}\n"
-        f"{' '.join(app.tags)}"
-    )
-    return openai_service.generate_embedding(text_for_embedding)
-
-
-def generate_function_embedding(function: FunctionFileModel) -> list[float]:
-    logger.debug(f"Generating embedding for function: {function.name}...")
-    text_for_embedding = f"{function.name}\n{function.description}\n{function.parameters}"
-
-    return openai_service.generate_embedding(text_for_embedding)

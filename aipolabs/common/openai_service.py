@@ -1,7 +1,6 @@
 from openai import OpenAI
 
 from aipolabs.common.logging import get_logger
-from aipolabs.server import config
 
 logger = get_logger(__name__)
 
@@ -10,8 +9,10 @@ logger = get_logger(__name__)
 # TODO: backup plan if OpenAI is down?
 # TODO: should this be a singleton and inject into routes? and use a thread pool to handle concurrent requests?
 class OpenAIService:
-    def __init__(self) -> None:
-        self.openai_client = OpenAI(api_key=config.OPENAI_API_KEY)
+    def __init__(self, api_key: str, embedding_model: str, embedding_dimension: int) -> None:
+        self.openai_client = OpenAI(api_key=api_key)
+        self.embedding_model = embedding_model
+        self.embedding_dimension = embedding_dimension
 
     # TODO: exponential backoff?
     def generate_embedding(self, text: str) -> list[float]:
@@ -22,8 +23,8 @@ class OpenAIService:
         try:
             response = self.openai_client.embeddings.create(
                 input=[text],
-                model=config.OPENAI_EMBEDDING_MODEL,
-                dimensions=config.OPENAI_EMBEDDING_DIMENSION,
+                model=self.embedding_model,
+                dimensions=self.embedding_dimension,
             )
             embedding: list[float] = response.data[0].embedding
             return embedding

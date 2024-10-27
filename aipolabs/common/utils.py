@@ -4,6 +4,12 @@ import re
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
+from aipolabs.common.logging import get_logger
+from aipolabs.common.openai_service import OpenAIService
+from aipolabs.common.schemas import AppFileModel, FunctionFileModel
+
+logger = get_logger(__name__)
+
 
 def check_and_get_env_variable(name: str) -> str:
     value = os.getenv(name)
@@ -40,3 +46,28 @@ def format_to_screaming_snake_case(name: str) -> str:
 def create_db_session(db_url: str) -> Session:
     SessionMaker = sessionmaker(autocommit=False, autoflush=False, bind=create_engine(db_url))
     return SessionMaker()
+
+
+# TODO: include response schema in the embedding if added
+# TODO: bacth generate function embeddings
+def generate_function_embedding(
+    function: FunctionFileModel, openai_service: OpenAIService
+) -> list[float]:
+    logger.debug(f"Generating embedding for function: {function.name}...")
+    text_for_embedding = f"{function.name}\n{function.description}\n{function.parameters}"
+
+    return openai_service.generate_embedding(text_for_embedding)
+
+
+def generate_app_embedding(app: AppFileModel, openai_service: OpenAIService) -> list[float]:
+    logger.debug(f"Generating embedding for app: {app.name}...")
+    # generate app embeddings based on app config's name, display_name, provider, description, categories, and tags
+    text_for_embedding = (
+        f"{app.name}\n"
+        f"{app.display_name}\n"
+        f"{app.provider}\n"
+        f"{app.description}\n"
+        f"{' '.join(app.categories)}\n"
+        f"{' '.join(app.tags)}"
+    )
+    return openai_service.generate_embedding(text_for_embedding)

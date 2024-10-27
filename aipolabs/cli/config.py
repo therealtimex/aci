@@ -6,7 +6,7 @@ load_dotenv()
 
 OPENAI_API_KEY = check_and_get_env_variable("CLI_OPENAI_API_KEY")
 OPENAI_EMBEDDING_MODEL = check_and_get_env_variable("CLI_OPENAI_EMBEDDING_MODEL")
-EMBEDDING_DIMENSION = int(check_and_get_env_variable("CLI_EMBEDDING_DIMENSION"))
+OPENAI_EMBEDDING_DIMENSION = int(check_and_get_env_variable("CLI_OPENAI_EMBEDDING_DIMENSION"))
 DB_SCHEME = check_and_get_env_variable("CLI_DB_SCHEME")
 DB_USER = check_and_get_env_variable("CLI_DB_USER")
 DB_PASSWORD = check_and_get_env_variable("CLI_DB_PASSWORD")

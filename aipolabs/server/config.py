@@ -8,7 +8,7 @@ load_dotenv()
 # LLM
 OPENAI_API_KEY = check_and_get_env_variable("SERVER_OPENAI_API_KEY")
 OPENAI_EMBEDDING_MODEL = check_and_get_env_variable("SERVER_OPENAI_EMBEDDING_MODEL")
-OPENAI_EMBEDDING_DIMENSION = int(check_and_get_env_variable("SERVER_EMBEDDING_DIMENSION"))
+OPENAI_EMBEDDING_DIMENSION = int(check_and_get_env_variable("SERVER_OPENAI_EMBEDDING_DIMENSION"))
 
 # JWT
 JWT_SECRET_KEY = check_and_get_env_variable("SERVER_JWT_SECRET_KEY")
