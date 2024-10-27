@@ -5,10 +5,9 @@ from openai import OpenAI
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from aipolabs.cli import config
 from aipolabs.cli.models.app_file import AppModel, FunctionModel
-from aipolabs.cli.utils import config
-from aipolabs.cli.utils.helper import get_db_session
-from aipolabs.common import sql_models
+from aipolabs.common import sql_models, utils
 from aipolabs.common.logging import get_logger
 
 logger = get_logger(__name__)
@@ -26,7 +25,7 @@ LLM_CLIENT = OpenAI(api_key=config.OPENAI_API_KEY)
 )
 def upsert_app(app_file: str) -> None:
     """Upsert App and Functions to db from a json file."""
-    with get_db_session() as db_session:
+    with utils.create_db_session(config.DB_FULL_URL) as db_session:
         try:
             # Parse files
             with open(app_file, "r") as f:
