@@ -53,72 +53,78 @@ def test_client() -> Generator[TestClient, None, None]:
         yield c
 
 
-@pytest.fixture(scope="module")
-def db_session() -> Generator[Session, None, None]:
-    with SessionMaker() as db_session:
-        yield db_session
+@pytest.fixture(scope="session", autouse=True)
+def dummy_user() -> Generator[models.User, None, None]:
+    with SessionMaker() as fixture_db_session:
+        dummy_user = crud.get_or_create_user(
+            fixture_db_session,
+            "dummy_auth_provider",
+            "dummy_user_id",
+            "Dummy User",
+            "dummy@example.com",
+        )
+        fixture_db_session.commit()
+        yield dummy_user
+        fixture_db_session.delete(dummy_user)
+        fixture_db_session.commit()
 
 
-@pytest.fixture(scope="module", autouse=True)
-def dummy_user(db_session: Session) -> Generator[models.User, None, None]:
-    dummy_user = crud.get_or_create_user(
-        db_session, "dummy_auth_provider", "dummy_user_id", "Dummy User", "dummy@example.com"
-    )
-    db_session.commit()
-    yield dummy_user
-    db_session.delete(dummy_user)
-    db_session.commit()
-
-
-@pytest.fixture(scope="module", autouse=True)
+@pytest.fixture(scope="session", autouse=True)
 def dummy_user_bearer_token(dummy_user: models.User) -> str:
     return create_access_token(str(dummy_user.id), timedelta(minutes=15))
 
 
-@pytest.fixture(scope="module", autouse=True)
-def dummy_project(
-    db_session: Session, dummy_user: models.User
-) -> Generator[models.Project, None, None]:
-    dummy_project = crud.create_project(
-        db_session,
-        schemas.ProjectCreate(name="Dummy Project", owner_organization_id=None),
-        dummy_user.id,
-    )
-    db_session.commit()
-    yield dummy_project
-    db_session.delete(dummy_project)
-    db_session.commit()
+@pytest.fixture(scope="session", autouse=True)
+def dummy_project(dummy_user: models.User) -> Generator[models.Project, None, None]:
+    with SessionMaker() as fixture_db_session:
+        dummy_project = crud.create_project(
+            fixture_db_session,
+            schemas.ProjectCreate(name="Dummy Project", owner_organization_id=None),
+            dummy_user.id,
+        )
+        fixture_db_session.commit()
+        yield dummy_project
+        fixture_db_session.delete(dummy_project)
+        fixture_db_session.commit()
 
 
-@pytest.fixture(scope="module", autouse=True)
+@pytest.fixture(scope="session", autouse=True)
 def dummy_api_key(
-    db_session: Session, dummy_project: models.Project, dummy_user: models.User
+    dummy_project: models.Project, dummy_user: models.User
 ) -> Generator[str, None, None]:
-    dummy_agent = crud.create_agent(
-        db_session,
-        schemas.AgentCreate(name="Dummy Agent", description="Dummy Agent"),
-        dummy_project.id,
-        dummy_user.id,
-    )
-    db_session.commit()
-    yield dummy_agent.api_keys[0].key
-    db_session.delete(dummy_agent)
-    db_session.commit()
+    with SessionMaker() as fixture_db_session:
+        dummy_agent = crud.create_agent(
+            fixture_db_session,
+            schemas.AgentCreate(name="Dummy Agent", description="Dummy Agent"),
+            dummy_project.id,
+            dummy_user.id,
+        )
+        fixture_db_session.commit()
+        yield dummy_agent.api_keys[0].key
+        fixture_db_session.delete(dummy_agent)
+        fixture_db_session.commit()
 
 
-@pytest.fixture(scope="module", autouse=True)
-def dummy_apps(db_session: Session) -> Generator[list[models.App], None, None]:
-    dummy_apps = helper.create_dummy_apps(db_session)
-    db_session.commit()
-    yield dummy_apps
-    for dummy_app in dummy_apps:
-        db_session.delete(dummy_app)
-    db_session.commit()
+@pytest.fixture(scope="session", autouse=True)
+def dummy_apps() -> Generator[list[models.App], None, None]:
+    with SessionMaker() as fixture_db_session:
+        dummy_apps = helper.create_dummy_apps(fixture_db_session)
+        fixture_db_session.commit()
+        yield dummy_apps
+        for dummy_app in dummy_apps:
+            fixture_db_session.delete(dummy_app)
+        fixture_db_session.commit()
 
 
-@pytest.fixture(scope="module", autouse=True)
+@pytest.fixture(scope="session", autouse=True)
 def dummy_functions(dummy_apps: list[models.App]) -> list[models.Function]:
     dummy_functions: list[models.Function] = []
     for dummy_app in dummy_apps:
         dummy_functions.extend(dummy_app.functions)
     return dummy_functions
+
+
+@pytest.fixture(scope="module")
+def db_session() -> Generator[Session, None, None]:
+    with SessionMaker() as db_session:
+        yield db_session
