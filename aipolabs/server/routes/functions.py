@@ -6,11 +6,11 @@ from pydantic import BaseModel, Field, field_validator
 from sqlalchemy.orm import Session
 
 from aipolabs.common import sql_models
+from aipolabs.common.logging import get_logger
 from aipolabs.server import schemas
 from aipolabs.server.apps.base import AppBase, AppFactory
 from aipolabs.server.db import crud
 from aipolabs.server.dependencies import get_db_session
-from aipolabs.server.logging import get_logger
 from aipolabs.server.openai_service import OpenAIService
 
 router = APIRouter()

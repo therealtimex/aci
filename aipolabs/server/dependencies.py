@@ -7,9 +7,9 @@ from fastapi.security import APIKeyHeader, HTTPAuthorizationCredentials, HTTPBea
 from sqlalchemy.orm import Session
 
 from aipolabs.common import sql_models
+from aipolabs.common.logging import get_logger
 from aipolabs.server.config import AOPOLABS_API_KEY_NAME, JWT_SECRET_KEY
 from aipolabs.server.db import crud, engine
-from aipolabs.server.logging import get_logger
 
 logger = get_logger(__name__)
 http_bearer = HTTPBearer(auto_error=True, description="login to receive a JWT token")

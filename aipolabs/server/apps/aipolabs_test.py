@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 
+from aipolabs.common.logging import get_logger
 from aipolabs.server.apps.base import AppBase
-from aipolabs.server.logging import get_logger
 
 logger = get_logger(__name__)
 

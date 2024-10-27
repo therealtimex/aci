@@ -8,9 +8,9 @@ from starlette.middleware.httpsredirect import HTTPSRedirectMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 
+from aipolabs.common.logging import get_logger, setup_logging
 from aipolabs.server import config
 from aipolabs.server import dependencies as deps
-from aipolabs.server.logging import get_logger, setup_logging
 from aipolabs.server.middleware.ratelimit import RateLimitMiddleware
 from aipolabs.server.routes import apps, auth, functions, projects
 

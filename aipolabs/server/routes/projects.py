@@ -4,10 +4,10 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
+from aipolabs.common.logging import get_logger
 from aipolabs.server import dependencies as deps
 from aipolabs.server import schemas
 from aipolabs.server.db import crud
-from aipolabs.server.logging import get_logger
 
 # Create router instance
 router = APIRouter()

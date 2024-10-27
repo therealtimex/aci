@@ -1,7 +1,7 @@
 import click
 
 from aipolabs.cli.commands import upsert_app
-from aipolabs.cli.utils.logging import setup_logging
+from aipolabs.common.logging import setup_logging
 
 
 @click.group()

@@ -4,7 +4,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
 from aipolabs.cli.utils import config
-from aipolabs.cli.utils.logging import get_logger
+from aipolabs.common.logging import get_logger
 
 logger = get_logger(__name__)
 

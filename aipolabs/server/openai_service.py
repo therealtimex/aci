@@ -1,7 +1,7 @@
 from openai import OpenAI
 
+from aipolabs.common.logging import get_logger
 from aipolabs.server import config
-from aipolabs.server.logging import get_logger
 
 logger = get_logger(__name__)
 

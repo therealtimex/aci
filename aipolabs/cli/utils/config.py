@@ -2,7 +2,7 @@ import os
 
 from dotenv import load_dotenv
 
-from aipolabs.cli.utils.logging import get_logger
+from aipolabs.common.logging import get_logger
 
 logger = get_logger(__name__)
 

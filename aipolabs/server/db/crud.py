@@ -6,8 +6,8 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from aipolabs.common import sql_models
+from aipolabs.common.logging import get_logger
 from aipolabs.server import schemas
-from aipolabs.server.logging import get_logger
 
 logger = get_logger(__name__)
 

@@ -7,11 +7,11 @@ from authlib.jose import JoseError, jwt
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.orm import Session
 
+from aipolabs.common.logging import get_logger
 from aipolabs.server import config
 from aipolabs.server import dependencies as deps
 from aipolabs.server import schemas
 from aipolabs.server.db import crud
-from aipolabs.server.logging import get_logger
 
 logger = get_logger(__name__)
 # Create router instance
