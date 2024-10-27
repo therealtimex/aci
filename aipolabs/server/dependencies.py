@@ -6,7 +6,7 @@ from fastapi import Depends, HTTPException, Security, status
 from fastapi.security import APIKeyHeader, HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 
-from aipolabs.database import models
+from aipolabs.common import sql_models
 from aipolabs.server.config import AOPOLABS_API_KEY_NAME, JWT_SECRET_KEY
 from aipolabs.server.db import crud, engine
 from aipolabs.server.logging import get_logger
@@ -72,9 +72,9 @@ def validate_api_key(
     if db_api_key is None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid API key")
 
-    if db_api_key.status == models.APIKey.Status.DISABLED:
+    if db_api_key.status == sql_models.APIKey.Status.DISABLED:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="API key is disabled")
-    elif db_api_key.status == models.APIKey.Status.DELETED:
+    elif db_api_key.status == sql_models.APIKey.Status.DELETED:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="API key is deleted")
 
     api_key_id: UUID = db_api_key.id

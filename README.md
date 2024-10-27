@@ -1,7 +1,7 @@
 # Aipolabs Core Components
 
 ## Project Structure
-Currently only contains the server code, database (shared) and cli,
+Currently only contains the server code, common (shared code) and cli,
 but can be extended to include more services (e.g., separate admin server, sdk, etc.) as a monorepo if needed.
 
 ## Server

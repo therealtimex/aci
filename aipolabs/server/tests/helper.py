@@ -6,7 +6,7 @@ from pathlib import Path
 from pydantic import BaseModel, Field, field_validator
 from sqlalchemy.orm import Session
 
-from aipolabs.database import models
+from aipolabs.common import sql_models
 from aipolabs.server.openai_service import OpenAIService
 
 # TODO: move log setup to conftest
@@ -101,16 +101,16 @@ class AppModel(BaseModel):
 
 
 # TODO: duplicate code with cli's upsert_app command
-def create_dummy_apps(db_session: Session) -> list[models.App]:
+def create_dummy_apps(db_session: Session) -> list[sql_models.App]:
     # for each json file in the dummy_apps directory, create an app using cli's upsert_app command
-    dummy_apps: list[models.App] = []
+    dummy_apps: list[sql_models.App] = []
     for file in Path("aipolabs/server/tests/routes/dummy_apps").glob("*.json"):
         logger.info(f"creating app and functionsfrom file: {file}")
         dummy_apps.append(insert_app(db_session, file))
     return dummy_apps
 
 
-def insert_app(db_session: Session, app_file: Path) -> models.App:
+def insert_app(db_session: Session, app_file: Path) -> sql_models.App:
     """Upsert App and Functions to db from a json file."""
     # Parse files
     with open(app_file, "r") as f:
@@ -123,18 +123,18 @@ def insert_app(db_session: Session, app_file: Path) -> models.App:
         return db_app
 
 
-def insert_app_to_db(db_session: Session, app_model: AppModel) -> models.App:
+def insert_app_to_db(db_session: Session, app_model: AppModel) -> sql_models.App:
     logger.info(f"Upserting app: {app_model.name}...")
     if app_model.supported_auth_schemes is None:
         supported_auth_types = []
     else:
         supported_auth_types = [
-            models.App.AuthType(auth_type)
+            sql_models.App.AuthType(auth_type)
             for auth_type, auth_config in vars(app_model.supported_auth_schemes).items()
             if auth_config is not None
         ]
 
-    db_app = models.App(
+    db_app = sql_models.App(
         name=app_model.name,
         display_name=app_model.display_name,
         version=app_model.version,
@@ -159,11 +159,13 @@ def insert_app_to_db(db_session: Session, app_model: AppModel) -> models.App:
     return db_app
 
 
-def insert_functions_to_db(db_session: Session, db_app: models.App, app_model: AppModel) -> None:
+def insert_functions_to_db(
+    db_session: Session, db_app: sql_models.App, app_model: AppModel
+) -> None:
     logger.info(f"Upserting functions for app: {db_app.name}...")
 
     for function in app_model.functions:
-        db_function = models.Function(
+        db_function = sql_models.Function(
             name=function.name,
             description=function.description,
             parameters=function.parameters,

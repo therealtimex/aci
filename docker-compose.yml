@@ -28,6 +28,7 @@ services:
     # useful for development, changes take effect in the container without needing to rebuild the image.
     volumes:
       - ./aipolabs/server:/aipolabs/server
+      - ./aipolabs/common:/aipolabs/common
     ports:
       - "8000:8000"
     depends_on:

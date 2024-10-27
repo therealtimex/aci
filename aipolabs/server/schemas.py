@@ -4,7 +4,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict
 
-from aipolabs.database import models
+from aipolabs.common import sql_models
 
 # TODO: add Field to validate fields like str length as defined in database models
 
@@ -19,7 +19,7 @@ class APIKeyPublic(BaseModel):
     id: UUID
     key: str
     agent_id: UUID
-    status: models.APIKey.Status = models.APIKey.Status.ACTIVE
+    status: sql_models.APIKey.Status = sql_models.APIKey.Status.ACTIVE
 
     created_at: datetime.datetime
     updated_at: datetime.datetime
@@ -37,7 +37,7 @@ class ProjectPublic(BaseModel):
     name: str
     owner_user_id: UUID | None = None
     owner_organization_id: UUID | None = None
-    plan: models.Project.Plan
+    plan: sql_models.Project.Plan
     daily_quota_used: int
     daily_quota_reset_at: datetime.datetime
     total_quota_used: int

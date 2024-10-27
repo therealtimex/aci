@@ -20,7 +20,7 @@ ENV PYTHONPATH=/aipolabs:$PYTHONPATH
 
 # .env files will be skipped by default specified in .dockerignore
 COPY ./aipolabs/server /aipolabs/server
-COPY ./aipolabs/database /aipolabs/database
+COPY ./aipolabs/common /aipolabs/common
 COPY ./aipolabs/__init__.py /aipolabs/__init__.py
 
 # remove unecessary or sensitive files (.env files are skipped by default specified in .dockerignore)

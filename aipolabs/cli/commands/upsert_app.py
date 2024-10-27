@@ -9,7 +9,7 @@ from aipolabs.cli.models.app_file import AppModel, FunctionModel
 from aipolabs.cli.utils import config
 from aipolabs.cli.utils.helper import get_db_session
 from aipolabs.cli.utils.logging import get_logger
-from aipolabs.database import models
+from aipolabs.common import sql_models
 
 logger = get_logger(__name__)
 LLM_CLIENT = OpenAI(api_key=config.OPENAI_API_KEY)
@@ -44,11 +44,17 @@ def upsert_app(app_file: str) -> None:
 
 
 # TODO: check for changes before updating? if no changes just skip?
-def upsert_functions_to_db(db_session: Session, db_app: models.App, app_model: AppModel) -> None:
+def upsert_functions_to_db(
+    db_session: Session, db_app: sql_models.App, app_model: AppModel
+) -> None:
     logger.info(f"Upserting functions for app: {db_app.name}...")
     # Retrieve all existing functions for the app in one query
     existing_functions = (
-        (db_session.execute(select(models.Function).filter_by(app_id=db_app.id).with_for_update()))
+        (
+            db_session.execute(
+                select(sql_models.Function).filter_by(app_id=db_app.id).with_for_update()
+            )
+        )
         .scalars()
         .all()
     )
@@ -56,7 +62,7 @@ def upsert_functions_to_db(db_session: Session, db_app: models.App, app_model: A
     existing_function_dict = {f.name: f for f in existing_functions}
 
     for function in app_model.functions:
-        db_function = models.Function(
+        db_function = sql_models.Function(
             name=function.name,
             description=function.description,
             parameters=function.parameters,
@@ -91,18 +97,18 @@ def generate_function_embedding(function: FunctionModel) -> list[float]:
     return embedding
 
 
-def upsert_app_to_db(db_session: Session, app_model: AppModel) -> models.App:
+def upsert_app_to_db(db_session: Session, app_model: AppModel) -> sql_models.App:
     logger.info(f"Upserting app: {app_model.name}...")
     if app_model.supported_auth_schemes is None:
         supported_auth_types = []
     else:
         supported_auth_types = [
-            models.App.AuthType(auth_type)
+            sql_models.App.AuthType(auth_type)
             for auth_type, auth_config in vars(app_model.supported_auth_schemes).items()
             if auth_config is not None
         ]
 
-    db_app = models.App(
+    db_app = sql_models.App(
         name=app_model.name,
         display_name=app_model.display_name,
         version=app_model.version,
@@ -123,7 +129,7 @@ def upsert_app_to_db(db_session: Session, app_model: AppModel) -> models.App:
 
     # check if the app already exists
     existing_app = db_session.execute(
-        select(models.App).filter_by(name=app_model.name).with_for_update()
+        select(sql_models.App).filter_by(name=app_model.name).with_for_update()
     ).scalar_one_or_none()
     if existing_app:
         logger.info(f"App {app_model.name} already exists, will perform update")

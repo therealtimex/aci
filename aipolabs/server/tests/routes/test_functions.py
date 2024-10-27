@@ -2,7 +2,7 @@ import logging
 
 from fastapi.testclient import TestClient
 
-from aipolabs.database import models
+from aipolabs.common import sql_models
 from aipolabs.server import schemas
 
 logger = logging.getLogger(__name__)
@@ -17,7 +17,7 @@ GOOGLE = "GOOGLE"
 
 
 def test_search_functions_with_app_names(
-    test_client: TestClient, dummy_functions: list[models.Function], dummy_api_key: str
+    test_client: TestClient, dummy_functions: list[sql_models.Function], dummy_api_key: str
 ) -> None:
     search_param = {
         "app_names": [GITHUB, GOOGLE],
@@ -44,7 +44,7 @@ def test_search_functions_with_app_names(
 
 
 def test_search_functions_with_intent(
-    test_client: TestClient, dummy_functions: list[models.Function], dummy_api_key: str
+    test_client: TestClient, dummy_functions: list[sql_models.Function], dummy_api_key: str
 ) -> None:
 
     # intent1: create repo
@@ -80,7 +80,7 @@ def test_search_functions_with_intent(
 
 
 def test_search_functions_with_app_names_and_intent(
-    test_client: TestClient, dummy_functions: list[models.Function], dummy_api_key: str
+    test_client: TestClient, dummy_functions: list[sql_models.Function], dummy_api_key: str
 ) -> None:
     search_param = {
         "app_names": [GITHUB],
@@ -106,7 +106,7 @@ def test_search_functions_with_app_names_and_intent(
 
 
 def test_search_functions_pagination(
-    test_client: TestClient, dummy_functions: list[models.Function], dummy_api_key: str
+    test_client: TestClient, dummy_functions: list[sql_models.Function], dummy_api_key: str
 ) -> None:
     assert len(dummy_functions) > 2
 
@@ -138,7 +138,7 @@ def test_search_functions_pagination(
 
 
 def test_get_function(
-    test_client: TestClient, dummy_functions: list[models.Function], dummy_api_key: str
+    test_client: TestClient, dummy_functions: list[sql_models.Function], dummy_api_key: str
 ) -> None:
     function_name = GITHUB__CREATE_REPOSITORY
     response = test_client.get(
@@ -157,7 +157,7 @@ def test_get_function(
 
 
 def test_get_function_definition_openai(
-    test_client: TestClient, dummy_functions: list[models.Function], dummy_api_key: str
+    test_client: TestClient, dummy_functions: list[sql_models.Function], dummy_api_key: str
 ) -> None:
     function_name = GITHUB__CREATE_REPOSITORY
     response = test_client.get(
@@ -181,7 +181,7 @@ def test_get_function_definition_openai(
 
 
 def test_get_function_definition_anthropic(
-    test_client: TestClient, dummy_functions: list[models.Function], dummy_api_key: str
+    test_client: TestClient, dummy_functions: list[sql_models.Function], dummy_api_key: str
 ) -> None:
     function_name = GOOGLE__CALENDAR_CREATE_EVENT
     response = test_client.get(

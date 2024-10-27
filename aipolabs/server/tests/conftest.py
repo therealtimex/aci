@@ -8,7 +8,7 @@ from sqlalchemy import inspect
 from sqlalchemy.engine.reflection import Inspector
 from sqlalchemy.orm import Session
 
-from aipolabs.database import models
+from aipolabs.common import sql_models
 from aipolabs.server import schemas
 from aipolabs.server.db import crud
 from aipolabs.server.db.engine import SessionMaker
@@ -26,20 +26,20 @@ def db_setup_and_cleanup() -> Generator[None, None, None]:
         inspector = cast(Inspector, inspect(session.bind))
 
         # Check if all tables defined in models are created in the db
-        for table in models.Base.metadata.tables.values():
+        for table in sql_models.Base.metadata.tables.values():
             if not inspector.has_table(table.name):
                 pytest.exit(f"Table {table} does not exist in the database.")
 
         # Go through all tables and make sure there are no records in the table
         # (skip alembic_version table)
-        for table in models.Base.metadata.tables.values():
+        for table in sql_models.Base.metadata.tables.values():
             if table.name != "alembic_version" and session.query(table).count() > 0:
                 pytest.exit(f"Table {table} is not empty.")
 
         yield  # This allows the test to run
 
         # Clean up: Empty all tables after tests in reverse order of creation
-        for table in reversed(models.Base.metadata.sorted_tables):
+        for table in reversed(sql_models.Base.metadata.sorted_tables):
             if table.name != "alembic_version" and session.query(table).count() > 0:
                 logger.warning(f"Deleting all records from table {table.name}")
                 session.execute(table.delete())
@@ -54,7 +54,7 @@ def test_client() -> Generator[TestClient, None, None]:
 
 
 @pytest.fixture(scope="session", autouse=True)
-def dummy_user() -> Generator[models.User, None, None]:
+def dummy_user() -> Generator[sql_models.User, None, None]:
     with SessionMaker() as fixture_db_session:
         dummy_user = crud.get_or_create_user(
             fixture_db_session,
@@ -70,12 +70,12 @@ def dummy_user() -> Generator[models.User, None, None]:
 
 
 @pytest.fixture(scope="session", autouse=True)
-def dummy_user_bearer_token(dummy_user: models.User) -> str:
+def dummy_user_bearer_token(dummy_user: sql_models.User) -> str:
     return create_access_token(str(dummy_user.id), timedelta(minutes=15))
 
 
 @pytest.fixture(scope="session", autouse=True)
-def dummy_project(dummy_user: models.User) -> Generator[models.Project, None, None]:
+def dummy_project(dummy_user: sql_models.User) -> Generator[sql_models.Project, None, None]:
     with SessionMaker() as fixture_db_session:
         dummy_project = crud.create_project(
             fixture_db_session,
@@ -90,7 +90,7 @@ def dummy_project(dummy_user: models.User) -> Generator[models.Project, None, No
 
 @pytest.fixture(scope="session", autouse=True)
 def dummy_api_key(
-    dummy_project: models.Project, dummy_user: models.User
+    dummy_project: sql_models.Project, dummy_user: sql_models.User
 ) -> Generator[str, None, None]:
     with SessionMaker() as fixture_db_session:
         dummy_agent = crud.create_agent(
@@ -106,7 +106,7 @@ def dummy_api_key(
 
 
 @pytest.fixture(scope="session", autouse=True)
-def dummy_apps() -> Generator[list[models.App], None, None]:
+def dummy_apps() -> Generator[list[sql_models.App], None, None]:
     with SessionMaker() as fixture_db_session:
         dummy_apps = helper.create_dummy_apps(fixture_db_session)
         fixture_db_session.commit()
@@ -117,8 +117,8 @@ def dummy_apps() -> Generator[list[models.App], None, None]:
 
 
 @pytest.fixture(scope="session", autouse=True)
-def dummy_functions(dummy_apps: list[models.App]) -> list[models.Function]:
-    dummy_functions: list[models.Function] = []
+def dummy_functions(dummy_apps: list[sql_models.App]) -> list[sql_models.Function]:
+    dummy_functions: list[sql_models.Function] = []
     for dummy_app in dummy_apps:
         dummy_functions.extend(dummy_app.functions)
     return dummy_functions

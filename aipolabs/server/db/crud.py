@@ -5,7 +5,7 @@ from uuid import UUID
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from aipolabs.database import models
+from aipolabs.common import sql_models
 from aipolabs.server import schemas
 from aipolabs.server.logging import get_logger
 
@@ -27,14 +27,14 @@ class ProjectNotFoundError(Exception):
 def user_exists(db_session: Session, user_id: UUID) -> bool:
     """Check if a user exists in the database."""
     return (
-        db_session.execute(select(models.User).filter_by(id=user_id)).scalar_one_or_none()
+        db_session.execute(select(sql_models.User).filter_by(id=user_id)).scalar_one_or_none()
         is not None
     )
 
 
 def create_project(
     db_session: Session, project: schemas.ProjectCreate, user_id: UUID
-) -> models.Project:
+) -> sql_models.Project:
     """
     Create a new project.
     Create as personal project if owner_organization_id is not specified in ProjectCreate.
@@ -43,7 +43,7 @@ def create_project(
     TODO: handle creating project under an organization
     """
     owner_user_id = user_id if project.owner_organization_id is None else None
-    db_project = models.Project(
+    db_project = sql_models.Project(
         **project.model_dump(), owner_user_id=owner_user_id, created_by=user_id
     )
     db_session.add(db_project)
@@ -60,13 +60,13 @@ def get_or_create_user(
     name: str,
     email: str,
     profile_picture: str | None = None,
-) -> models.User:
+) -> sql_models.User:
     # Step 1: Acquire a lock on the row to prevent race condition
-    db_user: Union[models.User, None] = db_session.execute(
-        select(models.User)
+    db_user: Union[sql_models.User, None] = db_session.execute(
+        select(sql_models.User)
         .where(
-            models.User.auth_provider == auth_provider,
-            models.User.auth_user_id == auth_user_id,
+            sql_models.User.auth_provider == auth_provider,
+            sql_models.User.auth_user_id == auth_user_id,
         )
         .with_for_update()
     ).scalar_one_or_none()
@@ -77,7 +77,7 @@ def get_or_create_user(
     # Step 2: Create the user if not found
     # TODO: compliance with PII data
     logger.info(f"Creating user: {name}")
-    db_user = models.User(
+    db_user = sql_models.User(
         auth_provider=auth_provider,
         auth_user_id=auth_user_id,
         name=name,
@@ -93,19 +93,19 @@ def get_or_create_user(
 
 def create_agent(
     db_session: Session, agent: schemas.AgentCreate, project_id: UUID, user_id: UUID
-) -> models.Agent:
+) -> sql_models.Agent:
     """
     Create a new agent under a project, and create a new API key for the agent.
     Assume user's access to the project has been checked.
     TODO: a more unified way to handle access control?
     """
     # Create the agent
-    db_agent = models.Agent(**agent.model_dump(), project_id=project_id, created_by=user_id)
+    db_agent = sql_models.Agent(**agent.model_dump(), project_id=project_id, created_by=user_id)
     db_session.add(db_agent)
     db_session.flush()  # Flush to get the agent's ID
 
     # Create the API key for the agent
-    api_key = models.APIKey(key=secrets.token_hex(32), agent_id=db_agent.id)
+    api_key = sql_models.APIKey(key=secrets.token_hex(32), agent_id=db_agent.id)
     db_session.add(api_key)
     db_session.flush()
 
@@ -124,7 +124,7 @@ def user_has_admin_access_to_project(db_session: Session, user_id: UUID, project
     # TODO: implement properly with organization and project access control
     # for now, just check if project owner is the user
     db_project = db_session.execute(
-        select(models.Project).filter_by(id=project_id)
+        select(sql_models.Project).filter_by(id=project_id)
     ).scalar_one_or_none()
     if not db_project:
         raise ProjectNotFoundError(f"Project with ID {project_id} not found")
@@ -132,9 +132,9 @@ def user_has_admin_access_to_project(db_session: Session, user_id: UUID, project
     return db_project.owner_user_id is not None and db_project.owner_user_id == user_id
 
 
-def get_api_key(db_session: Session, key: str) -> models.APIKey | None:
-    db_api_key: models.APIKey | None = db_session.execute(
-        select(models.APIKey).filter_by(key=key)
+def get_api_key(db_session: Session, key: str) -> sql_models.APIKey | None:
+    db_api_key: sql_models.APIKey | None = db_session.execute(
+        select(sql_models.APIKey).filter_by(key=key)
     ).scalar_one_or_none()
 
     return db_api_key
@@ -149,15 +149,15 @@ def search_apps(
     intent_embedding: list[float] | None,
     limit: int,
     offset: int,
-) -> list[tuple[models.App, float | None]]:
+) -> list[tuple[sql_models.App, float | None]]:
     """Get a list of apps with optional filtering by categories and sorting by vector similarity to intent. and pagination."""
-    statement = select(models.App)
+    statement = select(sql_models.App)
 
     # TODO: Is there any way to get typing for cosine_distance, label, overlap?
     if categories and len(categories) > 0:
-        statement = statement.filter(models.App.categories.overlap(categories))
+        statement = statement.filter(sql_models.App.categories.overlap(categories))
     if intent_embedding:
-        similarity_score = models.App.embedding.cosine_distance(intent_embedding)
+        similarity_score = sql_models.App.embedding.cosine_distance(intent_embedding)
         statement = statement.add_columns(similarity_score.label("similarity_score"))
         statement = statement.order_by("similarity_score")
 
@@ -181,25 +181,25 @@ def search_functions(
     intent_embedding: list[float] | None,
     limit: int,
     offset: int,
-) -> list[models.Function]:
-    statement = select(models.Function)
+) -> list[sql_models.Function]:
+    statement = select(sql_models.Function)
 
     if app_names and len(app_names) > 0:
-        statement = statement.join(models.App).filter(models.App.name.in_(app_names))
+        statement = statement.join(sql_models.App).filter(sql_models.App.name.in_(app_names))
     if intent_embedding:
-        similarity_score = models.Function.embedding.cosine_distance(intent_embedding)
+        similarity_score = sql_models.Function.embedding.cosine_distance(intent_embedding)
         statement = statement.order_by(similarity_score)
 
     statement = statement.offset(offset).limit(limit)
     logger.warning(f"Executing statement: {statement}")
-    results: list[models.Function] = db_session.execute(statement).scalars().all()
+    results: list[sql_models.Function] = db_session.execute(statement).scalars().all()
     return results
 
 
-def get_function(db_session: Session, function_name: str) -> models.Function | None:
+def get_function(db_session: Session, function_name: str) -> sql_models.Function | None:
 
-    function: models.Function | None = db_session.execute(
-        select(models.Function).filter_by(name=function_name)
+    function: sql_models.Function | None = db_session.execute(
+        select(sql_models.Function).filter_by(name=function_name)
     ).scalar_one_or_none()
 
     return function

@@ -5,7 +5,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from aipolabs.database import models
+from aipolabs.common import sql_models
 from aipolabs.server import config
 
 MOCK_USER_GOOGLE_AUTH_DATA = {
@@ -64,7 +64,7 @@ def test_callback_google(
     # get user by id and check user is created
 
     user = db_session.execute(
-        select(models.User).filter(models.User.id == user_id)
+        select(sql_models.User).filter(sql_models.User.id == user_id)
     ).scalar_one_or_none()
     assert user is not None
     assert user.auth_provider == MOCK_USER_GOOGLE_AUTH_DATA["iss"]

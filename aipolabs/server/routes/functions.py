@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, Field, field_validator
 from sqlalchemy.orm import Session
 
-from aipolabs.database import models
+from aipolabs.common import sql_models
 from aipolabs.server import schemas
 from aipolabs.server.apps.base import AppBase, AppFactory
 from aipolabs.server.db import crud
@@ -65,7 +65,7 @@ class FunctionExecutionParams(BaseModel):
 async def search_functions(
     search_params: Annotated[FunctionSearchParams, Query()],
     db_session: Session = Depends(get_db_session),
-) -> list[models.Function]:
+) -> list[sql_models.Function]:
     """
     Returns the basic information of a list of functions.
     """
@@ -96,7 +96,7 @@ async def search_functions(
 async def get_function(
     function_name: str,
     db_session: Session = Depends(get_db_session),
-) -> models.Function:
+) -> sql_models.Function:
     """
     Returns the full function data.
     """
@@ -135,7 +135,7 @@ async def get_function_definition(
         description="The inference provider, which determines the format of the function definition.",
     ),
     db_session: Session = Depends(get_db_session),
-) -> models.Function:
+) -> sql_models.Function:
     """
     Return the function definition that can be used directly by LLM.
     The actual content depends on the intended model (inference provider, e.g., OpenAI, Anthropic, etc.) and the function itself.

@@ -3,7 +3,7 @@ from typing import Any
 
 from fastapi.testclient import TestClient
 
-from aipolabs.database import models
+from aipolabs.common import sql_models
 from aipolabs.server import schemas
 
 logger = logging.getLogger(__name__)
@@ -14,7 +14,7 @@ GOOGLE = "GOOGLE"
 
 
 def test_search_apps_with_intent(
-    test_client: TestClient, dummy_apps: list[models.App], dummy_api_key: str
+    test_client: TestClient, dummy_apps: list[sql_models.App], dummy_api_key: str
 ) -> None:
     # try with intent to find GITHUB app
     filter_params = {
@@ -49,7 +49,7 @@ def test_search_apps_with_intent(
 
 
 def test_search_apps_without_intent(
-    test_client: TestClient, dummy_apps: list[models.App], dummy_api_key: str
+    test_client: TestClient, dummy_apps: list[sql_models.App], dummy_api_key: str
 ) -> None:
     response = test_client.get("/v1/apps/search", headers={"x-api-key": dummy_api_key})
 
@@ -100,7 +100,7 @@ def test_search_apps_with_categories_and_intent(
 
 
 def test_search_apps_pagination(
-    test_client: TestClient, dummy_apps: list[models.App], dummy_api_key: str
+    test_client: TestClient, dummy_apps: list[sql_models.App], dummy_api_key: str
 ) -> None:
     assert len(dummy_apps) > 2
 
