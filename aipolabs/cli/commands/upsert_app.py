@@ -1,17 +1,17 @@
 import json
 
 import click
-from openai import OpenAI
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from aipolabs.cli import config
 from aipolabs.common import sql_models, utils
 from aipolabs.common.logging import get_logger
+from aipolabs.common.openai_service import OpenAIService
 from aipolabs.common.schemas import AppFileModel, FunctionFileModel
 
 logger = get_logger(__name__)
-LLM_CLIENT = OpenAI(api_key=config.OPENAI_API_KEY)
+openai_service = OpenAIService()
 
 
 # TODO: funciton name is prefixed with app name and double underscores, e.g., GITHUB__CREATE_REPOSITORY (force this check when validating)
@@ -85,13 +85,8 @@ def upsert_functions_to_db(db_session: Session, db_app: sql_models.App, app: App
 def generate_function_embedding(function: FunctionFileModel) -> list[float]:
     logger.debug(f"Generating embedding for function: {function.name}...")
     text_for_embedding = f"{function.name}\n{function.description}\n{function.parameters}"
-    response = LLM_CLIENT.embeddings.create(
-        input=text_for_embedding,
-        model=config.OPENAI_EMBEDDING_MODEL,
-        dimensions=config.EMBEDDING_DIMENSION,
-    )
-    embedding: list[float] = response.data[0].embedding
-    return embedding
+
+    return openai_service.generate_embedding(text_for_embedding)
 
 
 def upsert_app_to_db(db_session: Session, app: AppFileModel) -> sql_models.App:
@@ -151,10 +146,5 @@ def generate_app_embedding(app: AppFileModel) -> list[float]:
         f"{' '.join(app.categories)}\n"
         f"{' '.join(app.tags)}"
     )
-    response = LLM_CLIENT.embeddings.create(
-        input=text_for_embedding,
-        model=config.OPENAI_EMBEDDING_MODEL,
-        dimensions=config.EMBEDDING_DIMENSION,
-    )
-    embedding: list[float] = response.data[0].embedding
-    return embedding
+
+    return openai_service.generate_embedding(text_for_embedding)
