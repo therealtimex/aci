@@ -5,8 +5,8 @@ from pathlib import Path
 from sqlalchemy.orm import Session
 
 from aipolabs.common import sql_models
+from aipolabs.common.openai_service import OpenAIService
 from aipolabs.common.schemas import AppFileModel, FunctionFileModel
-from aipolabs.server.openai_service import OpenAIService
 
 logger = logging.getLogger(__name__)
 openai_service = OpenAIService()

@@ -5,10 +5,10 @@ from pydantic import BaseModel, Field, field_validator
 from sqlalchemy.orm import Session
 
 from aipolabs.common.logging import get_logger
+from aipolabs.common.openai_service import OpenAIService
 from aipolabs.server import schemas
 from aipolabs.server.db import crud
 from aipolabs.server.dependencies import get_db_session
-from aipolabs.server.openai_service import OpenAIService
 
 logger = get_logger(__name__)
 router = APIRouter()

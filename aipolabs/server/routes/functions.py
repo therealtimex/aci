@@ -7,11 +7,11 @@ from sqlalchemy.orm import Session
 
 from aipolabs.common import sql_models
 from aipolabs.common.logging import get_logger
+from aipolabs.common.openai_service import OpenAIService
 from aipolabs.server import schemas
 from aipolabs.server.apps.base import AppBase, AppFactory
 from aipolabs.server.db import crud
 from aipolabs.server.dependencies import get_db_session
-from aipolabs.server.openai_service import OpenAIService
 
 router = APIRouter()
 logger = get_logger(__name__)
