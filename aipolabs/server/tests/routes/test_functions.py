@@ -1,11 +1,7 @@
-import logging
-
 from fastapi.testclient import TestClient
 
 from aipolabs.common import sql_models
 from aipolabs.server import schemas
-
-logger = logging.getLogger(__name__)
 
 GOOGLE__CALENDAR_CREATE_EVENT = "GOOGLE__CALENDAR_CREATE_EVENT"
 GITHUB__CREATE_REPOSITORY = "GITHUB__CREATE_REPOSITORY"

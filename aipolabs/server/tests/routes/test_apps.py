@@ -1,12 +1,9 @@
-import logging
 from typing import Any
 
 from fastapi.testclient import TestClient
 
 from aipolabs.common import sql_models
 from aipolabs.server import schemas
-
-logger = logging.getLogger(__name__)
 
 AIPOLABS_TEST = "AIPOLABS_TEST"
 GITHUB = "GITHUB"

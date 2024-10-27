@@ -9,11 +9,7 @@ from sqlalchemy.orm import Session
 from aipolabs.common import sql_models
 from aipolabs.server.openai_service import OpenAIService
 
-# TODO: move log setup to conftest
 logger = logging.getLogger(__name__)
-logging.getLogger().setLevel(logging.INFO)
-logging.getLogger("httpcore").setLevel(logging.WARNING)
-logging.getLogger("openai").setLevel(logging.WARNING)
 openai_service = OpenAIService()
 
 
