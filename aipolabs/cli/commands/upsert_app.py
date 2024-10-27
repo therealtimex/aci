@@ -6,9 +6,9 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from aipolabs.cli import config
-from aipolabs.cli.models.app_file import AppModel, FunctionModel
 from aipolabs.common import sql_models, utils
 from aipolabs.common.logging import get_logger
+from aipolabs.common.schemas import AppFileModel, FunctionFileModel
 
 logger = get_logger(__name__)
 LLM_CLIENT = OpenAI(api_key=config.OPENAI_API_KEY)
@@ -29,11 +29,11 @@ def upsert_app(app_file: str) -> None:
         try:
             # Parse files
             with open(app_file, "r") as f:
-                app_model: AppModel = AppModel.model_validate(json.load(f))
+                app: AppFileModel = AppFileModel.model_validate(json.load(f))
 
             # make sure app and functions are upserted together
-            db_app = upsert_app_to_db(db_session, app_model)
-            upsert_functions_to_db(db_session, db_app, app_model)
+            db_app = upsert_app_to_db(db_session, app)
+            upsert_functions_to_db(db_session, db_app, app)
             db_session.commit()
 
         except Exception as e:
@@ -43,9 +43,7 @@ def upsert_app(app_file: str) -> None:
 
 
 # TODO: check for changes before updating? if no changes just skip?
-def upsert_functions_to_db(
-    db_session: Session, db_app: sql_models.App, app_model: AppModel
-) -> None:
+def upsert_functions_to_db(db_session: Session, db_app: sql_models.App, app: AppFileModel) -> None:
     logger.info(f"Upserting functions for app: {db_app.name}...")
     # Retrieve all existing functions for the app in one query
     existing_functions = (
@@ -60,7 +58,7 @@ def upsert_functions_to_db(
     # Create a dictionary of existing functions by name for easy lookup
     existing_function_dict = {f.name: f for f in existing_functions}
 
-    for function in app_model.functions:
+    for function in app.functions:
         db_function = sql_models.Function(
             name=function.name,
             description=function.description,
@@ -84,7 +82,7 @@ def upsert_functions_to_db(
 
 # TODO: include response schema in the embedding if added
 # TODO: bacth generate function embeddings
-def generate_function_embedding(function: FunctionModel) -> list[float]:
+def generate_function_embedding(function: FunctionFileModel) -> list[float]:
     logger.debug(f"Generating embedding for function: {function.name}...")
     text_for_embedding = f"{function.name}\n{function.description}\n{function.parameters}"
     response = LLM_CLIENT.embeddings.create(
@@ -96,62 +94,62 @@ def generate_function_embedding(function: FunctionModel) -> list[float]:
     return embedding
 
 
-def upsert_app_to_db(db_session: Session, app_model: AppModel) -> sql_models.App:
-    logger.info(f"Upserting app: {app_model.name}...")
-    if app_model.supported_auth_schemes is None:
+def upsert_app_to_db(db_session: Session, app: AppFileModel) -> sql_models.App:
+    logger.info(f"Upserting app: {app.name}...")
+    if app.supported_auth_schemes is None:
         supported_auth_types = []
     else:
         supported_auth_types = [
             sql_models.App.AuthType(auth_type)
-            for auth_type, auth_config in vars(app_model.supported_auth_schemes).items()
+            for auth_type, auth_config in vars(app.supported_auth_schemes).items()
             if auth_config is not None
         ]
 
     db_app = sql_models.App(
-        name=app_model.name,
-        display_name=app_model.display_name,
-        version=app_model.version,
-        provider=app_model.provider,
-        description=app_model.description,
-        server_url=app_model.server_url,
-        logo=app_model.logo,
-        categories=app_model.categories,
-        tags=app_model.tags,
+        name=app.name,
+        display_name=app.display_name,
+        version=app.version,
+        provider=app.provider,
+        description=app.description,
+        server_url=app.server_url,
+        logo=app.logo,
+        categories=app.categories,
+        tags=app.tags,
         supported_auth_types=supported_auth_types,
         auth_configs=(
-            app_model.supported_auth_schemes.model_dump(mode="json")
-            if app_model.supported_auth_schemes is not None
+            app.supported_auth_schemes.model_dump(mode="json")
+            if app.supported_auth_schemes is not None
             else None
         ),
-        embedding=generate_app_embedding(app_model),
+        embedding=generate_app_embedding(app),
     )
 
     # check if the app already exists
     existing_app = db_session.execute(
-        select(sql_models.App).filter_by(name=app_model.name).with_for_update()
+        select(sql_models.App).filter_by(name=app.name).with_for_update()
     ).scalar_one_or_none()
     if existing_app:
-        logger.info(f"App {app_model.name} already exists, will perform update")
+        logger.info(f"App {app.name} already exists, will perform update")
         db_app.id = existing_app.id
         db_app = db_session.merge(db_app)
     else:
-        logger.info(f"App {app_model.name} does not exist, will perform insert")
+        logger.info(f"App {app.name} does not exist, will perform insert")
         db_session.add(db_app)
         db_session.flush()
 
     return db_app
 
 
-def generate_app_embedding(app_model: AppModel) -> list[float]:
-    logger.debug(f"Generating embedding for app: {app_model.name}...")
+def generate_app_embedding(app: AppFileModel) -> list[float]:
+    logger.debug(f"Generating embedding for app: {app.name}...")
     # generate app embeddings based on app config's name, display_name, provider, description, categories, and tags
     text_for_embedding = (
-        f"{app_model.name}\n"
-        f"{app_model.display_name}\n"
-        f"{app_model.provider}\n"
-        f"{app_model.description}\n"
-        f"{' '.join(app_model.categories)}\n"
-        f"{' '.join(app_model.tags)}"
+        f"{app.name}\n"
+        f"{app.display_name}\n"
+        f"{app.provider}\n"
+        f"{app.description}\n"
+        f"{' '.join(app.categories)}\n"
+        f"{' '.join(app.tags)}"
     )
     response = LLM_CLIENT.embeddings.create(
         input=text_for_embedding,
