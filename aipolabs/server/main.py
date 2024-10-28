@@ -71,11 +71,14 @@ app.include_router(
     dependencies=[Depends(deps.validate_http_bearer)],
 )
 app.include_router(
-    apps.router, prefix="/v1/apps", tags=["apps"], dependencies=[Depends(deps.validate_api_key)]
+    apps.router,
+    prefix="/v1/apps",
+    tags=["apps"],
+    dependencies=[Depends(deps.validate_api_key), Depends(deps.validate_project_quota)],
 )
 app.include_router(
     functions.router,
     prefix="/v1/functions",
     tags=["functions"],
-    dependencies=[Depends(deps.validate_api_key)],
+    dependencies=[Depends(deps.validate_api_key), Depends(deps.validate_project_quota)],
 )

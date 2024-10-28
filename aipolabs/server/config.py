@@ -48,3 +48,6 @@ RATE_LIMIT_IP_PER_SECOND = int(check_and_get_env_variable("SERVER_RATE_LIMIT_IP_
 RATE_LIMIT_IP_PER_DAY = int(check_and_get_env_variable("SERVER_RATE_LIMIT_IP_PER_DAY"))
 AOPOLABS_API_KEY_NAME = "X-API-KEY"
 ENVIRONMENT = check_and_get_env_variable("SERVER_ENVIRONMENT")
+
+# PROJECT QUOTA
+PROJECT_DAILY_QUOTA = int(check_and_get_env_variable("SERVER_PROJECT_DAILY_QUOTA"))

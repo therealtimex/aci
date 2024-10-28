@@ -1,8 +1,9 @@
+import datetime
 import secrets
 from typing import Union
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.orm import Session
 
 from aipolabs.common.db import sql_models
@@ -288,6 +289,53 @@ def upsert_functions(
             db_session.add(db_function)
 
     db_session.flush()
+
+
+def get_project_by_api_key_id(db_session: Session, api_key_id: UUID) -> sql_models.Project | None:
+    # Combine queries to find the project directly
+    db_project: sql_models.Project | None = db_session.execute(
+        select(sql_models.Project)
+        .join(sql_models.Agent, sql_models.Project.id == sql_models.Agent.project_id)
+        .join(sql_models.APIKey, sql_models.Agent.id == sql_models.APIKey.agent_id)
+        .filter(sql_models.APIKey.id == api_key_id)
+    ).scalar_one_or_none()
+
+    return db_project
+
+
+def increase_project_quota_usage(db_session: Session, project: sql_models.Project) -> None:
+    now: datetime.datetime = datetime.datetime.now(datetime.timezone.utc)
+    need_reset = now >= project.daily_quota_reset_at.replace(
+        tzinfo=datetime.timezone.utc
+    ) + datetime.timedelta(days=1)
+
+    if need_reset:
+        # Reset the daily quota
+        statement = (
+            update(sql_models.Project)
+            .where(sql_models.Project.id == project.id)
+            .values(
+                {
+                    sql_models.Project.daily_quota_used: 1,
+                    sql_models.Project.daily_quota_reset_at: now,
+                    sql_models.Project.total_quota_used: project.total_quota_used + 1,
+                }
+            )
+        )
+    else:
+        # Increment the daily quota
+        statement = (
+            update(sql_models.Project)
+            .where(sql_models.Project.id == project.id)
+            .values(
+                {
+                    sql_models.Project.daily_quota_used: project.daily_quota_used + 1,
+                    sql_models.Project.total_quota_used: project.total_quota_used + 1,
+                }
+            )
+        )
+
+    db_session.execute(statement)
 
 
 # TODO: error handling and logging

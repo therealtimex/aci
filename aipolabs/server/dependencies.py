@@ -1,3 +1,4 @@
+import datetime
 from typing import Annotated, Generator
 from uuid import UUID
 
@@ -27,6 +28,7 @@ def yield_db_session() -> Generator[Session, None, None]:
         db_session.close()
 
 
+# TODO: rate limit and quota check for http bearer token and relevant routes
 def validate_http_bearer(
     auth_data: Annotated[HTTPAuthorizationCredentials, Security(http_bearer)],
 ) -> UUID:
@@ -80,3 +82,28 @@ def validate_api_key(
 
     api_key_id: UUID = db_api_key.id
     return api_key_id
+
+
+# TODO: use cache (redis)
+# TODO: better way to handle replace(tzinfo=datetime.timezone.utc) ?
+def validate_project_quota(
+    db_session: Annotated[Session, Depends(yield_db_session)],
+    api_key_id: Annotated[UUID, Depends(validate_api_key)],
+) -> None:
+    db_project = crud.get_project_by_api_key_id(db_session, api_key_id)
+    if not db_project:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid API key")
+
+    now: datetime.datetime = datetime.datetime.now(datetime.timezone.utc)
+    need_reset = now >= db_project.daily_quota_reset_at.replace(
+        tzinfo=datetime.timezone.utc
+    ) + datetime.timedelta(days=1)
+
+    if not need_reset and db_project.daily_quota_used >= config.PROJECT_DAILY_QUOTA:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Daily quota exceeded")
+
+    try:
+        crud.increase_project_quota_usage(db_session, db_project)
+    except Exception as e:
+        logger.exception(f"Failed to increase project quota usage for project {db_project.id}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
