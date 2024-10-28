@@ -33,7 +33,7 @@ For commands that require database connection, make sure the database you are co
   You need to create the user first before creating a project for the user.
 
   ```bash
-  python -m aipolabs.cli.aipolabs create-project --project-name "My Project" --owner-type user --owner-id "bc03b64d-9359-4b71-85ff-aad32c7610f1" --created-by "bc03b64d-9359-4b71-85ff-aad32c7610f1"
+  python -m aipolabs.cli.aipolabs create-project --project-name "My Project" --owner-type user --owner-id "1a5f70f6-79c4-4678-88f4-0c3875382ab6" --created-by "1a5f70f6-79c4-4678-88f4-0c3875382ab6"
   ```
 </details>
 
