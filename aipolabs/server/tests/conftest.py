@@ -109,8 +109,7 @@ def dummy_api_key(
 @pytest.fixture(scope="session", autouse=True)
 def dummy_apps() -> Generator[list[sql_models.App], None, None]:
     with utils.create_db_session(config.DB_FULL_URL) as fixture_db_session:
-        dummy_apps = helper.create_dummy_apps(fixture_db_session)
-        fixture_db_session.commit()
+        dummy_apps = helper.create_dummy_apps_and_functions(fixture_db_session)
         yield dummy_apps
         for dummy_app in dummy_apps:
             fixture_db_session.delete(dummy_app)

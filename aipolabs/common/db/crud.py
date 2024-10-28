@@ -8,6 +8,8 @@ from sqlalchemy.orm import Session
 from aipolabs.common.db import sql_models
 from aipolabs.common.logging import get_logger
 from aipolabs.common.schemas.agent import AgentCreate
+from aipolabs.common.schemas.app import AppCreate
+from aipolabs.common.schemas.function import FunctionCreate
 from aipolabs.common.schemas.project import ProjectCreate
 
 logger = get_logger(__name__)
@@ -204,6 +206,88 @@ def get_function(db_session: Session, function_name: str) -> sql_models.Function
     ).scalar_one_or_none()
 
     return function
+
+
+def upsert_app(db_session: Session, app: AppCreate, app_embedding: list[float]) -> sql_models.App:
+    logger.debug(f"upserting app: {app}")
+    if app.supported_auth_schemes is None:
+        supported_auth_types = []
+    else:
+        supported_auth_types = [
+            sql_models.App.AuthType(auth_type)
+            for auth_type, auth_config in vars(app.supported_auth_schemes).items()
+            if auth_config is not None
+        ]
+
+    db_app = sql_models.App(
+        name=app.name,
+        display_name=app.display_name,
+        version=app.version,
+        provider=app.provider,
+        description=app.description,
+        server_url=app.server_url,
+        logo=app.logo,
+        categories=app.categories,
+        tags=app.tags,
+        supported_auth_types=supported_auth_types,
+        auth_configs=(
+            app.supported_auth_schemes.model_dump(mode="json")
+            if app.supported_auth_schemes is not None
+            else None
+        ),
+        embedding=app_embedding,
+    )
+
+    # check if the app already exists
+    existing_app = db_session.execute(
+        select(sql_models.App).filter_by(name=app.name).with_for_update()
+    ).scalar_one_or_none()
+    if existing_app:
+        logger.warning(f"App {app.name} already exists, will update")
+        db_app.id = existing_app.id
+        db_app = db_session.merge(db_app)
+    else:
+        logger.debug(f"App {app.name} does not exist, will insert")
+        db_session.add(db_app)
+        db_session.flush()
+
+    return db_app
+
+
+def upsert_functions(
+    db_session: Session,
+    functions: list[FunctionCreate],
+    function_embeddings: list[list[float]],
+    app_id: UUID,
+) -> None:
+    logger.debug(f"upserting functions: {functions}")
+    # Retrieve all existing functions for the app
+    existing_functions = (
+        (db_session.execute(select(sql_models.Function).filter_by(app_id=app_id).with_for_update()))
+        .scalars()
+        .all()
+    )
+    # Create a dictionary of existing functions by name for easy lookup
+    existing_function_dict = {f.name: f for f in existing_functions}
+
+    for i, function in enumerate(functions):
+        db_function = sql_models.Function(
+            name=function.name,
+            description=function.description,
+            parameters=function.parameters,
+            app_id=app_id,
+            response={},  # TODO: add response schema
+            embedding=function_embeddings[i],
+        )
+        if db_function.name in existing_function_dict:
+            logger.warning(f"Function {function.name} already exists, will update")
+            db_function.id = existing_function_dict[function.name].id
+            db_function = db_session.merge(db_function)
+        else:
+            logger.debug(f"Function {function.name} does not exist, will insert")
+            db_session.add(db_function)
+
+    db_session.flush()
 
 
 # TODO: error handling and logging

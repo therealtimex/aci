@@ -5,7 +5,7 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 # TODO: validate against json schema
-class FunctionFileModel(BaseModel):
+class FunctionCreate(BaseModel):
     name: str
     description: str
     # use empty dict for function definition that doesn't take any args (doesn't have parameters field)

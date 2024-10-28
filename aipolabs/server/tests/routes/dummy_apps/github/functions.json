@@ -1,0 +1,99 @@
+
+[
+    {
+        "name": "GITHUB__CREATE_REPOSITORY",
+        "description": "Create a new repository",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "description": "The name of the repository"
+                },
+                "description": {
+                    "type": "string",
+                    "description": "A description for the repository"
+                },
+                "private": {
+                    "type": "boolean",
+                    "description": "Whether the repository is private or public"
+                }
+            },
+            "required": [
+                "name",
+                "description",
+                "private"
+            ]
+        }
+    },
+    {
+        "name": "GITHUB__CREATE_ISSUE",
+        "description": "Create a new issue in a repository",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "repository": {
+                    "type": "string",
+                    "description": "The name of the repository"
+                },
+                "title": {
+                    "type": "string",
+                    "description": "The title of the issue"
+                }
+            },
+            "required": [
+                "repository",
+                "title"
+            ]
+        }
+    },
+    {
+        "name": "GITHUB__CREATE_PULL_REQUEST",
+        "description": "Create a new pull request in a repository",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "repository": {
+                    "type": "string",
+                    "description": "The name of the repository"
+                },
+                "source_branch": {
+                    "type": "string",
+                    "description": "The name of the source branch for the pull request"
+                },
+                "target_branch": {
+                    "type": "string",
+                    "description": "The name of the target branch where the pull request will be merged"
+                },
+                "title": {
+                    "type": "string",
+                    "description": "The title of the pull request"
+                },
+                "metadata": {
+                    "type": "object",
+                    "properties": {
+                        "author": {
+                            "type": "string",
+                            "description": "The author of the pull request"
+                        },
+                        "reviewer": {
+                            "type": "string",
+                            "description": "The primary reviewer for the pull request"
+                        }
+                    },
+                    "required": [
+                        "author",
+                        "reviewer"
+                    ]
+                }
+            },
+            "required": [
+                "repository",
+                "source_branch",
+                "target_branch",
+                "title",
+                "metadata"
+            ]
+        }
+    }     
+]

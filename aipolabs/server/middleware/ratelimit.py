@@ -60,12 +60,8 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         headers = {}
         for rate_limit_name, rate_limit in self.rate_limits.items():
             window_stats = await self.limiter.get_window_stats(rate_limit, key)
-            current_usage = window_stats[1]
-            reset_time = window_stats[0]
 
             headers[f"X-RateLimit-Limit-{rate_limit_name}"] = str(rate_limit.amount)
-            headers[f"X-RateLimit-Remaining-{rate_limit_name}"] = str(
-                max(0, rate_limit.amount - current_usage)
-            )
-            headers[f"X-RateLimit-Reset-{rate_limit_name}"] = str(reset_time)
+            headers[f"X-RateLimit-Remaining-{rate_limit_name}"] = str(window_stats.remaining)
+            headers[f"X-RateLimit-Reset-{rate_limit_name}"] = str(window_stats.reset_time)
         return headers

@@ -1,0 +1,50 @@
+{
+    "name": "TWITTER",
+    "display_name": "Twitter",
+    "version": "1.0.0",
+    "provider": "twitter",
+    "description": "Twitter is a social media platform that allows users to post and interact with short messages known as tweets. It provides a real-time way to communicate and share updates, news, and media, with support for likes, retweets, and hashtags for categorization. Twitter's API allows developers to access tweets, users' profiles, and other social interactions programmatically.",
+    "server_url": "https://api.twitter.com",
+    "logo": "https://example.com/twitter-logo.png",
+    "categories": [
+        "socialmedia"
+    ],
+    "tags": [
+        "tweets",
+        "social"
+    ],
+    "supported_auth_schemes": {
+        "oauth1": {
+            "consumer_key": "your_consumer_key",
+            "consumer_secret": "your_consumer_secret",
+            "access_token": "your_access_token",
+            "access_token_secret": "your_access_token_secret"
+        },
+        "oauth2": {
+            "authorization_url": "https://twitter.com/oauth/authorize",
+            "token_url": "https://twitter.com/oauth/token",
+            "refresh_url": "https://twitter.com/oauth/refresh",
+            "default_scopes": [
+                "tweet.read",
+                "tweet.write"
+            ],
+            "available_scopes": [
+                "tweet.read",
+                "tweet.write",
+                "offline.access"
+            ],
+            "client_id": "your_client_id",
+            "client_secret": "your_client_secret",
+            "additional_parameters": [
+                {
+                    "name": "redirect_uri",
+                    "required": true
+                },
+                {
+                    "name": "state",
+                    "required": false
+                }
+            ]
+        }
+    }
+}

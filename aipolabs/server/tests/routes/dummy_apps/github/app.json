@@ -1,0 +1,76 @@
+{
+    "name": "GITHUB",
+    "display_name": "GitHub",
+    "version": "1.0.0",
+    "provider": "github",
+    "description": "GitHub is a cloud-based platform that enables developers to store, manage, and share their code repositories. It provides version control using Git, a system that tracks changes to files, allowing multiple people to collaborate on a project efficiently. GitHub facilitates code sharing, collaboration, and management by providing tools for version tracking, branching, and merging of code.",
+    "server_url": "https://api.github.com",
+    "logo": "https://example.com/logo.png",
+    "categories": [
+        "devtools",
+        "testcategory-2"
+    ],
+    "tags": [
+        "code",
+        "git"
+    ],
+    "supported_auth_schemes": {
+        "api_key": {
+            "parameter_name": "X-API-Key",
+            "location": "header"
+        },
+        "http_basic": {
+            "username": "username",
+            "password": "password"
+        },
+        "http_bearer": {
+            "header_name": "Authorization",
+            "token_prefix": "Bearer"
+        },
+        "oauth2": {
+            "authorization_url": "https://example.com/oauth/authorize",
+            "token_url": "https://example.com/oauth/token",
+            "refresh_url": "https://example.com/oauth/refresh",
+            "default_scopes": [
+                "read",
+                "write"
+            ],
+            "available_scopes": [
+                "read",
+                "write",
+                "admin"
+            ],
+            "client_id": "your_client_id",
+            "client_secret": "your_client_secret",
+            "additional_parameters": [
+                {
+                    "name": "redirect_uri",
+                    "required": true
+                },
+                {
+                    "name": "state",
+                    "required": false
+                }
+            ]
+        },
+        "open_id": {
+            "issuer_url": "https://example.com/.well-known/openid-configuration",
+            "client_id": "your_openid_client_id",
+            "client_secret": "your_openid_client_secret",
+            "default_scopes": [
+                "openid",
+                "profile",
+                "email"
+            ],
+            "additional_scopes": [
+                "offline_access"
+            ],
+            "additional_parameters": [
+                {
+                    "name": "nonce",
+                    "required": true
+                }
+            ]
+        }
+    }
+}

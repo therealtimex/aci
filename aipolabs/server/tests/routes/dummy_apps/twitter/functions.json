@@ -1,0 +1,78 @@
+[
+    {
+        "name": "TWITTER__POST_TWEET",
+        "description": "Post a new tweet",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "content": {
+                    "type": "string",
+                    "description": "The content of the tweet"
+                },
+                "media_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                        "description": "An array of media IDs to attach to the tweet"
+                    }
+                }
+            },
+            "required": [
+                "content"
+            ]
+        }
+    },
+    {
+        "name": "TWITTER__RETWEET",
+        "description": "Retweet an existing tweet",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "tweet_id": {
+                    "type": "string",
+                    "description": "The ID of the tweet to retweet"
+                }
+            },
+            "required": [
+                "tweet_id"
+            ]
+        }
+    },
+    {
+        "name": "TWITTER__FOLLOW_USER",
+        "description": "Follow a user on Twitter",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "user_id": {
+                    "type": "string",
+                    "description": "The ID of the user to follow"
+                }
+            },
+            "required": [
+                "user_id"
+            ]
+        }
+    },
+    {
+        "name": "TWITTER__SEND_DIRECT_MESSAGE",
+        "description": "Send a direct message to a user",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "recipient_id": {
+                    "type": "string",
+                    "description": "The ID of the recipient"
+                },
+                "message": {
+                    "type": "string",
+                    "description": "The content of the direct message"
+                }
+            },
+            "required": [
+                "recipient_id",
+                "message"
+            ]
+        }
+    }
+]

@@ -1,0 +1,114 @@
+
+[
+    {
+        "name": "GOOGLE__CALENDAR_CREATE_EVENT",
+        "description": "Create a new event in Google Calendar",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "calendar_id": {
+                    "type": "string",
+                    "description": "The ID of the Google Calendar"
+                },
+                "event_title": {
+                    "type": "string",
+                    "description": "The title of the event"
+                },
+                "start_time": {
+                    "type": "string",
+                    "description": "The start time of the event (in ISO 8601 format)"
+                },
+                "end_time": {
+                    "type": "string",
+                    "description": "The end time of the event (in ISO 8601 format)"
+                },
+                "metadata": {
+                    "type": "object",
+                    "properties": {
+                        "description": {
+                            "type": "string",
+                            "description": "A detailed description of the event"
+                        },
+                        "attendees": {
+                            "type": "array",
+                            "items": {
+                                "type": "string",
+                                "description": "Email addresses of attendees"
+                            }
+                        }
+                    },
+                    "required": [
+                        "description",
+                        "attendees"
+                    ]
+                }
+            },
+            "required": [
+                "calendar_id",
+                "event_title",
+                "start_time",
+                "end_time",
+                "metadata"
+            ]
+        }
+    },
+    {
+        "name": "GOOGLE__DRIVE_UPLOAD_FILE",
+        "description": "Upload a file to Google Drive",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "folder_id": {
+                    "type": "string",
+                    "description": "The ID of the folder where the file will be uploaded"
+                },
+                "file_name": {
+                    "type": "string",
+                    "description": "The name of the file to be uploaded"
+                },
+                "file_type": {
+                    "type": "string",
+                    "description": "The MIME type of the file"
+                },
+                "metadata": {
+                    "type": "object",
+                    "properties": {
+                        "description": {
+                            "type": "string",
+                            "description": "Description of the file"
+                        },
+                        "permissions": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "description": "Email address of the person to share with"
+                                    },
+                                    "role": {
+                                        "type": "string",
+                                        "enum": ["owner", "writer", "reader"],
+                                        "description": "Permission role for the person"
+                                    }
+                                },
+                                "required": [
+                                    "email",
+                                    "role"
+                                ]
+                            }
+                        }
+                    },
+                    "required": [
+                        "permissions"
+                    ]
+                }
+            },
+            "required": [
+                "folder_id",
+                "file_name",
+                "file_type"
+            ]
+        }
+    }
+]
