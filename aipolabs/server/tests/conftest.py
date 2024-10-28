@@ -103,9 +103,12 @@ def dummy_api_key(
     with utils.create_db_session(config.DB_FULL_URL) as fixture_db_session:
         dummy_agent = crud.create_agent(
             fixture_db_session,
-            AgentCreate(name="Dummy Agent", description="Dummy Agent"),
-            dummy_project.id,
-            dummy_user.id,
+            AgentCreate(
+                name="Dummy Agent",
+                description="Dummy Agent",
+                project_id=dummy_project.id,
+                created_by=dummy_user.id,
+            ),
         )
         fixture_db_session.commit()
         yield dummy_agent.api_keys[0].key

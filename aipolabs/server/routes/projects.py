@@ -70,7 +70,18 @@ async def create_agent(
 ) -> Any:
     try:
         logger.info(f"Creating agent in project: {project_id}, user_id: {user_id}")
-
+        # check project_id matches agent.project_id
+        if project_id != agent.project_id:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Project ID does not match agent's project ID",
+            )
+        # check if user_id matches agent.created_by
+        if user_id != agent.created_by:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="User ID does not match agent's creator",
+            )
         # Check if the user has admin access to the project
         if not crud.user_has_admin_access_to_project(db_session, user_id, project_id):
             raise HTTPException(
@@ -78,12 +89,7 @@ async def create_agent(
                 detail="User does not have admin access to the project",
             )
 
-        db_agent = crud.create_agent(
-            db_session,
-            agent,
-            project_id,
-            user_id,
-        )
+        db_agent = crud.create_agent(db_session, agent)
         db_session.commit()
         logger.info(f"Created agent: {AgentPublic.model_validate(db_agent)}")
         return db_agent

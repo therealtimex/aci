@@ -88,16 +88,14 @@ def create_project(db_session: Session, project: ProjectCreate) -> sql_models.Pr
     return db_project
 
 
-def create_agent(
-    db_session: Session, agent: AgentCreate, project_id: UUID, user_id: UUID
-) -> sql_models.Agent:
+def create_agent(db_session: Session, agent: AgentCreate) -> sql_models.Agent:
     """
     Create a new agent under a project, and create a new API key for the agent.
     Assume user's access to the project has been checked.
     TODO: a more unified way to handle access control?
     """
     # Create the agent
-    db_agent = sql_models.Agent(**agent.model_dump(), project_id=project_id, created_by=user_id)
+    db_agent = sql_models.Agent(**agent.model_dump())
     db_session.add(db_agent)
     db_session.flush()  # Flush to get the agent's ID
 

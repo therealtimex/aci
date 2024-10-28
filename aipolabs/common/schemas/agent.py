@@ -9,6 +9,8 @@ from aipolabs.common.schemas.apikey import APIKeyPublic
 class AgentCreate(BaseModel):
     name: str
     description: str
+    project_id: UUID
+    created_by: UUID
     excluded_apps: list[UUID] = []
     excluded_functions: list[UUID] = []
 

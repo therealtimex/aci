@@ -53,11 +53,16 @@ def test_create_agent(
     dummy_user_bearer_token: str,
     dummy_user: sql_models.User,
 ) -> None:
-    agent_create = AgentCreate(name="new test agent", description="new test agent description")
+    agent_create = AgentCreate(
+        name="new test agent",
+        description="new test agent description",
+        project_id=dummy_project.id,
+        created_by=dummy_user.id,
+    )
 
     response = test_client.post(
         f"/v1/projects/{dummy_project.id}/agents/",
-        json=agent_create.model_dump(),
+        json=agent_create.model_dump(mode="json"),
         headers={"Authorization": f"Bearer {dummy_user_bearer_token}"},
     )
     assert response.status_code == 200, response.json()
