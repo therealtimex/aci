@@ -7,7 +7,11 @@ from sqlalchemy.orm import Session
 from aipolabs.common.db import crud
 from aipolabs.common.logging import get_logger
 from aipolabs.common.schemas.agent import AgentCreate, AgentPublic
-from aipolabs.common.schemas.project import ProjectCreate, ProjectPublic
+from aipolabs.common.schemas.project import (
+    ProjectCreate,
+    ProjectOwnerType,
+    ProjectPublic,
+)
 from aipolabs.server import dependencies as deps
 
 # Create router instance
@@ -23,19 +27,30 @@ async def create_project(
 ) -> Any:
     try:
         logger.info(f"Creating project: {project}, user_id: {user_id}")
+        # creator should be the same as user_id
+        if project.created_by != user_id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="User does not match creator",
+            )
+        # if owner_type is user, check if user_id matches owner_id
+        if project.owner_type == ProjectOwnerType.USER:
+            if user_id != project.owner_id:
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="User does not match owner for user owned project",
+                )
         # if project is to be created under an organization, check if user has admin access to the organization
-        if project.owner_organization_id is not None:
-            if not crud.user_has_admin_access_to_org(
-                db_session, user_id, project.owner_organization_id
-            ):
+        if project.owner_type == ProjectOwnerType.ORGANIZATION:
+            if not crud.user_has_admin_access_to_org(db_session, user_id, project.owner_id):
                 raise HTTPException(
                     status_code=status.HTTP_403_FORBIDDEN,
                     detail="User does not have admin access to the organization",
                 )
 
-        db_project = crud.create_project(db_session, project, user_id)
+        db_project = crud.create_project(db_session, project)
         db_session.commit()
-        logger.info(f"Created project: {ProjectPublic.model_validate(db_project)}")
+        logger.info(f"Created project: {db_project}")
         return db_project
     except Exception:
         # TODO: need rollback?

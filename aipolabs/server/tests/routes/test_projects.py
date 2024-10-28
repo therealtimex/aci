@@ -4,26 +4,35 @@ from sqlalchemy.orm import Session
 
 from aipolabs.common.db import sql_models
 from aipolabs.common.schemas.agent import AgentCreate, AgentPublic
-from aipolabs.common.schemas.project import ProjectCreate, ProjectPublic
+from aipolabs.common.schemas.project import (
+    ProjectCreate,
+    ProjectOwnerType,
+    ProjectPublic,
+)
 
 
-def test_create_project(
+def test_create_project_under_user(
     test_client: TestClient,
     db_session: Session,
     dummy_user_bearer_token: str,
     dummy_user: sql_models.User,
 ) -> None:
-    project_create = ProjectCreate(name="new test project", owner_organization_id=None)
+    project_create = ProjectCreate(
+        name="project test_create_project",
+        owner_type=ProjectOwnerType.USER,
+        owner_id=dummy_user.id,
+        created_by=dummy_user.id,
+    )
 
     response = test_client.post(
         "/v1/projects/",
-        json=project_create.model_dump(),
+        json=project_create.model_dump(mode="json"),
         headers={"Authorization": f"Bearer {dummy_user_bearer_token}"},
     )
     assert response.status_code == 200, response.json()
     project_public = ProjectPublic.model_validate(response.json())
     assert project_public.name == project_create.name
-    assert project_public.owner_organization_id == project_create.owner_organization_id
+    assert project_public.owner_organization_id is None
     assert project_public.owner_user_id == dummy_user.id
 
     # Verify the project was actually created in the database and values match returned values

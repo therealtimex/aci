@@ -1,4 +1,5 @@
 import datetime
+from enum import Enum
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict
@@ -6,9 +7,19 @@ from pydantic import BaseModel, ConfigDict
 from aipolabs.common.schemas.agent import AgentPublic
 
 
+class ProjectOwnerType(str, Enum):
+    USER = "user"
+    ORGANIZATION = "organization"
+
+
 class ProjectCreate(BaseModel):
+    """Project can be created under a user or an organization."""
+
     name: str
-    owner_organization_id: UUID | None = None
+    owner_type: ProjectOwnerType
+    owner_id: UUID
+    # creator of the project, should be a user and should be the same as owner_id if owner_type is user
+    created_by: UUID
 
 
 class ProjectPublic(BaseModel):

@@ -11,7 +11,7 @@ from aipolabs.common.logging import get_logger
 from aipolabs.common.schemas.agent import AgentCreate
 from aipolabs.common.schemas.app import AppCreate
 from aipolabs.common.schemas.function import FunctionCreate
-from aipolabs.common.schemas.project import ProjectCreate
+from aipolabs.common.schemas.project import ProjectCreate, ProjectOwnerType
 from aipolabs.common.schemas.user import UserCreate
 
 logger = get_logger(__name__)
@@ -66,19 +66,20 @@ def get_or_create_user(db_session: Session, user: UserCreate) -> sql_models.User
     return db_user
 
 
-def create_project(
-    db_session: Session, project: ProjectCreate, user_id: UUID
-) -> sql_models.Project:
+def create_project(db_session: Session, project: ProjectCreate) -> sql_models.Project:
     """
     Create a new project.
-    Create as personal project if owner_organization_id is not specified in ProjectCreate.
-    Assume user exists, if not, the database will raise an error becuase owner_user_id
-    is defined as foreign key to users.id.
-    TODO: handle creating project under an organization
+    Assume called has privilege to create project under the specified user or organization.
     """
-    owner_user_id = user_id if project.owner_organization_id is None else None
+    owner_user_id = project.owner_id if project.owner_type == ProjectOwnerType.USER else None
+    owner_organization_id = (
+        project.owner_id if project.owner_type == ProjectOwnerType.ORGANIZATION else None
+    )
     db_project = sql_models.Project(
-        **project.model_dump(), owner_user_id=owner_user_id, created_by=user_id
+        name=project.name,
+        owner_user_id=owner_user_id,
+        owner_organization_id=owner_organization_id,
+        created_by=project.created_by,
     )
     db_session.add(db_project)
     db_session.flush()

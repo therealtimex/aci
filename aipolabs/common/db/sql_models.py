@@ -126,6 +126,7 @@ class Project(Base):
     )
 
     # Note: creator is not necessarily the owner
+    # should be a user and should be the same as owner_user_id if owner is of type user
     created_by: Mapped[UUID] = mapped_column(
         PGUUID(as_uuid=True), ForeignKey("users.id"), nullable=False
     )

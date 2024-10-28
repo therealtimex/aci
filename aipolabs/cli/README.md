@@ -27,5 +27,15 @@ For commands that require database connection, make sure the database you are co
   ```
 </details>
 
+<details>
+  <summary>Create Project</summary>
+  This command will create a project in the database.
+  You need to create the user first before creating a project for the user.
+
+  ```bash
+  python -m aipolabs.cli.aipolabs create-project --project-name "My Project" --owner-type user --owner-id "bc03b64d-9359-4b71-85ff-aad32c7610f1" --created-by "bc03b64d-9359-4b71-85ff-aad32c7610f1"
+  ```
+</details>
+
 ## Testing
 Follow all guidelines below for setting up the development environment, running services and testing locally
