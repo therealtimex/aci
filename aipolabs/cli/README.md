@@ -33,7 +33,17 @@ For commands that require database connection, make sure the database you are co
   You need to create the user first before creating a project for the user.
 
   ```bash
-  python -m aipolabs.cli.aipolabs create-project --project-name "My Project" --owner-type user --owner-id "1a5f70f6-79c4-4678-88f4-0c3875382ab6" --created-by "1a5f70f6-79c4-4678-88f4-0c3875382ab6"
+  python -m aipolabs.cli.aipolabs create-project --project-name "My Project" --owner-type user --owner-id "8341edc4-eeb6-4e90-abe3-0051a9a7b9a5" --created-by "8341edc4-eeb6-4e90-abe3-0051a9a7b9a5"
+  ```
+</details>
+
+<details>
+  <summary>Create Agent</summary>
+  This command will create an agent in the database.
+  You need to create the project first before creating an agent for the project.
+
+  ```bash
+  python -m aipolabs.cli.aipolabs create-agent --agent-name "My Agent" --description "My Agent Description" --project-id "51711368-ef40-4efc-a9ab-5d44dbe0d671" --created-by "8341edc4-eeb6-4e90-abe3-0051a9a7b9a5"
   ```
 </details>
 

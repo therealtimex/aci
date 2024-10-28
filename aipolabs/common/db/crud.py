@@ -93,6 +93,7 @@ def create_agent(db_session: Session, agent: AgentCreate) -> sql_models.Agent:
     Create a new agent under a project, and create a new API key for the agent.
     Assume user's access to the project has been checked.
     TODO: a more unified way to handle access control?
+    TODO: handle agent exclusion of apps and functions
     """
     # Create the agent
     db_agent = sql_models.Agent(**agent.model_dump())
