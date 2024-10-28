@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 
 from aipolabs.common.db import crud
 from aipolabs.common.logging import get_logger
-from aipolabs.common.schemas.user import TokenResponse
+from aipolabs.common.schemas.user import TokenResponse, UserCreate
 from aipolabs.server import config
 from aipolabs.server import dependencies as deps
 
@@ -110,11 +110,13 @@ async def auth_callback(
     try:
         user = crud.get_or_create_user(
             db_session,
-            user_info["iss"],
-            user_info["sub"],
-            user_info["name"],
-            user_info["email"],
-            user_info["picture"],
+            UserCreate(
+                auth_provider=user_info["iss"],
+                auth_user_id=user_info["sub"],
+                name=user_info["name"],
+                email=user_info["email"],
+                profile_picture=user_info["picture"],
+            ),
         )
         db_session.commit()
     except Exception as e:

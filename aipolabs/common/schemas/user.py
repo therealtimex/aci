@@ -13,5 +13,5 @@ class UserCreate(BaseModel):
     auth_user_id: str
     name: str
     email: str
-    profile_picture: str | None
+    profile_picture: str | None = None
     plan: Plan = Plan.FREE

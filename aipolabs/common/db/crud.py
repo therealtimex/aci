@@ -45,6 +45,27 @@ def create_user(db_session: Session, user: UserCreate) -> sql_models.User:
     return db_user
 
 
+def get_or_create_user(db_session: Session, user: UserCreate) -> sql_models.User:
+    # Step 1: Acquire a lock on the row to prevent race condition
+    db_user: Union[sql_models.User, None] = db_session.execute(
+        select(sql_models.User)
+        .where(
+            sql_models.User.auth_provider == user.auth_provider,
+            sql_models.User.auth_user_id == user.auth_user_id,
+        )
+        .with_for_update()
+    ).scalar_one_or_none()
+
+    if db_user:
+        return db_user  # Return the existing user if found
+
+    # Step 2: Create the user if not found
+    # TODO: compliance with PII data
+    logger.info(f"Creating user: {user.name}")
+    db_user = create_user(db_session, user)
+    return db_user
+
+
 def create_project(
     db_session: Session, project: ProjectCreate, user_id: UUID
 ) -> sql_models.Project:
@@ -64,44 +85,6 @@ def create_project(
     db_session.refresh(db_project)
 
     return db_project
-
-
-def get_or_create_user(
-    db_session: Session,
-    auth_provider: str,
-    auth_user_id: str,
-    name: str,
-    email: str,
-    profile_picture: str | None = None,
-) -> sql_models.User:
-    # Step 1: Acquire a lock on the row to prevent race condition
-    db_user: Union[sql_models.User, None] = db_session.execute(
-        select(sql_models.User)
-        .where(
-            sql_models.User.auth_provider == auth_provider,
-            sql_models.User.auth_user_id == auth_user_id,
-        )
-        .with_for_update()
-    ).scalar_one_or_none()
-
-    if db_user:
-        return db_user  # Return the existing user if found
-
-    # Step 2: Create the user if not found
-    # TODO: compliance with PII data
-    logger.info(f"Creating user: {name}")
-    db_user = sql_models.User(
-        auth_provider=auth_provider,
-        auth_user_id=auth_user_id,
-        name=name,
-        email=email,
-        profile_picture=profile_picture,
-    )
-    db_session.add(db_user)
-    db_session.flush()
-
-    db_session.refresh(db_user)
-    return db_user
 
 
 def create_agent(

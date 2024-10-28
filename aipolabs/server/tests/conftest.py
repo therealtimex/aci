@@ -12,6 +12,7 @@ from aipolabs.common import utils
 from aipolabs.common.db import crud, sql_models
 from aipolabs.common.schemas.agent import AgentCreate
 from aipolabs.common.schemas.project import ProjectCreate
+from aipolabs.common.schemas.user import UserCreate
 from aipolabs.server import config
 from aipolabs.server.main import app as fastapi_app
 from aipolabs.server.routes.auth import create_access_token
@@ -59,10 +60,12 @@ def dummy_user() -> Generator[sql_models.User, None, None]:
     with utils.create_db_session(config.DB_FULL_URL) as fixture_db_session:
         dummy_user = crud.get_or_create_user(
             fixture_db_session,
-            "dummy_auth_provider",
-            "dummy_user_id",
-            "Dummy User",
-            "dummy@example.com",
+            UserCreate(
+                auth_provider="dummy_auth_provider",
+                auth_user_id="dummy_user_id",
+                name="Dummy User",
+                email="dummy@example.com",
+            ),
         )
         fixture_db_session.commit()
         yield dummy_user
