@@ -5,10 +5,11 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from aipolabs.cli import config
-from aipolabs.common import sql_models, utils
+from aipolabs.common import utils
+from aipolabs.common.db import sql_models
 from aipolabs.common.logging import get_logger
 from aipolabs.common.openai_service import OpenAIService
-from aipolabs.common.schemas import AppFileModel
+from aipolabs.common.schemas.app import AppFileModel
 
 logger = get_logger(__name__)
 openai_service = OpenAIService(

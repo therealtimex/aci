@@ -4,10 +4,11 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, Field, field_validator
 from sqlalchemy.orm import Session
 
+from aipolabs.common.db import crud
 from aipolabs.common.logging import get_logger
 from aipolabs.common.openai_service import OpenAIService
-from aipolabs.server import config, schemas
-from aipolabs.server.db import crud
+from aipolabs.common.schemas.app import AppBasicPublic
+from aipolabs.server import config
 from aipolabs.server.dependencies import yield_db_session
 
 logger = get_logger(__name__)
@@ -61,13 +62,11 @@ class AppFilterParams(BaseModel):
 # TODO: implement api key validation and project quota checks
 # (middleware or dependency? and for mvp can probably just use memory for daily quota limit instead of checking and updating db every time)
 # TODO: filter out disabled apps first before doing any other filtering
-@router.get(
-    "/search", response_model=list[schemas.AppBasicPublic], response_model_exclude_unset=True
-)
+@router.get("/search", response_model=list[AppBasicPublic], response_model_exclude_unset=True)
 async def search_apps(
     filter_params: Annotated[AppFilterParams, Query()],
     db_session: Session = Depends(yield_db_session),
-) -> list[schemas.AppBasicPublic]:
+) -> list[AppBasicPublic]:
     """
     Returns a list of applications (name and description).
     """
@@ -87,9 +86,9 @@ async def search_apps(
             filter_params.offset,
         )
         # build apps list with similarity scores if they exist
-        apps: list[schemas.AppBasicPublic] = []
+        apps: list[AppBasicPublic] = []
         for app, score in apps_with_scores:
-            app = schemas.AppBasicPublic.model_validate(app)
+            app = AppBasicPublic.model_validate(app)
             if score is not None:
                 app.similarity_score = score
             apps.append(app)

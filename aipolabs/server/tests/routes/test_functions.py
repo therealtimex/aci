@@ -1,7 +1,13 @@
 from fastapi.testclient import TestClient
 
-from aipolabs.common import sql_models
-from aipolabs.server import schemas
+from aipolabs.common.db import sql_models
+from aipolabs.common.schemas.function import (
+    AnthropicFunctionDefinition,
+    FunctionBasicPublic,
+    FunctionExecutionResponse,
+    FunctionPublic,
+    OpenAIFunctionDefinition,
+)
 
 GOOGLE__CALENDAR_CREATE_EVENT = "GOOGLE__CALENDAR_CREATE_EVENT"
 GITHUB__CREATE_REPOSITORY = "GITHUB__CREATE_REPOSITORY"
@@ -26,7 +32,7 @@ def test_search_functions_with_app_names(
 
     assert response.status_code == 200, response.json()
     functions = [
-        schemas.FunctionBasicPublic.model_validate(response_function)
+        FunctionBasicPublic.model_validate(response_function)
         for response_function in response.json()
     ]
     # only github and google functions should be returned
@@ -55,7 +61,7 @@ def test_search_functions_with_intent(
 
     assert response.status_code == 200, response.json()
     functions = [
-        schemas.FunctionBasicPublic.model_validate(response_function)
+        FunctionBasicPublic.model_validate(response_function)
         for response_function in response.json()
     ]
     assert len(functions) == len(dummy_functions)
@@ -68,7 +74,7 @@ def test_search_functions_with_intent(
     )
     assert response.status_code == 200, response.json()
     functions = [
-        schemas.FunctionBasicPublic.model_validate(response_function)
+        FunctionBasicPublic.model_validate(response_function)
         for response_function in response.json()
     ]
     assert len(functions) == len(dummy_functions)
@@ -90,7 +96,7 @@ def test_search_functions_with_app_names_and_intent(
 
     assert response.status_code == 200, response.json()
     functions = [
-        schemas.FunctionBasicPublic.model_validate(response_function)
+        FunctionBasicPublic.model_validate(response_function)
         for response_function in response.json()
     ]
     # only github functions should be returned
@@ -116,7 +122,7 @@ def test_search_functions_pagination(
     )
     assert response.status_code == 200, response.json()
     functions = [
-        schemas.FunctionBasicPublic.model_validate(response_function)
+        FunctionBasicPublic.model_validate(response_function)
         for response_function in response.json()
     ]
     assert len(functions) == len(dummy_functions) - 1
@@ -127,7 +133,7 @@ def test_search_functions_pagination(
     )
     assert response.status_code == 200, response.json()
     functions = [
-        schemas.FunctionBasicPublic.model_validate(response_function)
+        FunctionBasicPublic.model_validate(response_function)
         for response_function in response.json()
     ]
     assert len(functions) == 1
@@ -142,7 +148,7 @@ def test_get_function(
     )
 
     assert response.status_code == 200, response.json()
-    function = schemas.FunctionPublic.model_validate(response.json())
+    function = FunctionPublic.model_validate(response.json())
     assert function.name == function_name
     # check if parameters and description are the same as the same function from dummy_functions
     dummy_function = next(
@@ -165,7 +171,7 @@ def test_get_function_definition_openai(
     response_json = response.json()
     # "strict" field should not be set unless structured outputs are enabled
     assert "strict" not in response_json["function"]
-    function_definition = schemas.OpenAIFunctionDefinition.model_validate(response_json)
+    function_definition = OpenAIFunctionDefinition.model_validate(response_json)
     assert function_definition.type == "function"
     assert function_definition.function.name == function_name
     # check if content is the same as the same function from dummy_functions
@@ -186,7 +192,7 @@ def test_get_function_definition_anthropic(
         headers={"x-api-key": dummy_api_key},
     )
     assert response.status_code == 200, response.json()
-    function_definition = schemas.AnthropicFunctionDefinition.model_validate(response.json())
+    function_definition = AnthropicFunctionDefinition.model_validate(response.json())
     assert function_definition.name == function_name
     # check if parameters and description are the same as the same function from dummy_functions
     dummy_function = next(
@@ -204,7 +210,7 @@ def test_execute_function(test_client: TestClient, dummy_api_key: str) -> None:
     )
     assert response.status_code == 200, response.json()
     assert "error" not in response.json()
-    function_execution_response = schemas.FunctionExecutionResponse.model_validate(response.json())
+    function_execution_response = FunctionExecutionResponse.model_validate(response.json())
     assert function_execution_response.success
     assert function_execution_response.data == {"message": "Hello, John!"}
 
@@ -232,7 +238,7 @@ def test_execute_function_with_nested_args(test_client: TestClient, dummy_api_ke
     )
     assert response.status_code == 200, response.json()
     assert "error" not in response.json()
-    function_execution_response = schemas.FunctionExecutionResponse.model_validate(response.json())
+    function_execution_response = FunctionExecutionResponse.model_validate(response.json())
     assert function_execution_response.success
     assert function_execution_response.data == {"message": "Hello, Mr John in New York, USA!"}
 
@@ -244,7 +250,7 @@ def test_execute_function_with_no_args(test_client: TestClient, dummy_api_key: s
         f"/v1/functions/{function_name}/execute", json={}, headers={"x-api-key": dummy_api_key}
     )
     assert response.status_code == 200, response.json()
-    function_execution_response = schemas.FunctionExecutionResponse.model_validate(response.json())
+    function_execution_response = FunctionExecutionResponse.model_validate(response.json())
     assert function_execution_response.success
     assert function_execution_response.data == {"message": "Hello, world!"}
 
@@ -255,6 +261,6 @@ def test_execute_function_with_no_args(test_client: TestClient, dummy_api_key: s
         headers={"x-api-key": dummy_api_key},
     )
     assert response.status_code == 200, response.json()
-    function_execution_response = schemas.FunctionExecutionResponse.model_validate(response.json())
+    function_execution_response = FunctionExecutionResponse.model_validate(response.json())
     assert function_execution_response.success
     assert function_execution_response.data == {"message": "Hello, world!"}

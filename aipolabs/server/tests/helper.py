@@ -4,9 +4,10 @@ from pathlib import Path
 
 from sqlalchemy.orm import Session
 
-from aipolabs.common import sql_models, utils
+from aipolabs.common import utils
+from aipolabs.common.db import sql_models
 from aipolabs.common.openai_service import OpenAIService
-from aipolabs.common.schemas import AppFileModel
+from aipolabs.common.schemas.app import AppFileModel
 from aipolabs.server import config
 
 logger = logging.getLogger(__name__)

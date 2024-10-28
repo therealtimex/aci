@@ -8,9 +8,11 @@ from sqlalchemy import inspect
 from sqlalchemy.engine.reflection import Inspector
 from sqlalchemy.orm import Session
 
-from aipolabs.common import sql_models, utils
-from aipolabs.server import config, schemas
-from aipolabs.server.db import crud
+from aipolabs.common import utils
+from aipolabs.common.db import crud, sql_models
+from aipolabs.common.schemas.agent import AgentCreate
+from aipolabs.common.schemas.project import ProjectCreate
+from aipolabs.server import config
 from aipolabs.server.main import app as fastapi_app
 from aipolabs.server.routes.auth import create_access_token
 from aipolabs.server.tests import helper
@@ -78,7 +80,7 @@ def dummy_project(dummy_user: sql_models.User) -> Generator[sql_models.Project, 
     with utils.create_db_session(config.DB_FULL_URL) as fixture_db_session:
         dummy_project = crud.create_project(
             fixture_db_session,
-            schemas.ProjectCreate(name="Dummy Project", owner_organization_id=None),
+            ProjectCreate(name="Dummy Project", owner_organization_id=None),
             dummy_user.id,
         )
         fixture_db_session.commit()
@@ -94,7 +96,7 @@ def dummy_api_key(
     with utils.create_db_session(config.DB_FULL_URL) as fixture_db_session:
         dummy_agent = crud.create_agent(
             fixture_db_session,
-            schemas.AgentCreate(name="Dummy Agent", description="Dummy Agent"),
+            AgentCreate(name="Dummy Agent", description="Dummy Agent"),
             dummy_project.id,
             dummy_user.id,
         )

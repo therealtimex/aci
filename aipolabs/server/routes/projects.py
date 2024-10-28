@@ -4,19 +4,20 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
+from aipolabs.common.db import crud
 from aipolabs.common.logging import get_logger
+from aipolabs.common.schemas.agent import AgentCreate, AgentPublic
+from aipolabs.common.schemas.project import ProjectCreate, ProjectPublic
 from aipolabs.server import dependencies as deps
-from aipolabs.server import schemas
-from aipolabs.server.db import crud
 
 # Create router instance
 router = APIRouter()
 logger = get_logger(__name__)
 
 
-@router.post("/", response_model=schemas.ProjectPublic)
+@router.post("/", response_model=ProjectPublic)
 async def create_project(
-    project: schemas.ProjectCreate,
+    project: ProjectCreate,
     user_id: Annotated[UUID, Depends(deps.validate_http_bearer)],
     db_session: Annotated[Session, Depends(deps.yield_db_session)],
 ) -> Any:
@@ -34,7 +35,7 @@ async def create_project(
 
         db_project = crud.create_project(db_session, project, user_id)
         db_session.commit()
-        logger.info(f"Created project: {schemas.ProjectPublic.model_validate(db_project)}")
+        logger.info(f"Created project: {ProjectPublic.model_validate(db_project)}")
         return db_project
     except Exception:
         # TODO: need rollback?
@@ -45,10 +46,10 @@ async def create_project(
         )
 
 
-@router.post("/{project_id}/agents/", response_model=schemas.AgentPublic)
+@router.post("/{project_id}/agents/", response_model=AgentPublic)
 async def create_agent(
     project_id: UUID,
-    agent: schemas.AgentCreate,
+    agent: AgentCreate,
     user_id: Annotated[UUID, Depends(deps.validate_http_bearer)],
     db_session: Annotated[Session, Depends(deps.yield_db_session)],
 ) -> Any:
@@ -69,7 +70,7 @@ async def create_agent(
             user_id,
         )
         db_session.commit()
-        logger.info(f"Created agent: {schemas.AgentPublic.model_validate(db_agent)}")
+        logger.info(f"Created agent: {AgentPublic.model_validate(db_agent)}")
         return db_agent
     except Exception:
         logger.error("Error in creating agent", exc_info=True)

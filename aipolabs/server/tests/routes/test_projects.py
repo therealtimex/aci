@@ -2,8 +2,9 @@ from fastapi.testclient import TestClient
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from aipolabs.common import sql_models
-from aipolabs.server import schemas
+from aipolabs.common.db import sql_models
+from aipolabs.common.schemas.agent import AgentCreate, AgentPublic
+from aipolabs.common.schemas.project import ProjectCreate, ProjectPublic
 
 
 def test_create_project(
@@ -12,7 +13,7 @@ def test_create_project(
     dummy_user_bearer_token: str,
     dummy_user: sql_models.User,
 ) -> None:
-    project_create = schemas.ProjectCreate(name="new test project", owner_organization_id=None)
+    project_create = ProjectCreate(name="new test project", owner_organization_id=None)
 
     response = test_client.post(
         "/v1/projects/",
@@ -20,7 +21,7 @@ def test_create_project(
         headers={"Authorization": f"Bearer {dummy_user_bearer_token}"},
     )
     assert response.status_code == 200, response.json()
-    project_public = schemas.ProjectPublic.model_validate(response.json())
+    project_public = ProjectPublic.model_validate(response.json())
     assert project_public.name == project_create.name
     assert project_public.owner_organization_id == project_create.owner_organization_id
     assert project_public.owner_user_id == dummy_user.id
@@ -31,9 +32,7 @@ def test_create_project(
     ).scalar_one_or_none()
 
     assert db_project is not None
-    assert (
-        project_public.model_dump() == schemas.ProjectPublic.model_validate(db_project).model_dump()
-    )
+    assert project_public.model_dump() == ProjectPublic.model_validate(db_project).model_dump()
 
     # Clean up: no need to delete project, it will be deleted when dummy_user is deleted
 
@@ -45,9 +44,7 @@ def test_create_agent(
     dummy_user_bearer_token: str,
     dummy_user: sql_models.User,
 ) -> None:
-    agent_create = schemas.AgentCreate(
-        name="new test agent", description="new test agent description"
-    )
+    agent_create = AgentCreate(name="new test agent", description="new test agent description")
 
     response = test_client.post(
         f"/v1/projects/{dummy_project.id}/agents/",
@@ -55,7 +52,7 @@ def test_create_agent(
         headers={"Authorization": f"Bearer {dummy_user_bearer_token}"},
     )
     assert response.status_code == 200, response.json()
-    agent_public = schemas.AgentPublic.model_validate(response.json())
+    agent_public = AgentPublic.model_validate(response.json())
     assert agent_public.name == agent_create.name
     assert agent_public.description == agent_create.description
     assert agent_public.project_id == dummy_project.id
@@ -67,7 +64,7 @@ def test_create_agent(
     ).scalar_one_or_none()
 
     assert db_agent is not None
-    assert agent_public.model_dump() == schemas.AgentPublic.model_validate(db_agent).model_dump()
+    assert agent_public.model_dump() == AgentPublic.model_validate(db_agent).model_dump()
 
     # check api keys
     db_api_key = db_session.execute(

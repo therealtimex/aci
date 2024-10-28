@@ -5,12 +5,18 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, Field, field_validator
 from sqlalchemy.orm import Session
 
-from aipolabs.common import sql_models
+from aipolabs.common.db import crud, sql_models
 from aipolabs.common.logging import get_logger
 from aipolabs.common.openai_service import OpenAIService
-from aipolabs.server import config, schemas
+from aipolabs.common.schemas.function import (
+    AnthropicFunctionDefinition,
+    FunctionBasicPublic,
+    FunctionExecutionResponse,
+    FunctionPublic,
+    OpenAIFunctionDefinition,
+)
+from aipolabs.server import config
 from aipolabs.server.apps.base import AppBase, AppFactory
-from aipolabs.server.db import crud
 from aipolabs.server.dependencies import yield_db_session
 
 router = APIRouter()
@@ -63,7 +69,7 @@ class FunctionExecutionParams(BaseModel):
     # TODO: can add other params like account_id
 
 
-@router.get("/search", response_model=list[schemas.FunctionBasicPublic])
+@router.get("/search", response_model=list[FunctionBasicPublic])
 async def search_functions(
     search_params: Annotated[FunctionSearchParams, Query()],
     db_session: Session = Depends(yield_db_session),
@@ -94,7 +100,7 @@ async def search_functions(
 
 
 # TODO: get list of functions by list of names
-@router.get("/{function_name}", response_model=schemas.FunctionPublic)
+@router.get("/{function_name}", response_model=FunctionPublic)
 async def get_function(
     function_name: str,
     db_session: Session = Depends(yield_db_session),
@@ -127,7 +133,7 @@ class InferenceProvider(str, Enum):
 # TODO: "flatten" flag to make sure nested parameters are flattened?
 @router.get(
     "/{function_name}/definition",
-    response_model=schemas.OpenAIFunctionDefinition | schemas.AnthropicFunctionDefinition,
+    response_model=OpenAIFunctionDefinition | AnthropicFunctionDefinition,
     response_model_exclude_none=True,  # having this to exclude "strict" field in openai's function definition if not set
 )
 async def get_function_definition(
@@ -149,7 +155,7 @@ async def get_function_definition(
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Function not found.")
 
         if inference_provider == InferenceProvider.OPENAI:
-            function_definition = schemas.OpenAIFunctionDefinition(
+            function_definition = OpenAIFunctionDefinition(
                 function={
                     "name": function.name,
                     "description": function.description,
@@ -157,7 +163,7 @@ async def get_function_definition(
                 }
             )
         elif inference_provider == InferenceProvider.ANTHROPIC:
-            function_definition = schemas.AnthropicFunctionDefinition(
+            function_definition = AnthropicFunctionDefinition(
                 name=function.name,
                 description=function.description,
                 input_schema=function.parameters,
@@ -173,14 +179,14 @@ async def get_function_definition(
 # TODO: rate limit with fastapi-limiter and redis?
 @router.post(
     "/{function_name}/execute",
-    response_model=schemas.FunctionExecutionResponse,
+    response_model=FunctionExecutionResponse,
     response_model_exclude_none=True,
 )
 async def execute(
     function_name: str,
     function_execution_params: FunctionExecutionParams,
     db_session: Session = Depends(yield_db_session),
-) -> schemas.FunctionExecutionResponse:
+) -> FunctionExecutionResponse:
     try:
         # Fetch function definition
         function = crud.get_function(db_session, function_name)

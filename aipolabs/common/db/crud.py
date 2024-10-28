@@ -5,9 +5,10 @@ from uuid import UUID
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from aipolabs.common import sql_models
+from aipolabs.common.db import sql_models
 from aipolabs.common.logging import get_logger
-from aipolabs.server import schemas
+from aipolabs.common.schemas.agent import AgentCreate
+from aipolabs.common.schemas.project import ProjectCreate
 
 logger = get_logger(__name__)
 
@@ -33,7 +34,7 @@ def user_exists(db_session: Session, user_id: UUID) -> bool:
 
 
 def create_project(
-    db_session: Session, project: schemas.ProjectCreate, user_id: UUID
+    db_session: Session, project: ProjectCreate, user_id: UUID
 ) -> sql_models.Project:
     """
     Create a new project.
@@ -92,7 +93,7 @@ def get_or_create_user(
 
 
 def create_agent(
-    db_session: Session, agent: schemas.AgentCreate, project_id: UUID, user_id: UUID
+    db_session: Session, agent: AgentCreate, project_id: UUID, user_id: UUID
 ) -> sql_models.Agent:
     """
     Create a new agent under a project, and create a new API key for the agent.

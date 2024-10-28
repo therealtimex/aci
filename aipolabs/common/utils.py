@@ -6,7 +6,8 @@ from sqlalchemy.orm import Session, sessionmaker
 
 from aipolabs.common.logging import get_logger
 from aipolabs.common.openai_service import OpenAIService
-from aipolabs.common.schemas import AppFileModel, FunctionFileModel
+from aipolabs.common.schemas.app import AppFileModel
+from aipolabs.common.schemas.function import FunctionFileModel
 
 logger = get_logger(__name__)
 

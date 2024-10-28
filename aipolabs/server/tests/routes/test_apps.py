@@ -2,8 +2,8 @@ from typing import Any
 
 from fastapi.testclient import TestClient
 
-from aipolabs.common import sql_models
-from aipolabs.server import schemas
+from aipolabs.common.db import sql_models
+from aipolabs.common.schemas.app import AppBasicPublic
 
 AIPOLABS_TEST = "AIPOLABS_TEST"
 GITHUB = "GITHUB"
@@ -27,7 +27,7 @@ def test_search_apps_with_intent(
     )
 
     assert response.status_code == 200, response.json()
-    apps = [schemas.AppBasicPublic.model_validate(response_app) for response_app in response.json()]
+    apps = [AppBasicPublic.model_validate(response_app) for response_app in response.json()]
     assert len(apps) == len(dummy_apps)
     assert apps[0].name == GITHUB
 
@@ -40,7 +40,7 @@ def test_search_apps_with_intent(
     )
 
     assert response.status_code == 200, response.json()
-    apps = [schemas.AppBasicPublic.model_validate(response_app) for response_app in response.json()]
+    apps = [AppBasicPublic.model_validate(response_app) for response_app in response.json()]
     assert len(apps) == len(dummy_apps)
     assert apps[0].name == GOOGLE
 
@@ -55,7 +55,7 @@ def test_search_apps_without_intent(
     for app in response.json():
         assert "similarity_score" not in app
 
-    apps = [schemas.AppBasicPublic.model_validate(response_app) for response_app in response.json()]
+    apps = [AppBasicPublic.model_validate(response_app) for response_app in response.json()]
     assert len(apps) == len(dummy_apps)
 
 
@@ -71,7 +71,7 @@ def test_search_apps_with_categories(test_client: TestClient, dummy_api_key: str
     )
 
     assert response.status_code == 200, response.json()
-    apps = [schemas.AppBasicPublic.model_validate(response_app) for response_app in response.json()]
+    apps = [AppBasicPublic.model_validate(response_app) for response_app in response.json()]
     assert len(apps) == 1
     assert apps[0].name == AIPOLABS_TEST
 
@@ -90,7 +90,7 @@ def test_search_apps_with_categories_and_intent(
     )
 
     assert response.status_code == 200, response.json()
-    apps = [schemas.AppBasicPublic.model_validate(response_app) for response_app in response.json()]
+    apps = [AppBasicPublic.model_validate(response_app) for response_app in response.json()]
     assert len(apps) == 2
     assert apps[0].name == GITHUB
     assert apps[1].name == GOOGLE
@@ -113,7 +113,7 @@ def test_search_apps_pagination(
     )
 
     assert response.status_code == 200, response.json()
-    apps = [schemas.AppBasicPublic.model_validate(response_app) for response_app in response.json()]
+    apps = [AppBasicPublic.model_validate(response_app) for response_app in response.json()]
     assert len(apps) == len(dummy_apps) - 1
 
     filter_params["offset"] = len(dummy_apps) - 1
@@ -122,5 +122,5 @@ def test_search_apps_pagination(
     )
 
     assert response.status_code == 200, response.json()
-    apps = [schemas.AppBasicPublic.model_validate(response_app) for response_app in response.json()]
+    apps = [AppBasicPublic.model_validate(response_app) for response_app in response.json()]
     assert len(apps) == 1

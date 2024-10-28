@@ -5,7 +5,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from aipolabs.common import sql_models
+from aipolabs.common.db import sql_models
 from aipolabs.server import config
 
 MOCK_USER_GOOGLE_AUTH_DATA = {

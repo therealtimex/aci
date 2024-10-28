@@ -5,7 +5,7 @@ from typing import Type
 from jsonschema import ValidationError, validate
 
 from aipolabs.common.logging import get_logger
-from aipolabs.server import schemas
+from aipolabs.common.schemas.function import FunctionExecutionResponse
 
 logger = get_logger(__name__)
 
@@ -36,7 +36,7 @@ class AppBase(ABC):
     # TODO: init with end user account credentials
 
     # TODO: retry?
-    def execute(self, function_name: str, args: dict) -> schemas.FunctionExecutionResponse:
+    def execute(self, function_name: str, args: dict) -> FunctionExecutionResponse:
         _, _, method_name = parse_function_name(function_name)
         method = getattr(self, method_name, None)
         if not method:
@@ -48,10 +48,10 @@ class AppBase(ABC):
             )
             result = method(**args)
             logger.info(f"execution result: \n {result}")
-            return schemas.FunctionExecutionResponse(success=True, data=result)
+            return FunctionExecutionResponse(success=True, data=result)
         except Exception as e:
             logger.exception(f"error executing method {method_name} in {self.__class__.__name__}")
-            return schemas.FunctionExecutionResponse(success=False, error=str(e))
+            return FunctionExecutionResponse(success=False, error=str(e))
 
     @staticmethod
     def validate_input(function_parameters_schema: dict, function_input: dict) -> None:
