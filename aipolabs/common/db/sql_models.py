@@ -1,3 +1,5 @@
+"""Note: try to keep dependencies on other internal packages to a minimum."""
+
 # TODO: ideally shouldn't need it in python 3.12 for forward reference?
 from __future__ import annotations
 
