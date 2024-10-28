@@ -1,8 +1,8 @@
 """first migration
 
-Revision ID: 52a104c3ee90
+Revision ID: 44fd6f77ee64
 Revises:
-Create Date: 2024-10-18 21:05:53.997135+00:00
+Create Date: 2024-10-28 11:45:29.234848+00:00
 
 """
 
@@ -11,9 +11,10 @@ from typing import Sequence, Union
 import sqlalchemy as sa
 from alembic import op
 from pgvector.sqlalchemy import Vector
+from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
-revision: str = "52a104c3ee90"
+revision: str = "44fd6f77ee64"
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -28,16 +29,16 @@ def upgrade() -> None:
         sa.Column("id", sa.UUID(), nullable=False),
         sa.Column("name", sa.String(length=50), nullable=False),
         sa.Column("display_name", sa.String(length=50), nullable=False),
-        sa.Column("version", sa.String(length=50), nullable=False),
         sa.Column("provider", sa.String(length=50), nullable=False),
         sa.Column("description", sa.Text(), nullable=False),
         sa.Column("server_url", sa.String(length=255), nullable=False),
         sa.Column("logo", sa.Text(), nullable=True),
-        sa.Column("categories", sa.ARRAY(sa.String()), nullable=False),
-        sa.Column("tags", sa.ARRAY(sa.String()), nullable=False),
+        # Note: need to use postgresql.ARRAY to use the "overlaps" operator
+        sa.Column("categories", postgresql.ARRAY(sa.String()), nullable=False),
+        sa.Column("tags", postgresql.ARRAY(sa.String()), nullable=False),
         sa.Column(
             "supported_auth_types",
-            sa.ARRAY(
+            postgresql.ARRAY(
                 sa.Enum(
                     "CUSTOM",
                     "NO_AUTH",
@@ -52,8 +53,9 @@ def upgrade() -> None:
             nullable=False,
         ),
         sa.Column("auth_configs", sa.JSON(), nullable=True),
-        sa.Column("enabled", sa.Boolean(), nullable=False),
         sa.Column("embedding", Vector(dim=1024), nullable=False),
+        sa.Column("version", sa.String(length=50), nullable=False),
+        sa.Column("enabled", sa.Boolean(), nullable=False),
         sa.Column("created_at", sa.DateTime(), server_default=sa.text("now()"), nullable=False),
         sa.Column("updated_at", sa.DateTime(), server_default=sa.text("now()"), nullable=False),
         sa.PrimaryKeyConstraint("id"),
@@ -74,6 +76,9 @@ def upgrade() -> None:
         sa.Column("name", sa.String(length=255), nullable=False),
         sa.Column("email", sa.String(length=255), nullable=False),
         sa.Column("profile_picture", sa.Text(), nullable=True),
+        sa.Column(
+            "plan", sa.Enum("FREE", "BASIC", "PRO", "ENTERPRISE", name="plan"), nullable=False
+        ),
         sa.Column("created_at", sa.DateTime(), server_default=sa.text("now()"), nullable=False),
         sa.Column("updated_at", sa.DateTime(), server_default=sa.text("now()"), nullable=False),
         sa.PrimaryKeyConstraint("id"),
@@ -85,9 +90,9 @@ def upgrade() -> None:
         sa.Column("name", sa.String(length=255), nullable=False),
         sa.Column("app_id", sa.UUID(), nullable=False),
         sa.Column("description", sa.Text(), nullable=False),
-        sa.Column("parameters", sa.JSON(), nullable=False),
         sa.Column("response", sa.JSON(), nullable=False),
         sa.Column("embedding", Vector(dim=1024), nullable=False),
+        sa.Column("parameters", sa.JSON(), nullable=False),
         sa.Column("enabled", sa.Boolean(), nullable=False),
         sa.Column("created_at", sa.DateTime(), server_default=sa.text("now()"), nullable=False),
         sa.Column("updated_at", sa.DateTime(), server_default=sa.text("now()"), nullable=False),
@@ -104,15 +109,12 @@ def upgrade() -> None:
         sa.Column("name", sa.String(length=255), nullable=False),
         sa.Column("owner_user_id", sa.UUID(), nullable=True),
         sa.Column("owner_organization_id", sa.UUID(), nullable=True),
-        sa.Column(
-            "plan", sa.Enum("FREE", "BASIC", "PRO", "ENTERPRISE", name="plan"), nullable=False
-        ),
+        sa.Column("created_by", sa.UUID(), nullable=False),
         sa.Column("daily_quota_used", sa.Integer(), nullable=False),
         sa.Column(
             "daily_quota_reset_at", sa.DateTime(), server_default=sa.text("now()"), nullable=False
         ),
         sa.Column("total_quota_used", sa.Integer(), nullable=False),
-        sa.Column("created_by", sa.UUID(), nullable=False),
         sa.Column("created_at", sa.DateTime(), server_default=sa.text("now()"), nullable=False),
         sa.Column("updated_at", sa.DateTime(), server_default=sa.text("now()"), nullable=False),
         sa.CheckConstraint(
@@ -139,9 +141,9 @@ def upgrade() -> None:
         sa.Column("project_id", sa.UUID(), nullable=False),
         sa.Column("name", sa.String(length=255), nullable=False),
         sa.Column("description", sa.Text(), nullable=False),
-        sa.Column("excluded_apps", sa.ARRAY(sa.UUID()), nullable=False),
-        sa.Column("excluded_functions", sa.ARRAY(sa.UUID()), nullable=False),
         sa.Column("created_by", sa.UUID(), nullable=False),
+        sa.Column("excluded_apps", postgresql.ARRAY(sa.UUID()), nullable=False),
+        sa.Column("excluded_functions", postgresql.ARRAY(sa.UUID()), nullable=False),
         sa.Column("created_at", sa.DateTime(), server_default=sa.text("now()"), nullable=False),
         sa.Column("updated_at", sa.DateTime(), server_default=sa.text("now()"), nullable=False),
         sa.ForeignKeyConstraint(
@@ -160,7 +162,7 @@ def upgrade() -> None:
         sa.Column("project_id", sa.UUID(), nullable=False),
         sa.Column("app_id", sa.UUID(), nullable=False),
         sa.Column("enabled", sa.Boolean(), nullable=False),
-        sa.Column("excluded_functions", sa.ARRAY(sa.UUID()), nullable=False),
+        sa.Column("excluded_functions", postgresql.ARRAY(sa.UUID()), nullable=False),
         sa.Column("created_at", sa.DateTime(), server_default=sa.text("now()"), nullable=False),
         sa.Column("updated_at", sa.DateTime(), server_default=sa.text("now()"), nullable=False),
         sa.ForeignKeyConstraint(

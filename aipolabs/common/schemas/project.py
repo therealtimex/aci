@@ -3,7 +3,6 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict
 
-from aipolabs.common.db import sql_models
 from aipolabs.common.schemas.agent import AgentPublic
 
 
@@ -17,7 +16,6 @@ class ProjectPublic(BaseModel):
     name: str
     owner_user_id: UUID | None = None
     owner_organization_id: UUID | None = None
-    plan: sql_models.Project.Plan
     daily_quota_used: int
     daily_quota_reset_at: datetime.datetime
     total_quota_used: int

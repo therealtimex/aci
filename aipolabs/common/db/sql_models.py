@@ -35,6 +35,13 @@ EMBEDDING_DIMENTION = 1024
 APP_DEFAULT_VERSION = "1.0.0"
 
 
+class Plan(str, enum.Enum):
+    FREE = "free"
+    BASIC = "basic"
+    PRO = "pro"
+    ENTERPRISE = "enterprise"
+
+
 class Base(MappedAsDataclass, DeclarativeBase):
     pass
 
@@ -66,9 +73,9 @@ class User(Base):
         String(255), nullable=False
     )  # google id, github id, email, etc
     name: Mapped[str] = mapped_column(String(255), nullable=False)
-    email: Mapped[str | None] = mapped_column(String(255), nullable=False)
+    email: Mapped[str] = mapped_column(String(255), nullable=False)
     profile_picture: Mapped[str | None] = mapped_column(Text, nullable=True)
-
+    plan: Mapped[Plan] = mapped_column(Enum(Plan), default=Plan.FREE, nullable=False)
     # TODO: consider storing timestap in UTC
     created_at: Mapped[datetime.datetime] = mapped_column(
         DateTime(timezone=False), server_default=func.now(), nullable=False, init=False
@@ -102,12 +109,6 @@ class User(Base):
 class Project(Base):
     __tablename__ = "projects"
 
-    class Plan(enum.Enum):
-        FREE = "free"
-        BASIC = "basic"
-        PRO = "pro"
-        ENTERPRISE = "enterprise"
-
     id: Mapped[UUID] = mapped_column(
         PGUUID(as_uuid=True), primary_key=True, default_factory=uuid4, init=False
     )
@@ -128,7 +129,6 @@ class Project(Base):
     )
 
     """ quota related fields: TODO: TBD how to implement quota system """
-    plan: Mapped[Plan] = mapped_column(Enum(Plan), default=Plan.FREE, nullable=False)
     daily_quota_used: Mapped[int] = mapped_column(Integer, default=0, nullable=False, init=False)
     daily_quota_reset_at: Mapped[datetime.datetime] = mapped_column(
         DateTime(timezone=False), server_default=func.now(), nullable=False, init=False

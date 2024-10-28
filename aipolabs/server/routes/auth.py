@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 
 from aipolabs.common.db import crud
 from aipolabs.common.logging import get_logger
-from aipolabs.common.schemas import user_auth
+from aipolabs.common.schemas.user import TokenResponse
 from aipolabs.server import config
 from aipolabs.server import dependencies as deps
 
@@ -75,7 +75,7 @@ async def login(request: Request, provider: str) -> Any:
 
 # callback route for different auth providers
 # TODO: decision between long-lived JWT v.s session based v.s refresh token based auth
-@router.get("/callback/{provider}", name="auth_callback", response_model=user_auth.TokenResponse)
+@router.get("/callback/{provider}", name="auth_callback", response_model=TokenResponse)
 async def auth_callback(
     request: Request, provider: str, db_session: Annotated[Session, Depends(deps.yield_db_session)]
 ) -> Any:

@@ -13,13 +13,19 @@ For commands that require database connection, make sure the database you are co
 
   Example files: [`aipolabs_test`](assets/aipolabs_test).
 
-  Make sure the database where the records are upserted to is running and the `CLI_DB_` variables in `.env` file is set up correctly.
-
   ```bash
   python -m aipolabs.cli.aipolabs upsert-app-and-functions --app-file ./aipolabs/cli/assets/aipolabs_test/app.json --functions-file ./aipolabs/cli/assets/aipolabs_test/functions.json
   ```
 </details>
 
+<details>
+  <summary>Create User</summary>
+  This command will create a user in the database.
+
+  ```bash
+  python -m aipolabs.cli.aipolabs create-user --auth-provider google --auth-user-id 1234567890 --name "John Doe" --email "john.doe@example.com" --profile-picture "https://example.com/profile.jpg" --plan free
+  ```
+</details>
 
 ## Testing
 Follow all guidelines below for setting up the development environment, running services and testing locally

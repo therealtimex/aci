@@ -12,6 +12,7 @@ from aipolabs.common.schemas.agent import AgentCreate
 from aipolabs.common.schemas.app import AppCreate
 from aipolabs.common.schemas.function import FunctionCreate
 from aipolabs.common.schemas.project import ProjectCreate
+from aipolabs.common.schemas.user import UserCreate
 
 logger = get_logger(__name__)
 
@@ -34,6 +35,14 @@ def user_exists(db_session: Session, user_id: UUID) -> bool:
         db_session.execute(select(sql_models.User).filter_by(id=user_id)).scalar_one_or_none()
         is not None
     )
+
+
+def create_user(db_session: Session, user: UserCreate) -> sql_models.User:
+    db_user = sql_models.User(**user.model_dump())
+    db_session.add(db_user)
+    db_session.flush()
+    db_session.refresh(db_user)
+    return db_user
 
 
 def create_project(
@@ -251,6 +260,7 @@ def upsert_app(db_session: Session, app: AppCreate, app_embedding: list[float]) 
         logger.debug(f"App {app.name} does not exist, will insert")
         db_session.add(db_app)
         db_session.flush()
+        db_session.refresh(db_app)
 
     return db_app
 
