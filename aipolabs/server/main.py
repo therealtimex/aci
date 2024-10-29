@@ -4,7 +4,6 @@ from fastapi.responses import JSONResponse
 from fastapi.routing import APIRoute
 from pydantic import ValidationError
 from starlette.middleware.cors import CORSMiddleware
-from starlette.middleware.httpsredirect import HTTPSRedirectMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 
@@ -39,9 +38,7 @@ app.add_middleware(RateLimitMiddleware)
 # TODO: adjust trusted hosts?
 app.add_middleware(ProxyHeadersMiddleware, trusted_hosts=["127.0.0.1"])
 app.add_middleware(SessionMiddleware, secret_key=config.SESSION_SECRET_KEY)
-# running locally does not support https
-if config.ENVIRONMENT != "local":
-    app.add_middleware(HTTPSRedirectMiddleware)
+# TODO: let ALB handle redirect to https instead of using middleware here
 # TODO: configure CORS properly
 app.add_middleware(
     CORSMiddleware,
