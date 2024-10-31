@@ -15,8 +15,8 @@ COPY ./pyproject.toml ./poetry.lock* /aipolabs/
 # skip dev dependencies
 RUN poetry install --no-root --only main
 
-# Set the Python path to include the project root
-ENV PYTHONPATH=/aipolabs:$PYTHONPATH
+# Check if PYTHONPATH exists and append /aipolabs, otherwise set it to /aipolabs
+RUN if [ -z "$PYTHONPATH" ]; then export PYTHONPATH=/aipolabs; else export PYTHONPATH=/aipolabs:$PYTHONPATH; fi
 
 # .env files will be skipped by default specified in .dockerignore
 COPY ./aipolabs/server /aipolabs/server
