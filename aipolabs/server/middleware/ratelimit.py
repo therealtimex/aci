@@ -47,8 +47,8 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
     # TODO: only do ip based rate limiting in middleware
     # consider api key based rate limiting in dependencies where api key is validated
     def _get_rate_limit_key(self, request: Request) -> str:
-        # TODO: client.host should always be set correctly because of ProxyHeadersMiddleware?
-        # (remove logs)
+        # Note: client.host will be set correctly (if running behind proxy like ALB) because of ProxyHeadersMiddleware.
+        # TODO: remove logs
         logger.warning(f"request.client: {request.client}")
         if request.client and request.client.host:
             return f"ip:{request.client.host}"
