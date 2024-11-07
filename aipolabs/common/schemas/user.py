@@ -1,11 +1,14 @@
+from uuid import UUID
+
 from pydantic import BaseModel
 
 from aipolabs.common.db.sql_models import Plan
 
 
-class TokenResponse(BaseModel):
+class AuthResponse(BaseModel):
     access_token: str
     token_type: str
+    user_id: UUID
 
 
 class UserCreate(BaseModel):

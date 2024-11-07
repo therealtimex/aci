@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 
 from aipolabs.common.db import crud
 from aipolabs.common.logging import get_logger
-from aipolabs.common.schemas.user import TokenResponse, UserCreate
+from aipolabs.common.schemas.user import AuthResponse, UserCreate
 from aipolabs.server import config
 from aipolabs.server import dependencies as deps
 
@@ -75,7 +75,7 @@ async def login(request: Request, provider: str) -> Any:
 
 # callback route for different auth providers
 # TODO: decision between long-lived JWT v.s session based v.s refresh token based auth
-@router.get("/callback/{provider}", name="auth_callback", response_model=TokenResponse)
+@router.get("/callback/{provider}", name="auth_callback", response_model=AuthResponse)
 async def auth_callback(
     request: Request, provider: str, db_session: Annotated[Session, Depends(deps.yield_db_session)]
 ) -> Any:
@@ -139,4 +139,4 @@ async def auth_callback(
         logger.error(f"JWT generation failed for user {user.id}", exc_info=True)
         raise HTTPException(status_code=500, detail="JWT generation failed")
 
-    return {"access_token": jwt_token, "token_type": "bearer"}
+    return AuthResponse(access_token=jwt_token, token_type="bearer", user_id=user.id)
