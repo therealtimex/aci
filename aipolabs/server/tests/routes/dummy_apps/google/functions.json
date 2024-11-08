@@ -3,6 +3,7 @@
     {
         "name": "GOOGLE__CALENDAR_CREATE_EVENT",
         "description": "Create a new event in Google Calendar",
+        "tags": ["calendar"],
         "parameters": {
             "type": "object",
             "properties": {
@@ -55,6 +56,7 @@
     {
         "name": "GOOGLE__DRIVE_UPLOAD_FILE",
         "description": "Upload a file to Google Drive",
+        "tags": ["drive"],
         "parameters": {
             "type": "object",
             "properties": {

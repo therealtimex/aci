@@ -10,7 +10,7 @@ class APIKeyPublic(BaseModel):
     id: UUID
     key: str
     agent_id: UUID
-    status: sql_models.APIKey.Status = sql_models.APIKey.Status.ACTIVE
+    status: sql_models.APIKey.Status
 
     created_at: datetime.datetime
     updated_at: datetime.datetime

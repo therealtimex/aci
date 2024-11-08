@@ -101,7 +101,9 @@ def create_agent(db_session: Session, agent: AgentCreate) -> sql_models.Agent:
     db_session.flush()  # Flush to get the agent's ID
 
     # Create the API key for the agent
-    api_key = sql_models.APIKey(key=secrets.token_hex(32), agent_id=db_agent.id)
+    api_key = sql_models.APIKey(
+        key=secrets.token_hex(32), agent_id=db_agent.id, status=sql_models.APIKey.Status.ACTIVE
+    )
     db_session.add(api_key)
     db_session.flush()
 

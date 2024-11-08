@@ -46,6 +46,11 @@ class Plan(str, enum.Enum):
     ENTERPRISE = "enterprise"
 
 
+class Visibility(str, enum.Enum):
+    PUBLIC = "public"
+    PRIVATE = "private"
+
+
 class Base(MappedAsDataclass, DeclarativeBase):
     pass
 
@@ -77,7 +82,7 @@ class User(Base):
     name: Mapped[str] = mapped_column(String(NORMAL_STRING_LENGTH), nullable=False)
     email: Mapped[str] = mapped_column(String(NORMAL_STRING_LENGTH), nullable=False)
     profile_picture: Mapped[str | None] = mapped_column(Text, nullable=True)
-    plan: Mapped[Plan] = mapped_column(Enum(Plan), default=Plan.FREE, nullable=False)
+    plan: Mapped[Plan] = mapped_column(Enum(Plan), nullable=False)
     created_at: Mapped[datetime.datetime] = mapped_column(
         DateTime(timezone=False), server_default=func.now(), nullable=False, init=False
     )
@@ -178,11 +183,9 @@ class Agent(Base):
     )
     # agent level control of what apps and functions are not accessible by the agent, apart from the project level control
     # TODO: reconsider if this should be in a separate table to enforce data integrity, or use periodic task to clean up
-    excluded_apps: Mapped[list[UUID]] = mapped_column(
-        ARRAY(PGUUID(as_uuid=True)), nullable=False, default_factory=list
-    )
+    excluded_apps: Mapped[list[UUID]] = mapped_column(ARRAY(PGUUID(as_uuid=True)), nullable=False)
     excluded_functions: Mapped[list[UUID]] = mapped_column(
-        ARRAY(PGUUID(as_uuid=True)), nullable=False, default_factory=list
+        ARRAY(PGUUID(as_uuid=True)), nullable=False
     )
 
     created_at: Mapped[datetime.datetime] = mapped_column(
@@ -223,7 +226,7 @@ class APIKey(Base):
     agent_id: Mapped[UUID] = mapped_column(
         PGUUID(as_uuid=True), ForeignKey("agents.id"), unique=True, nullable=False
     )
-    status: Mapped[Status] = mapped_column(Enum(Status), default=Status.ACTIVE, nullable=False)
+    status: Mapped[Status] = mapped_column(Enum(Status), nullable=False)
 
     created_at: Mapped[datetime.datetime] = mapped_column(
         DateTime(timezone=False), server_default=func.now(), nullable=False, init=False
@@ -272,10 +275,12 @@ class App(Base):
     # key is the auth type, value is the corresponding auth config
     auth_configs: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     embedding: Mapped[list[float]] = mapped_column(Vector(EMBEDDING_DIMENTION), nullable=False)
-    version: Mapped[str] = mapped_column(
-        String(NORMAL_STRING_LENGTH), nullable=False, default=APP_DEFAULT_VERSION
+    version: Mapped[str] = mapped_column(String(SHORT_STRING_LENGTH), nullable=False)
+    # if private, the app is only visible to App creator (e.g., aipolabs team only, useful for internal testing)
+    visibility: Mapped[Visibility] = mapped_column(
+        Enum(Visibility), default=Visibility.PRIVATE, nullable=False
     )
-    # controlled by aipolabs
+    # if false, the app is not visible and reachable to all and will not be shown in the app store
     enabled: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     created_at: Mapped[datetime.datetime] = mapped_column(
         DateTime(timezone=False), server_default=func.now(), nullable=False, init=False
@@ -318,8 +323,12 @@ class Function(Base):
     # TODO: should we provide EMBEDDING_DIMENTION here? which makes it less flexible if we want to change the embedding dimention in the future
     embedding: Mapped[list[float]] = mapped_column(Vector(EMBEDDING_DIMENTION), nullable=False)
     # empty dict for function that takes no args
-    parameters: Mapped[dict] = mapped_column(JSON, nullable=False, default_factory=dict)
-    # controlled by aipolabs
+    parameters: Mapped[dict] = mapped_column(JSON, nullable=False)
+    # if private, the app is only visible to App creator (e.g., aipolabs team only, useful for internal testing)
+    visibility: Mapped[Visibility] = mapped_column(
+        Enum(Visibility), default=Visibility.PRIVATE, nullable=False
+    )
+    # if false, the function is not visible and will not be searchable and executable
     enabled: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
 
     created_at: Mapped[datetime.datetime] = mapped_column(

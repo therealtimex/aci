@@ -3,6 +3,7 @@
     {
         "name": "GITHUB__CREATE_REPOSITORY",
         "description": "Create a new repository",
+        "tags": ["repository"],
         "parameters": {
             "type": "object",
             "properties": {
@@ -29,6 +30,7 @@
     {
         "name": "GITHUB__CREATE_ISSUE",
         "description": "Create a new issue in a repository",
+        "tags": ["issue"],
         "parameters": {
             "type": "object",
             "properties": {
@@ -50,6 +52,7 @@
     {
         "name": "GITHUB__CREATE_PULL_REQUEST",
         "description": "Create a new pull request in a repository",
+        "tags": ["pull_request"],
         "parameters": {
             "type": "object",
             "properties": {

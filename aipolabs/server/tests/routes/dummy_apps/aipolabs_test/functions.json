@@ -6,6 +6,7 @@
     {
         "name": "AIPOLABS_TEST__HELLO_WORLD",
         "description": "Say hello to the world",
+        "tags": ["test", "hello_world"],
         "parameters": {
             "type": "object",
             "properties": {
@@ -24,6 +25,7 @@
     {
         "name": "AIPOLABS_TEST__HELLO_WORLD_NESTED_ARGS",
         "description": "Say hello to the world with nested args",
+        "tags": ["test", "hello_world"],
         "parameters": {
             "type": "object",
             "properties": {

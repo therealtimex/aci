@@ -10,13 +10,13 @@ class AppCreate(BaseModel):
 
     name: str
     display_name: str
-    version: str
     provider: str
     description: str
     server_url: str
     logo: str | None = None
     categories: list[str]
     supported_auth_schemes: SupportedAuthSchemes | None = None
+    version: str
 
     @field_validator("name")
     def validate_name(cls, v: str) -> str:

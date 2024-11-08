@@ -2,6 +2,7 @@
     {
         "name": "TWITTER__POST_TWEET",
         "description": "Post a new tweet",
+        "tags": ["tweet"],
         "parameters": {
             "type": "object",
             "properties": {
@@ -25,6 +26,7 @@
     {
         "name": "TWITTER__RETWEET",
         "description": "Retweet an existing tweet",
+        "tags": ["retweet"],
         "parameters": {
             "type": "object",
             "properties": {
@@ -41,6 +43,7 @@
     {
         "name": "TWITTER__FOLLOW_USER",
         "description": "Follow a user on Twitter",
+        "tags": ["follow"],
         "parameters": {
             "type": "object",
             "properties": {
@@ -57,6 +60,7 @@
     {
         "name": "TWITTER__SEND_DIRECT_MESSAGE",
         "description": "Send a direct message to a user",
+        "tags": ["direct_message"],
         "parameters": {
             "type": "object",
             "properties": {
