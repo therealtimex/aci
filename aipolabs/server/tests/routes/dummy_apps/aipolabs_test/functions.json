@@ -1,7 +1,8 @@
 [
     {
         "name": "AIPOLABS_TEST__HELLO_WORLD_NO_ARGS",
-        "description": "Say hello to the world with no args"
+        "description": "Say hello to the world with no args",
+        "tags": ["test", "hello_world"]
     },
     {
         "name": "AIPOLABS_TEST__HELLO_WORLD",

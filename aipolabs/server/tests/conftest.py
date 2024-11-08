@@ -51,7 +51,8 @@ def db_setup_and_cleanup() -> Generator[None, None, None]:
 @pytest.fixture(scope="session")
 def test_client() -> Generator[TestClient, None, None]:
     # disable following redirects for testing login
-    with TestClient(fastapi_app, base_url="https://testclient", follow_redirects=False) as c:
+    # NOTE: need to set base_url to http://localhost because we set TrustedHostMiddleware in main.py
+    with TestClient(fastapi_app, base_url="http://localhost", follow_redirects=False) as c:
         yield c
 
 

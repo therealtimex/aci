@@ -272,6 +272,7 @@ def upsert_functions(
             parameters=function.parameters,
             app_id=app_id,
             response={},  # TODO: add response schema
+            tags=function.tags,
             embedding=function_embeddings[i],
         )
         if db_function.name in existing_function_dict:
