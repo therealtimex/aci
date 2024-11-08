@@ -35,6 +35,8 @@ from sqlalchemy.orm import (
 
 EMBEDDING_DIMENTION = 1024
 APP_DEFAULT_VERSION = "1.0.0"
+SHORT_STRING_LENGTH = 100
+NORMAL_STRING_LENGTH = 255
 
 
 class Plan(str, enum.Enum):
@@ -54,7 +56,7 @@ class Organization(Base):
     id: Mapped[UUID] = mapped_column(
         PGUUID(as_uuid=True), primary_key=True, default_factory=uuid4, init=False
     )
-    name: Mapped[str] = mapped_column(String(255), nullable=False)
+    name: Mapped[str] = mapped_column(String(NORMAL_STRING_LENGTH), nullable=False)
     description: Mapped[str] = mapped_column(Text, nullable=False)
 
 
@@ -67,13 +69,13 @@ class User(Base):
         PGUUID(as_uuid=True), primary_key=True, default_factory=uuid4, init=False
     )
     auth_provider: Mapped[str] = mapped_column(
-        String(255), nullable=False
+        String(NORMAL_STRING_LENGTH), nullable=False
     )  # google, github, email, etc
     auth_user_id: Mapped[str] = mapped_column(
-        String(255), nullable=False
+        String(NORMAL_STRING_LENGTH), nullable=False
     )  # google id, github id, email, etc
-    name: Mapped[str] = mapped_column(String(255), nullable=False)
-    email: Mapped[str] = mapped_column(String(255), nullable=False)
+    name: Mapped[str] = mapped_column(String(NORMAL_STRING_LENGTH), nullable=False)
+    email: Mapped[str] = mapped_column(String(NORMAL_STRING_LENGTH), nullable=False)
     profile_picture: Mapped[str | None] = mapped_column(Text, nullable=True)
     plan: Mapped[Plan] = mapped_column(Enum(Plan), default=Plan.FREE, nullable=False)
     created_at: Mapped[datetime.datetime] = mapped_column(
@@ -110,7 +112,7 @@ class Project(Base):
     id: Mapped[UUID] = mapped_column(
         PGUUID(as_uuid=True), primary_key=True, default_factory=uuid4, init=False
     )
-    name: Mapped[str] = mapped_column(String(255), nullable=False)
+    name: Mapped[str] = mapped_column(String(NORMAL_STRING_LENGTH), nullable=False)
 
     # owner of the project can be a user or an organization, here we have both fields as ForeignKey instead of (owner_type + owner_id)
     # to enforce db integrity
@@ -169,7 +171,7 @@ class Agent(Base):
     project_id: Mapped[UUID] = mapped_column(
         PGUUID(as_uuid=True), ForeignKey("projects.id"), nullable=False
     )
-    name: Mapped[str] = mapped_column(String(255), nullable=False)
+    name: Mapped[str] = mapped_column(String(NORMAL_STRING_LENGTH), nullable=False)
     description: Mapped[str] = mapped_column(Text, nullable=False)
     created_by: Mapped[UUID] = mapped_column(
         PGUUID(as_uuid=True), ForeignKey("users.id"), nullable=False
@@ -217,7 +219,7 @@ class APIKey(Base):
         PGUUID(as_uuid=True), primary_key=True, default_factory=uuid4, init=False
     )
     # "key" is the actual API key string that the user will use to authenticate
-    key: Mapped[str] = mapped_column(String(100), nullable=False, unique=True)
+    key: Mapped[str] = mapped_column(String(NORMAL_STRING_LENGTH), nullable=False, unique=True)
     agent_id: Mapped[UUID] = mapped_column(
         PGUUID(as_uuid=True), ForeignKey("agents.id"), unique=True, nullable=False
     )
@@ -256,12 +258,12 @@ class App(Base):
     # e.g., "github", "google". Note there can be another app also named "github" but from a different company,
     # in this case we need to make sure the name is unique by adding some kind of provider field or version or random string.
     # Need it to be unique to support both sdk (where user can specify apps by name) and globally unique function name.
-    name: Mapped[str] = mapped_column(String(50), nullable=False, unique=True)
-    display_name: Mapped[str] = mapped_column(String(50), nullable=False)
+    name: Mapped[str] = mapped_column(String(SHORT_STRING_LENGTH), nullable=False, unique=True)
+    display_name: Mapped[str] = mapped_column(String(NORMAL_STRING_LENGTH), nullable=False)
     # provider (or company) of the app, e.g., google, github, or aipolabs or user (if allow user to create custom apps)
-    provider: Mapped[str] = mapped_column(String(50), nullable=False)
+    provider: Mapped[str] = mapped_column(String(NORMAL_STRING_LENGTH), nullable=False)
     description: Mapped[str] = mapped_column(Text, nullable=False)
-    server_url: Mapped[str] = mapped_column(String(255), nullable=False)
+    server_url: Mapped[str] = mapped_column(String(NORMAL_STRING_LENGTH), nullable=False)
     logo: Mapped[str | None] = mapped_column(Text, nullable=True)
     categories: Mapped[list[str]] = mapped_column(ARRAY(String), nullable=False)
     tags: Mapped[list[str]] = mapped_column(ARRAY(String), nullable=False)
@@ -271,7 +273,9 @@ class App(Base):
     # key is the auth type, value is the corresponding auth config
     auth_configs: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     embedding: Mapped[list[float]] = mapped_column(Vector(EMBEDDING_DIMENTION), nullable=False)
-    version: Mapped[str] = mapped_column(String(50), nullable=False, default=APP_DEFAULT_VERSION)
+    version: Mapped[str] = mapped_column(
+        String(NORMAL_STRING_LENGTH), nullable=False, default=APP_DEFAULT_VERSION
+    )
     # controlled by aipolabs
     enabled: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     created_at: Mapped[datetime.datetime] = mapped_column(
@@ -303,7 +307,7 @@ class Function(Base):
     )
     # Note: the function name is unique across the platform and should have app information, e.g., "github_clone_repo"
     # ideally this should just be <app name>_<function name>
-    name: Mapped[str] = mapped_column(String(255), nullable=False, unique=True)
+    name: Mapped[str] = mapped_column(String(NORMAL_STRING_LENGTH), nullable=False, unique=True)
     app_id: Mapped[UUID] = mapped_column(
         PGUUID(as_uuid=True), ForeignKey("apps.id"), nullable=False
     )
@@ -385,7 +389,7 @@ class ConnectedAccount(Base):
     )
     # account_owner should be unique per app per project (or just per ProjectAppIntegration), it identifies the end user, not the project owner.
     # ideally this should be some user id in client's system that uniquely identify this account owner.
-    account_owner_id: Mapped[str] = mapped_column(String(255), nullable=False)
+    account_owner_id: Mapped[str] = mapped_column(String(NORMAL_STRING_LENGTH), nullable=False)
     # here we assume it's possible to have connected account but no auth is required, in which case auth_data will be null
     auth_type: Mapped[App.AuthType] = mapped_column(Enum(App.AuthType), nullable=False)
     # auth_data is different for each auth type, e.g., API key, OAuth2 (access token, refresh token, scope, etc) etc
