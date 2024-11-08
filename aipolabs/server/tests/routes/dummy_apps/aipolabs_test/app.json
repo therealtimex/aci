@@ -10,10 +10,6 @@
         "testcategory",
         "utility"
     ],
-    "tags": [
-        "testing",
-        "simulation"
-    ],
     "supported_auth_schemes": {
         "api_key": {
             "parameter_name": "X-Test-API-Key",

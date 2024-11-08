@@ -16,7 +16,6 @@ class AppCreate(BaseModel):
     server_url: str
     logo: str | None = None
     categories: list[str]
-    tags: list[str]
     supported_auth_schemes: SupportedAuthSchemes | None = None
 
     @field_validator("name")

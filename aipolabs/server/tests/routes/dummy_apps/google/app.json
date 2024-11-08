@@ -10,10 +10,6 @@
         "devtools",
         "testcategory-2"
     ],
-    "tags": [
-        "code",
-        "git"
-    ],
     "supported_auth_schemes": {
         "api_key": {
             "parameter_name": "X-API-Key",

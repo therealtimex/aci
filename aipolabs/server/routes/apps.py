@@ -24,7 +24,6 @@ class AppFilterParams(BaseModel):
     TODO: add flag to include detailed app info? (e.g., dev portal will need this)
     TODO: add sorted_by field?
     TODO: category enum?
-    TODO: add tags field?
     TODO: filter by similarity score?
     """
 

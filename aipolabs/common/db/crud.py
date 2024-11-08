@@ -221,7 +221,6 @@ def upsert_app(db_session: Session, app: AppCreate, app_embedding: list[float]) 
         server_url=app.server_url,
         logo=app.logo,
         categories=app.categories,
-        tags=app.tags,
         supported_auth_types=supported_auth_types,
         auth_configs=(
             app.supported_auth_schemes.model_dump(mode="json")

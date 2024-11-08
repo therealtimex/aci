@@ -63,14 +63,13 @@ def generate_function_embedding(
 
 def generate_app_embedding(app: AppCreate, openai_service: OpenAIService) -> list[float]:
     logger.debug(f"Generating embedding for app: {app.name}...")
-    # generate app embeddings based on app config's name, display_name, provider, description, categories, and tags
+    # generate app embeddings based on app config's name, display_name, provider, description, categories
     text_for_embedding = (
         f"{app.name}\n"
         f"{app.display_name}\n"
         f"{app.provider}\n"
         f"{app.description}\n"
-        f"{' '.join(app.categories)}\n"
-        f"{' '.join(app.tags)}"
+        f"{' '.join(app.categories)}"
     )
     return openai_service.generate_embedding(text_for_embedding)
 

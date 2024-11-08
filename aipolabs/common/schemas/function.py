@@ -10,6 +10,7 @@ class FunctionCreate(BaseModel):
     description: str
     # use empty dict for function definition that doesn't take any args (doesn't have parameters field)
     parameters: dict = Field(default_factory=dict)
+    tags: list[str] = Field(default_factory=list)
 
     @field_validator("name")
     def validate_name(cls, v: str) -> str:

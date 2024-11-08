@@ -237,8 +237,8 @@ class APIKey(Base):
     )
 
 
-# Note: filtering by tags and categories should be manageable because the App table will be very small
-# in the unlikely event that it grows too large, we can consider using a separate table for tags and categories
+# Note: filtering categories should be manageable because the App table will be very small
+# in the unlikely event that it grows too large, we can consider using a separate table for categories
 # TODO: create index on embedding and other fields that are frequently used for filtering
 class App(Base):
     __tablename__ = "apps"
@@ -266,7 +266,6 @@ class App(Base):
     server_url: Mapped[str] = mapped_column(String(NORMAL_STRING_LENGTH), nullable=False)
     logo: Mapped[str | None] = mapped_column(Text, nullable=True)
     categories: Mapped[list[str]] = mapped_column(ARRAY(String), nullable=False)
-    tags: Mapped[list[str]] = mapped_column(ARRAY(String), nullable=False)
     supported_auth_types: Mapped[list[AuthType]] = mapped_column(
         ARRAY(Enum(AuthType)), nullable=False
     )
@@ -298,7 +297,6 @@ class App(Base):
 # TODO: how to do versioning for app and funcitons to allow backward compatibility, or we don't actually need to
 # because function schema is loaded dynamically from the database to user
 # TODO: do we need auth_required on function level?
-# TODO: add tags
 class Function(Base):
     __tablename__ = "functions"
 
@@ -314,6 +312,8 @@ class Function(Base):
     description: Mapped[str] = mapped_column(Text, nullable=False)
     # TODO: should response schema be generic (data + execution success of not + optional error) or specific to the function
     response: Mapped[dict] = mapped_column(JSON, nullable=False)
+    tags: Mapped[list[str]] = mapped_column(ARRAY(String), nullable=False)
+
     # TODO: currently created with name, description, parameters, response
     # TODO: should we provide EMBEDDING_DIMENTION here? which makes it less flexible if we want to change the embedding dimention in the future
     embedding: Mapped[list[float]] = mapped_column(Vector(EMBEDDING_DIMENTION), nullable=False)
