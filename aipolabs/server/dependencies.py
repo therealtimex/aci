@@ -37,8 +37,6 @@ def validate_http_bearer(
     HTTP Bearer token is generated after a user logs in to dev portal.
     Used for some routes like /projects that should not be accessed programmatically.
     """
-    # TODO: remove logging
-    logger.warning(f"Validating HTTP Bearer token: {auth_data.credentials}")
     token = auth_data.credentials
     try:
         logger.info("Decoding JWT token.")
@@ -69,15 +67,16 @@ def validate_api_key(
     api_key: Annotated[str, Security(api_key_header)],
 ) -> UUID:
     """Validate API key and return the API key ID. (not the actual API key string)"""
-    # TODO: remove logging
-    logger.warning(f"Validating API key: {api_key}")
     db_api_key = crud.get_api_key(db_session, api_key)
     if db_api_key is None:
+        logger.error(f"api key not found: {api_key[:8]}****")
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid API key")
 
     if db_api_key.status == sql_models.APIKey.Status.DISABLED:
+        logger.error(f"api key is disabled: {api_key[:8]}****")
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="API key is disabled")
     elif db_api_key.status == sql_models.APIKey.Status.DELETED:
+        logger.error(f"api key is deleted: {api_key[:8]}****")
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="API key is deleted")
 
     api_key_id: UUID = db_api_key.id
@@ -90,6 +89,7 @@ def validate_project_quota(
     db_session: Annotated[Session, Depends(yield_db_session)],
     api_key_id: Annotated[UUID, Depends(validate_api_key)],
 ) -> None:
+    logger.debug(f"Validating project quota for API key ID: {api_key_id}")
     db_project = crud.get_project_by_api_key_id(db_session, api_key_id)
     if not db_project:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid API key")
@@ -100,6 +100,7 @@ def validate_project_quota(
     ) + datetime.timedelta(days=1)
 
     if not need_reset and db_project.daily_quota_used >= config.PROJECT_DAILY_QUOTA:
+        logger.warning(f"Daily quota exceeded for project {db_project.id}")
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Daily quota exceeded")
 
     try:

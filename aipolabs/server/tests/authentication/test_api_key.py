@@ -33,5 +33,4 @@ def test_with_invalid_api_key(test_client: TestClient, dummy_api_key: str) -> No
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
 
-# TODO: test disabled api key
-# TODO: test deleted api key
+# TODO: test disabled/deleted api key

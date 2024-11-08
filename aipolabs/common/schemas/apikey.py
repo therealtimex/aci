@@ -6,7 +6,6 @@ from pydantic import BaseModel, ConfigDict
 from aipolabs.common.db import sql_models
 
 
-# TODO: should we hide api key and only show one it time when creating?
 class APIKeyPublic(BaseModel):
     id: UUID
     key: str

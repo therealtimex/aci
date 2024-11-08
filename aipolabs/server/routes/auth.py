@@ -67,7 +67,6 @@ async def login(request: Request, provider: str) -> Any:
         raise HTTPException(status_code=400, detail="Unsupported provider")
 
     path = request.url_for("auth_callback", provider=provider).path
-    # TODO: configure redirect_uri properly for production
     redirect_uri = f"{config.AIPOLABS_REDIRECT_URI_BASE}{path}"
     logger.info(f"Initiating OAuth login for provider: {provider}, redirecting to: {redirect_uri}")
     return await oauth.create_client(provider).authorize_redirect(request, redirect_uri)
@@ -89,8 +88,7 @@ async def auth_callback(
     try:
         logger.info(f"Retrieving access token for provider: {provider}")
         auth_response = await oauth_client.authorize_access_token(request)
-        # TODO: remove log
-        logger.info(
+        logger.debug(
             f"Access token requested successfully for provider: {provider}, "
             f"auth_response: {auth_response}"
         )
@@ -133,8 +131,9 @@ async def auth_callback(
             str(user.id),
             timedelta(minutes=config.JWT_ACCESS_TOKEN_EXPIRE_MINUTES),
         )
-        # TODO: remove log
-        logger.info(f"JWT generated successfully for user: {user.id}, jwt_token: {jwt_token}")
+        logger.info(
+            f"JWT generated successfully for user: {user.id}, jwt_token: {jwt_token[:4]}...{jwt_token[-4:]}"
+        )
     except Exception:
         logger.error(f"JWT generation failed for user {user.id}", exc_info=True)
         raise HTTPException(status_code=500, detail="JWT generation failed")

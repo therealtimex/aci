@@ -26,7 +26,6 @@ class AppCreate(BaseModel):
         return v
 
 
-# TODO: remove app.id and function.id from the response?
 class AppBasicPublic(BaseModel):
     name: str
     description: str

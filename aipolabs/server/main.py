@@ -18,6 +18,7 @@ def custom_generate_unique_id(route: APIRoute) -> str:
     return f"{route.tags[0]}-{route.name}"
 
 
+# TODO: Sentry
 # if settings.SENTRY_DSN and settings.ENVIRONMENT != "local":
 #     sentry_sdk.init(dsn=str(settings.SENTRY_DSN), enable_tracing=True)
 
@@ -35,14 +36,10 @@ app = FastAPI(
 
 """middlewares are executed in the reverse order"""
 app.add_middleware(RateLimitMiddleware)
-# TODO: adjust trusted hosts?
-app.add_middleware(ProxyHeadersMiddleware, trusted_hosts=["127.0.0.1"])
+app.add_middleware(ProxyHeadersMiddleware, trusted_hosts=[config.APPLICATION_LOAD_BALANCER_DNS])
 app.add_middleware(SessionMiddleware, secret_key=config.SESSION_SECRET_KEY)
-# TODO: let ALB handle redirect to https instead of using middleware here
-# TODO: configure CORS properly
 app.add_middleware(
     CORSMiddleware,
-    # allow_origins=settings.all_cors_origins,
     allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],

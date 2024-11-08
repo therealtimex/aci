@@ -40,8 +40,8 @@ def mock_oauth_provider(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 def test_login_google(test_client: TestClient) -> None:
-    # TODO configutr version prefix in setting and use constant for "auth"
     # This is a redirect response, but we are not following the redirect
+    # (set follow_redirects=False when creating the test client)
     response = test_client.get("/v1/auth/login/google")
     assert response.headers["location"].startswith(MOCK_GOOGLE_AUTH_REDIRECT_URI_PREFIX)
     assert response.status_code == status.HTTP_302_FOUND, response.json()

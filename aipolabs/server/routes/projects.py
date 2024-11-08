@@ -53,7 +53,6 @@ async def create_project(
         logger.info(f"Created project: {db_project}")
         return db_project
     except Exception:
-        # TODO: need rollback?
         logger.error("Error in creating project", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

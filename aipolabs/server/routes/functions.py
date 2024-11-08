@@ -27,7 +27,7 @@ openai_service = OpenAIService(
 app_factory = AppFactory()
 
 
-# TODO: convert app names to lowercase (in crud or here) to avoid case sensitivity issues?
+# TODO: convert app names to lowercase/uppercase (in crud or here) to avoid case sensitivity issues?
 # TODO: add flag (e.g., verbose=true) to include detailed function info? (e.g., dev portal will need this)
 class FunctionSearchParams(BaseModel):
     app_names: list[str] | None = Field(
@@ -43,7 +43,6 @@ class FunctionSearchParams(BaseModel):
     offset: int = Field(default=0, ge=0, description="Pagination offset.")
 
     # need this in case user set {"app_names": None} which will translate to [''] in the params
-    # TODO: convert to uppercase?
     @field_validator("app_names")
     def validate_app_names(cls, v: list[str] | None) -> list[str] | None:
         if v is not None:
@@ -176,7 +175,6 @@ async def get_function_definition(
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
 
-# TODO: rate limit with fastapi-limiter and redis?
 @router.post(
     "/{function_name}/execute",
     response_model=FunctionExecutionResponse,

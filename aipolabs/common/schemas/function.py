@@ -51,7 +51,6 @@ class AnthropicFunctionDefinition(BaseModel):
     input_schema: dict
 
 
-# TODO: data could be None even if success is True?
 class FunctionExecutionResponse(BaseModel):
     success: bool
     data: Any | None = None  # adding "| None" just for clarity

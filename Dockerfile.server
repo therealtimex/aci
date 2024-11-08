@@ -1,7 +1,6 @@
 
 FROM python:3.12
 
-# TODO: should we user /code as workfir and make the structure be /code/aipolabs/server... instead
 WORKDIR /aipolabs
 
 # Install Poetry, make sure poetry is in the PATH, and configure poetry to not create virtual environments

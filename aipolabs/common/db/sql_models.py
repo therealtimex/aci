@@ -48,7 +48,6 @@ class Base(MappedAsDataclass, DeclarativeBase):
     pass
 
 
-# TODO: org is for future use
 class Organization(Base):
     __tablename__ = "organizations"
 
@@ -61,7 +60,6 @@ class Organization(Base):
 
 # TODO: add indexes for frequently used fields for all tables, including embedding fields. Note we might need to set up index for embedding manually
 # for customizing the similarity search algorithm (https://github.com/pgvector/pgvector)
-# TODO: limit auth_provider to a set of values?
 class User(Base):
     __tablename__ = "users"
 
@@ -78,7 +76,6 @@ class User(Base):
     email: Mapped[str] = mapped_column(String(255), nullable=False)
     profile_picture: Mapped[str | None] = mapped_column(Text, nullable=True)
     plan: Mapped[Plan] = mapped_column(Enum(Plan), default=Plan.FREE, nullable=False)
-    # TODO: consider storing timestap in UTC
     created_at: Mapped[datetime.datetime] = mapped_column(
         DateTime(timezone=False), server_default=func.now(), nullable=False, init=False
     )
@@ -107,17 +104,16 @@ class User(Base):
 # logical container for isolating and managing API keys, selected apps, and other data
 # each project can have multiple API keys
 # TODO: might need to limit number of projects a user can create
-# TODO: might need to assign projects to organizations
 class Project(Base):
     __tablename__ = "projects"
 
     id: Mapped[UUID] = mapped_column(
         PGUUID(as_uuid=True), primary_key=True, default_factory=uuid4, init=False
     )
-    # TODO: consider having unique constraints on project name
     name: Mapped[str] = mapped_column(String(255), nullable=False)
 
-    # owner of the project can be a user or an organization
+    # owner of the project can be a user or an organization, here we have both fields as ForeignKey instead of (owner_type + owner_id)
+    # to enforce db integrity
     owner_user_id: Mapped[UUID | None] = mapped_column(
         PGUUID(as_uuid=True), ForeignKey("users.id"), nullable=True
     )
@@ -220,7 +216,7 @@ class APIKey(Base):
     id: Mapped[UUID] = mapped_column(
         PGUUID(as_uuid=True), primary_key=True, default_factory=uuid4, init=False
     )
-    # TODO: the actual API key string that the user will use to authenticate, consider encrypting it
+    # "key" is the actual API key string that the user will use to authenticate
     key: Mapped[str] = mapped_column(String(100), nullable=False, unique=True)
     agent_id: Mapped[UUID] = mapped_column(
         PGUUID(as_uuid=True), ForeignKey("agents.id"), unique=True, nullable=False
@@ -239,9 +235,8 @@ class APIKey(Base):
     )
 
 
-# TODO: filtering by tags and categories should be manageable because the App table will be very small
+# Note: filtering by tags and categories should be manageable because the App table will be very small
 # in the unlikely event that it grows too large, we can consider using a separate table for tags and categories
-# TODO: consider using enum for categories in the future
 # TODO: create index on embedding and other fields that are frequently used for filtering
 class App(Base):
     __tablename__ = "apps"
@@ -275,7 +270,6 @@ class App(Base):
     )
     # key is the auth type, value is the corresponding auth config
     auth_configs: Mapped[dict | None] = mapped_column(JSON, nullable=True)
-    # TODO: should Functions of the App be included when generating embedding?
     embedding: Mapped[list[float]] = mapped_column(Vector(EMBEDDING_DIMENTION), nullable=False)
     version: Mapped[str] = mapped_column(String(50), nullable=False, default=APP_DEFAULT_VERSION)
     # controlled by aipolabs
@@ -304,8 +298,6 @@ class App(Base):
 class Function(Base):
     __tablename__ = "functions"
 
-    # TODO: I don't see a reason yet to have a separate id for function as primary key instead of just using function name,
-    # but keep it for now for potential future use
     id: Mapped[UUID] = mapped_column(
         PGUUID(as_uuid=True), primary_key=True, default_factory=uuid4, init=False
     )

@@ -59,8 +59,6 @@ class AppFilterParams(BaseModel):
         return v
 
 
-# TODO: implement api key validation and project quota checks
-# (middleware or dependency? and for mvp can probably just use memory for daily quota limit instead of checking and updating db every time)
 # TODO: filter out disabled apps first before doing any other filtering
 @router.get("/search", response_model=list[AppBasicPublic], response_model_exclude_unset=True)
 async def search_apps(
