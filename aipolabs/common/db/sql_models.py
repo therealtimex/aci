@@ -262,7 +262,7 @@ class App(Base):
     # in this case we need to make sure the name is unique by adding some kind of provider field or version or random string.
     # Need it to be unique to support both sdk (where user can specify apps by name) and globally unique function name.
     name: Mapped[str] = mapped_column(String(SHORT_STRING_LENGTH), nullable=False, unique=True)
-    display_name: Mapped[str] = mapped_column(String(NORMAL_STRING_LENGTH), nullable=False)
+    display_name: Mapped[str] = mapped_column(String(SHORT_STRING_LENGTH), nullable=False)
     # provider (or company) of the app, e.g., google, github, or aipolabs or user (if allow user to create custom apps)
     provider: Mapped[str] = mapped_column(String(NORMAL_STRING_LENGTH), nullable=False)
     description: Mapped[str] = mapped_column(Text, nullable=False)

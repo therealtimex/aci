@@ -27,15 +27,14 @@ def upgrade() -> None:
     op.create_table(
         "apps",
         sa.Column("id", sa.UUID(), nullable=False),
-        sa.Column("name", sa.String(length=50), nullable=False),
-        sa.Column("display_name", sa.String(length=50), nullable=False),
-        sa.Column("provider", sa.String(length=50), nullable=False),
+        sa.Column("name", sa.String(length=100), nullable=False),
+        sa.Column("display_name", sa.String(length=100), nullable=False),
+        sa.Column("provider", sa.String(length=255), nullable=False),
         sa.Column("description", sa.Text(), nullable=False),
         sa.Column("server_url", sa.String(length=255), nullable=False),
         sa.Column("logo", sa.Text(), nullable=True),
         # Note: need to use postgresql.ARRAY to use the "overlaps" operator
         sa.Column("categories", postgresql.ARRAY(sa.String()), nullable=False),
-        sa.Column("tags", postgresql.ARRAY(sa.String()), nullable=False),
         sa.Column(
             "supported_auth_types",
             postgresql.ARRAY(
@@ -54,7 +53,8 @@ def upgrade() -> None:
         ),
         sa.Column("auth_configs", sa.JSON(), nullable=True),
         sa.Column("embedding", Vector(dim=1024), nullable=False),
-        sa.Column("version", sa.String(length=50), nullable=False),
+        sa.Column("version", sa.String(length=100), nullable=False),
+        sa.Column("visibility", sa.Enum("PUBLIC", "PRIVATE", name="visibility"), nullable=False),
         sa.Column("enabled", sa.Boolean(), nullable=False),
         sa.Column("created_at", sa.DateTime(), server_default=sa.text("now()"), nullable=False),
         sa.Column("updated_at", sa.DateTime(), server_default=sa.text("now()"), nullable=False),
@@ -91,8 +91,10 @@ def upgrade() -> None:
         sa.Column("app_id", sa.UUID(), nullable=False),
         sa.Column("description", sa.Text(), nullable=False),
         sa.Column("response", sa.JSON(), nullable=False),
+        sa.Column("tags", postgresql.ARRAY(sa.String()), nullable=False),
         sa.Column("embedding", Vector(dim=1024), nullable=False),
         sa.Column("parameters", sa.JSON(), nullable=False),
+        sa.Column("visibility", sa.Enum("PUBLIC", "PRIVATE", name="visibility"), nullable=False),
         sa.Column("enabled", sa.Boolean(), nullable=False),
         sa.Column("created_at", sa.DateTime(), server_default=sa.text("now()"), nullable=False),
         sa.Column("updated_at", sa.DateTime(), server_default=sa.text("now()"), nullable=False),
@@ -179,7 +181,7 @@ def upgrade() -> None:
     op.create_table(
         "api_keys",
         sa.Column("id", sa.UUID(), nullable=False),
-        sa.Column("key", sa.String(length=100), nullable=False),
+        sa.Column("key", sa.String(length=255), nullable=False),
         sa.Column("agent_id", sa.UUID(), nullable=False),
         sa.Column(
             "status", sa.Enum("ACTIVE", "DISABLED", "DELETED", name="status"), nullable=False
@@ -256,5 +258,6 @@ def downgrade() -> None:
     ).drop(op_bind)
     sa.Enum("ACTIVE", "DISABLED", "DELETED", name="status").drop(op_bind)
     sa.Enum("FREE", "BASIC", "PRO", "ENTERPRISE", name="plan").drop(op_bind)
+    sa.Enum("PUBLIC", "PRIVATE", name="visibility").drop(op_bind)
     # Drop the extension
     op.execute("DROP EXTENSION IF EXISTS vector;")
