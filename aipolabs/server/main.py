@@ -1,5 +1,6 @@
 # import sentry_sdk
 from fastapi import Depends, FastAPI, Request
+from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.routing import APIRoute
 from pydantic import ValidationError
@@ -38,6 +39,15 @@ app = FastAPI(
 app.add_middleware(RateLimitMiddleware)
 app.add_middleware(ProxyHeadersMiddleware, trusted_hosts=[config.APPLICATION_LOAD_BALANCER_DNS])
 app.add_middleware(SessionMiddleware, secret_key=config.SESSION_SECRET_KEY)
+app.add_middleware(
+    TrustedHostMiddleware,
+    allowed_hosts=[
+        "localhost",
+        "127.0.0.1",
+        config.APPLICATION_LOAD_BALANCER_DNS,
+        config.AIPOLABS_DNS,
+    ],
+)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
