@@ -2,6 +2,7 @@ import re
 
 from pydantic import BaseModel, ConfigDict, field_validator
 
+from aipolabs.common.db.sql_models import Visibility
 from aipolabs.common.schemas.app_auth import SupportedAuthSchemes
 
 
@@ -17,6 +18,8 @@ class AppCreate(BaseModel):
     categories: list[str]
     supported_auth_schemes: SupportedAuthSchemes | None = None
     version: str
+    visibility: Visibility = Visibility.PRIVATE
+    enabled: bool = True
 
     @field_validator("name")
     def validate_name(cls, v: str) -> str:

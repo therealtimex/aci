@@ -3,6 +3,8 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
+from aipolabs.common.db.sql_models import Visibility
+
 
 # TODO: validate against json schema
 class FunctionCreate(BaseModel):
@@ -13,6 +15,8 @@ class FunctionCreate(BaseModel):
     # TODO: response not yet used
     response: dict = Field(default_factory=dict)
     tags: list[str] = Field(default_factory=list)
+    visibility: Visibility = Visibility.PRIVATE
+    enabled: bool = True
 
     @field_validator("name")
     def validate_name(cls, v: str) -> str:
