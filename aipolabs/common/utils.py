@@ -78,20 +78,15 @@ def generate_app_embedding(app: AppCreate, openai_service: OpenAIService) -> lis
 def generate_app_and_functions_from_files(
     app_file: Path, functions_file: Path, openai_service: OpenAIService
 ) -> tuple[AppCreate, list[float], list[FunctionCreate], list[list[float]]]:
-    with open(app_file, "r") as f:
-        app: AppCreate = AppCreate.model_validate(json.load(f))
-    with open(functions_file, "r") as f:
-        functions: list[FunctionCreate] = [
-            FunctionCreate.model_validate(function) for function in json.load(f)
-        ]
-
+    """
+    Generate app (AppCreate class) and app embedding from a app json file, and
+    functions (list of FunctionCreate class) and their embeddings from a functions json file.
+    """
+    app, app_embedding = generate_app_from_file(app_file, openai_service)
+    functions, function_embeddings = generate_functions_from_file(functions_file, openai_service)
     # TODO: validate app and function name match and function name uniqueness?
-
-    app_embedding = generate_app_embedding(app, openai_service)
     # TODO: generate embeddings in batch
-    function_embeddings: list[list[float]] = []
-    for function in functions:
-        function_embeddings.append(generate_function_embedding(function, openai_service))
+
     return app, app_embedding, functions, function_embeddings
 
 
@@ -104,3 +99,20 @@ def generate_app_from_file(
     app_embedding = generate_app_embedding(app, openai_service)
 
     return app, app_embedding
+
+
+def generate_functions_from_file(
+    functions_file: Path, openai_service: OpenAIService
+) -> tuple[list[FunctionCreate], list[list[float]]]:
+    """
+    Generate functions (list of FunctionCreate class) and their embeddings from a functions json file.
+    """
+    with open(functions_file, "r") as f:
+        functions: list[FunctionCreate] = [
+            FunctionCreate.model_validate(function) for function in json.load(f)
+        ]
+
+    function_embeddings: list[list[float]] = []
+    for function in functions:
+        function_embeddings.append(generate_function_embedding(function, openai_service))
+    return functions, function_embeddings
