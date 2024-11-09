@@ -66,7 +66,11 @@ def get_or_create_user(db_session: Session, user: UserCreate) -> sql_models.User
     return db_user
 
 
-def create_project(db_session: Session, project: ProjectCreate) -> sql_models.Project:
+def create_project(
+    db_session: Session,
+    project: ProjectCreate,
+    visibility_access: sql_models.Visibility = sql_models.Visibility.PUBLIC,
+) -> sql_models.Project:
     """
     Create a new project.
     Assume called has privilege to create project under the specified user or organization.
@@ -80,6 +84,7 @@ def create_project(db_session: Session, project: ProjectCreate) -> sql_models.Pr
         owner_user_id=owner_user_id,
         owner_organization_id=owner_organization_id,
         created_by=project.created_by,
+        visibility_access=visibility_access,
     )
     db_session.add(db_project)
     db_session.flush()
@@ -143,14 +148,21 @@ def get_api_key(db_session: Session, key: str) -> sql_models.APIKey | None:
 # TODO: filter out unnecessary columns
 def search_apps(
     db_session: Session,
+    api_key_id: UUID,
     categories: list[str] | None,
     intent_embedding: list[float] | None,
     limit: int,
     offset: int,
 ) -> list[tuple[sql_models.App, float | None]]:
     """Get a list of apps with optional filtering by categories and sorting by vector similarity to intent. and pagination."""
+    db_project = get_project_by_api_key_id(db_session, api_key_id)
     statement = select(sql_models.App)
 
+    # filter out disabled apps
+    statement = statement.filter(sql_models.App.enabled)
+    # if the corresponding project (api key belongs to) can only access public apps, filter out private apps
+    if db_project.visibility_access == sql_models.Visibility.PUBLIC:
+        statement = statement.filter(sql_models.App.visibility == sql_models.Visibility.PUBLIC)
     # TODO: Is there any way to get typing for cosine_distance, label, overlap?
     if categories and len(categories) > 0:
         statement = statement.filter(sql_models.App.categories.overlap(categories))
@@ -251,6 +263,24 @@ def upsert_app(db_session: Session, app: AppCreate, app_embedding: list[float]) 
     return db_app
 
 
+def set_app_visibility(
+    db_session: Session, app_id: UUID, visibility: sql_models.Visibility
+) -> None:
+    statement = update(sql_models.App).filter_by(id=app_id).values(visibility=visibility)
+    db_session.execute(statement)
+
+
+def set_project_visibility_access(
+    db_session: Session, project_id: UUID, visibility_access: sql_models.Visibility
+) -> None:
+    statement = (
+        update(sql_models.Project)
+        .filter_by(id=project_id)
+        .values(visibility_access=visibility_access)
+    )
+    db_session.execute(statement)
+
+
 def upsert_functions(
     db_session: Session,
     functions: list[FunctionCreate],
@@ -290,14 +320,14 @@ def upsert_functions(
     db_session.flush()
 
 
-def get_project_by_api_key_id(db_session: Session, api_key_id: UUID) -> sql_models.Project | None:
-    # Combine queries to find the project directly
-    db_project: sql_models.Project | None = db_session.execute(
+def get_project_by_api_key_id(db_session: Session, api_key_id: UUID) -> sql_models.Project:
+    # api key id -> agent id -> project id
+    db_project: sql_models.Project = db_session.execute(
         select(sql_models.Project)
         .join(sql_models.Agent, sql_models.Project.id == sql_models.Agent.project_id)
         .join(sql_models.APIKey, sql_models.Agent.id == sql_models.APIKey.agent_id)
         .filter(sql_models.APIKey.id == api_key_id)
-    ).scalar_one_or_none()
+    ).scalar_one()
 
     return db_project
 

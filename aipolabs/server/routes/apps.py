@@ -1,4 +1,5 @@
 from typing import Annotated
+from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, Field, field_validator
@@ -9,7 +10,7 @@ from aipolabs.common.logging import get_logger
 from aipolabs.common.openai_service import OpenAIService
 from aipolabs.common.schemas.app import AppBasicPublic
 from aipolabs.server import config
-from aipolabs.server.dependencies import yield_db_session
+from aipolabs.server.dependencies import validate_api_key, yield_db_session
 
 logger = get_logger(__name__)
 router = APIRouter()
@@ -62,7 +63,8 @@ class AppFilterParams(BaseModel):
 @router.get("/search", response_model=list[AppBasicPublic], response_model_exclude_unset=True)
 async def search_apps(
     filter_params: Annotated[AppFilterParams, Query()],
-    db_session: Session = Depends(yield_db_session),
+    db_session: Annotated[Session, Depends(yield_db_session)],
+    api_key_id: Annotated[UUID, Depends(validate_api_key)],
 ) -> list[AppBasicPublic]:
     """
     Returns a list of applications (name and description).
@@ -77,6 +79,7 @@ async def search_apps(
         logger.debug(f"Generated intent embedding: {intent_embedding}")
         apps_with_scores = crud.search_apps(
             db_session,
+            api_key_id,
             filter_params.categories,
             intent_embedding,
             filter_params.limit,

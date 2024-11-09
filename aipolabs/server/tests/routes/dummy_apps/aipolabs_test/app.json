@@ -10,6 +10,8 @@
         "testcategory",
         "utility"
     ],
+    "visibility": "public",
+    "enabled": true,
     "supported_auth_schemes": {
         "api_key": {
             "parameter_name": "X-Test-API-Key",

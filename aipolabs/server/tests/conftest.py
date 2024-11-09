@@ -90,6 +90,7 @@ def dummy_project(dummy_user: sql_models.User) -> Generator[sql_models.Project, 
                 owner_id=dummy_user.id,
                 created_by=dummy_user.id,
             ),
+            visibility_access=sql_models.Visibility.PUBLIC,
         )
         fixture_db_session.commit()
         yield dummy_project

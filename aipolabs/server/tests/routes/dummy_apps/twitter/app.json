@@ -9,6 +9,8 @@
     "categories": [
         "socialmedia"
     ],
+    "visibility": "public",
+    "enabled": true,
     "supported_auth_schemes": {
         "oauth1": {
             "consumer_key": "your_consumer_key",

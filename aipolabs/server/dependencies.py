@@ -90,9 +90,11 @@ def validate_project_quota(
     api_key_id: Annotated[UUID, Depends(validate_api_key)],
 ) -> None:
     logger.debug(f"Validating project quota for API key ID: {api_key_id}")
-    db_project = crud.get_project_by_api_key_id(db_session, api_key_id)
-    if not db_project:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid API key")
+    try:
+        db_project = crud.get_project_by_api_key_id(db_session, api_key_id)
+    except Exception as e:
+        logger.exception(f"Failed to get project by API key ID: {api_key_id}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
     now: datetime.datetime = datetime.datetime.now(datetime.timezone.utc)
     need_reset = now >= db_project.daily_quota_reset_at.replace(

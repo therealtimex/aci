@@ -1,8 +1,9 @@
 from typing import Any
 
 from fastapi.testclient import TestClient
+from sqlalchemy.orm import Session
 
-from aipolabs.common.db import sql_models
+from aipolabs.common.db import crud, sql_models
 from aipolabs.common.schemas.app import AppBasicPublic
 
 AIPOLABS_TEST = "AIPOLABS_TEST"
@@ -124,3 +125,50 @@ def test_search_apps_pagination(
     assert response.status_code == 200, response.json()
     apps = [AppBasicPublic.model_validate(response_app) for response_app in response.json()]
     assert len(apps) == 1
+
+
+def test_search_apps_with_private_apps(
+    db_session: Session,
+    test_client: TestClient,
+    dummy_apps: list[sql_models.App],
+    dummy_project: sql_models.Project,
+    dummy_api_key: str,
+) -> None:
+    # private app should not be reachable for project with only public access
+    crud.set_app_visibility(db_session, dummy_apps[0].id, sql_models.Visibility.PRIVATE)
+    db_session.commit()
+
+    filter_params = {
+        "intent": "i want do to things online",
+        "categories": [],
+        "limit": 100,
+        "offset": 0,
+    }
+    response = test_client.get(
+        "/v1/apps/search",
+        params=filter_params,
+        headers={"x-api-key": dummy_api_key},
+    )
+
+    assert response.status_code == 200, response.json()
+    apps = [AppBasicPublic.model_validate(response_app) for response_app in response.json()]
+    assert len(apps) == len(dummy_apps) - 1
+
+    # private app should be reachable for project with private access
+    crud.set_project_visibility_access(db_session, dummy_project.id, sql_models.Visibility.PRIVATE)
+    db_session.commit()
+
+    response = test_client.get(
+        "/v1/apps/search",
+        params=filter_params,
+        headers={"x-api-key": dummy_api_key},
+    )
+
+    assert response.status_code == 200, response.json()
+    apps = [AppBasicPublic.model_validate(response_app) for response_app in response.json()]
+    assert len(apps) == len(dummy_apps)
+
+    # revert changes
+    crud.set_project_visibility_access(db_session, dummy_project.id, sql_models.Visibility.PUBLIC)
+    crud.set_app_visibility(db_session, dummy_apps[0].id, sql_models.Visibility.PUBLIC)
+    db_session.commit()
