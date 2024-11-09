@@ -12,7 +12,12 @@
     ],
     "visibility": "public",
     "enabled": true,
-    "supported_auth_schemes": {
+    "supported_auth_types": [
+        "api_key",
+        "http_basic",
+        "oauth2"
+    ],
+    "auth_configs": {
         "api_key": {
             "parameter_name": "X-Test-API-Key",
             "location": "header"

@@ -51,7 +51,7 @@ def upgrade() -> None:
             ),
             nullable=False,
         ),
-        sa.Column("auth_configs", sa.JSON(), nullable=True),
+        sa.Column("auth_configs", sa.JSON(), nullable=False),
         sa.Column("embedding", Vector(dim=1024), nullable=False),
         sa.Column("version", sa.String(length=100), nullable=False),
         sa.Column("visibility", sa.Enum("PUBLIC", "PRIVATE", name="visibility"), nullable=False),

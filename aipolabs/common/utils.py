@@ -69,6 +69,7 @@ def generate_app_embedding(app: AppCreate, openai_service: OpenAIService) -> lis
         f"{app.display_name}\n"
         f"{app.provider}\n"
         f"{app.description}\n"
+        f"{app.server_url}\n"
         f"{' '.join(app.categories)}"
     )
     return openai_service.generate_embedding(text_for_embedding)
@@ -92,3 +93,14 @@ def generate_app_and_functions_from_files(
     for function in functions:
         function_embeddings.append(generate_function_embedding(function, openai_service))
     return app, app_embedding, functions, function_embeddings
+
+
+def generate_app_from_file(
+    app_file: Path, openai_service: OpenAIService
+) -> tuple[AppCreate, list[float]]:
+    """Generate app (AppCreate class) and app embedding from a app json file."""
+    with open(app_file, "r") as f:
+        app: AppCreate = AppCreate.model_validate(json.load(f))
+    app_embedding = generate_app_embedding(app, openai_service)
+
+    return app, app_embedding

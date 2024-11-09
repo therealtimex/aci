@@ -39,12 +39,3 @@ class OpenIDAuthScheme(BaseModel):
     default_scopes: list[str]
     additional_scopes: list[str]
     additional_parameters: list[AdditionalParameter]
-
-
-# TODO: consider using App.AuthType enum for field names?
-class SupportedAuthSchemes(BaseModel):
-    api_key: ApiKeyAuthScheme | None = None
-    http_basic: HttpBasicAuthScheme | None = None
-    http_bearer: HttpBearerAuthScheme | None = None
-    oauth2: OAuth2AuthScheme | None = None
-    open_id: OpenIDAuthScheme | None = None

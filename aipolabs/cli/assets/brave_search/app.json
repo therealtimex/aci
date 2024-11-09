@@ -1,0 +1,19 @@
+{
+    "name": "BRAVE_SEARCH",
+    "display_name": "Brave Search",
+    "version": "1.0.0",
+    "provider": "Brave Software, Inc.",
+    "description": "Brave Search API is a REST API to query Brave Search and get back search results from the web. It supports web search, summarizer search, image search, video search, news search.",
+    "server_url": "https://api.search.brave.com/res/v1",
+    "logo": "https://example.com/brave-logo.png",
+    "categories": [
+        "search",
+        "browser"
+    ],
+    "visibility": "private",
+    "enabled": true,
+    "supported_auth_types": [],
+    "auth_configs": {
+
+    }
+}

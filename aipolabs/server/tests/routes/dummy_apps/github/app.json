@@ -12,7 +12,14 @@
     ],
     "visibility": "public",
     "enabled": true,
-    "supported_auth_schemes": {
+    "supported_auth_types": [
+        "api_key",
+        "http_basic",
+        "http_bearer",
+        "oauth2",
+        "open_id"
+    ],
+    "auth_configs": {
         "api_key": {
             "parameter_name": "X-API-Key",
             "location": "header"

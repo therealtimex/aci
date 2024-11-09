@@ -47,7 +47,9 @@ class Plan(str, enum.Enum):
 
 
 class Visibility(str, enum.Enum):
+    # public to all users
     PUBLIC = "public"
+    # only visible to project that has visibility access set to private, useful for internal testing, A/B testing and phased rollout
     PRIVATE = "private"
 
 
@@ -253,7 +255,7 @@ class APIKey(Base):
 class App(Base):
     __tablename__ = "apps"
 
-    class AuthType(enum.Enum):
+    class AuthType(str, enum.Enum):
         CUSTOM = "custom"  # placeholder, not really used yet
         NO_AUTH = "no_auth"  # for apps that does not require authentication, or only to access functions that does not require auth
         API_KEY = "api_key"
@@ -280,7 +282,7 @@ class App(Base):
         ARRAY(Enum(AuthType)), nullable=False
     )
     # key is the auth type, value is the corresponding auth config
-    auth_configs: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    auth_configs: Mapped[dict] = mapped_column(JSON, nullable=False)
     embedding: Mapped[list[float]] = mapped_column(Vector(EMBEDDING_DIMENTION), nullable=False)
     version: Mapped[str] = mapped_column(String(SHORT_STRING_LENGTH), nullable=False)
     # if private, the app is only visible to App creator (e.g., aipolabs team only, useful for internal testing)

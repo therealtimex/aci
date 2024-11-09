@@ -11,38 +11,8 @@
     ],
     "visibility": "public",
     "enabled": true,
-    "supported_auth_schemes": {
-        "oauth1": {
-            "consumer_key": "your_consumer_key",
-            "consumer_secret": "your_consumer_secret",
-            "access_token": "your_access_token",
-            "access_token_secret": "your_access_token_secret"
-        },
-        "oauth2": {
-            "authorization_url": "https://twitter.com/oauth/authorize",
-            "token_url": "https://twitter.com/oauth/token",
-            "refresh_url": "https://twitter.com/oauth/refresh",
-            "default_scopes": [
-                "tweet.read",
-                "tweet.write"
-            ],
-            "available_scopes": [
-                "tweet.read",
-                "tweet.write",
-                "offline.access"
-            ],
-            "client_id": "your_client_id",
-            "client_secret": "your_client_secret",
-            "additional_parameters": [
-                {
-                    "name": "redirect_uri",
-                    "required": true
-                },
-                {
-                    "name": "state",
-                    "required": false
-                }
-            ]
-        }
+    "supported_auth_types": [
+    ],
+    "auth_configs": {
     }
 }

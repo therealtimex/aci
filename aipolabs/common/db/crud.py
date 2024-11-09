@@ -252,14 +252,6 @@ def get_function(
 
 def upsert_app(db_session: Session, app: AppCreate, app_embedding: list[float]) -> sql_models.App:
     logger.debug(f"upserting app: {app}")
-    if app.supported_auth_schemes is None:
-        supported_auth_types = []
-    else:
-        supported_auth_types = [
-            sql_models.App.AuthType(auth_type)
-            for auth_type, auth_config in vars(app.supported_auth_schemes).items()
-            if auth_config is not None
-        ]
 
     db_app = sql_models.App(
         name=app.name,
@@ -270,12 +262,8 @@ def upsert_app(db_session: Session, app: AppCreate, app_embedding: list[float]) 
         server_url=app.server_url,
         logo=app.logo,
         categories=app.categories,
-        supported_auth_types=supported_auth_types,
-        auth_configs=(
-            app.supported_auth_schemes.model_dump(mode="json")
-            if app.supported_auth_schemes is not None
-            else None
-        ),
+        supported_auth_types=app.supported_auth_types,
+        auth_configs=app.auth_configs,
         embedding=app_embedding,
         visibility=app.visibility,
         enabled=app.enabled,
@@ -286,7 +274,7 @@ def upsert_app(db_session: Session, app: AppCreate, app_embedding: list[float]) 
         select(sql_models.App).filter_by(name=app.name).with_for_update()
     ).scalar_one_or_none()
     if existing_app:
-        logger.warning(f"App {app.name} already exists, will update")
+        logger.debug(f"App {app.name} already exists, will update")
         db_app.id = existing_app.id
         db_app = db_session.merge(db_app)
     else:
@@ -308,6 +296,13 @@ def set_app_visibility(
 ) -> None:
     statement = update(sql_models.App).filter_by(id=app_id).values(visibility=visibility)
     db_session.execute(statement)
+
+
+def get_app_by_name(db_session: Session, app_name: str) -> sql_models.App | None:
+    db_app: sql_models.App | None = db_session.execute(
+        select(sql_models.App).filter_by(name=app_name)
+    ).scalar_one_or_none()
+    return db_app
 
 
 def set_function_enabled_status(db_session: Session, function_id: UUID, enabled: bool) -> None:
