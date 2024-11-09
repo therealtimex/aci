@@ -305,6 +305,13 @@ def get_app_by_name(db_session: Session, app_name: str) -> sql_models.App | None
     return db_app
 
 
+def get_function_by_name(db_session: Session, function_name: str) -> sql_models.Function | None:
+    db_function: sql_models.Function | None = db_session.execute(
+        select(sql_models.Function).filter_by(name=function_name)
+    ).scalar_one_or_none()
+    return db_function
+
+
 def set_function_enabled_status(db_session: Session, function_id: UUID, enabled: bool) -> None:
     statement = update(sql_models.Function).filter_by(id=function_id).values(enabled=enabled)
     db_session.execute(statement)
@@ -357,7 +364,7 @@ def upsert_functions(
             enabled=function.enabled,
         )
         if db_function.name in existing_function_dict:
-            logger.warning(f"Function {function.name} already exists, will update")
+            logger.debug(f"Function {function.name} already exists, will update")
             db_function.id = existing_function_dict[function.name].id
             db_function = db_session.merge(db_function)
         else:

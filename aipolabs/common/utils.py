@@ -116,3 +116,7 @@ def generate_functions_from_file(
     for function in functions:
         function_embeddings.append(generate_function_embedding(function, openai_service))
     return functions, function_embeddings
+
+
+def parse_app_name_from_function_name(function_name: str) -> str:
+    return function_name.split("__")[0]

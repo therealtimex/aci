@@ -20,8 +20,12 @@ class FunctionCreate(BaseModel):
 
     @field_validator("name")
     def validate_name(cls, v: str) -> str:
-        if not re.match(r"^[A-Z_]+$", v):
-            raise ValueError("name must be uppercase and contain only letters and underscores")
+        if not re.match(r"^[A-Z_]+__[A-Z_]+$", v):
+            raise ValueError(
+                "function name must start with app name followed by two underscores, and be uppercase containing only letters and underscores"
+            )
+        if len(v.split("__")) != 2:
+            raise ValueError("function name must contain one and only one double underscores")
         return v
 
 

@@ -6,6 +6,7 @@ from aipolabs.cli.commands import (
     create_user,
     upsert_app,
     upsert_app_and_functions,
+    upsert_functions,
 )
 from aipolabs.common.logging import setup_logging
 
@@ -22,6 +23,7 @@ cli.add_command(create_user.create_user)
 cli.add_command(create_project.create_project)
 cli.add_command(create_agent.create_agent)
 cli.add_command(upsert_app.upsert_app)
+cli.add_command(upsert_functions.upsert_functions)
 
 if __name__ == "__main__":
     setup_logging()

@@ -16,7 +16,9 @@ from aipolabs.common.schemas.app_auth import (
 logger = get_logger(__name__)
 
 
-class AppBase(BaseModel):
+class AppCreate(BaseModel):
+    """Used to load app data for app creation or overwrite existing app."""
+
     name: str
     display_name: str
     provider: str
@@ -67,15 +69,8 @@ class AppBase(BaseModel):
                 raise ValueError(f"Unsupported auth type: {auth_type}")
         return v
 
-
-class AppPublic(AppBase):
+    # enables the model to be initialized with attributes from a SQLAlchemy object.
     model_config = ConfigDict(from_attributes=True)
-
-
-class AppCreate(AppBase):
-    """Used to load app data for app creation or overwrite existing app."""
-
-    pass
 
 
 class AppBasicPublic(BaseModel):
