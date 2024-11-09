@@ -43,11 +43,17 @@ openai_service = OpenAIService(
     type=UUID,
     help="user id of the creator of the project, ideally the same as owner_id if owner_type is user",
 )
+@click.option(
+    "--skip-dry-run",
+    is_flag=True,
+    help="provide this flag to run the command and apply changes to the database",
+)
 def create_project(
     project_name: str,
     owner_type: ProjectOwnerType,
     owner_id: UUID,
     created_by: UUID,
+    skip_dry_run: bool,
 ) -> None:
     """
     Create a project in db.
@@ -63,11 +69,15 @@ def create_project(
                 created_by=created_by,
             )
 
-            logger.info("creating project...")
-            db_project = crud.create_project(db_session, project_create)
-            db_session.commit()
-
-            logger.info(f"project created: {db_project}")
+            if not skip_dry_run:
+                logger.info(
+                    f"provide --skip-dry-run to create new project with data \n{project_create.model_dump_json(indent=2, exclude_none=True)}"
+                )
+            else:
+                logger.info("creating project...")
+                db_project = crud.create_project(db_session, project_create)
+                db_session.commit()
+                logger.info(f"project created: {db_project}")
 
         except Exception:
             db_session.rollback()

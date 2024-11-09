@@ -58,6 +58,11 @@ openai_service = OpenAIService(
     type=list[UUID],
     help="list of function ids to exclude from the agent",
 )
+@click.option(
+    "--skip-dry-run",
+    is_flag=True,
+    help="provide this flag to run the command and apply changes to the database",
+)
 def create_agent(
     agent_name: str,
     description: str,
@@ -65,6 +70,7 @@ def create_agent(
     created_by: UUID,
     excluded_apps: list[UUID],
     excluded_functions: list[UUID],
+    skip_dry_run: bool,
 ) -> None:
     """
     Create an agent in db.
@@ -81,11 +87,15 @@ def create_agent(
                 excluded_functions=excluded_functions,
             )
 
-            logger.info("creating agent...")
-            db_agent = crud.create_agent(db_session, agent_create)
-            db_session.commit()
-
-            logger.info(f"agent created: {db_agent}")
+            if not skip_dry_run:
+                logger.info(
+                    f"provide --skip-dry-run to create new agent with data \n{agent_create.model_dump_json(indent=2, exclude_none=True)}"
+                )
+            else:
+                logger.info("creating agent...")
+                db_agent = crud.create_agent(db_session, agent_create)
+                db_session.commit()
+                logger.info(f"agent created: {db_agent}")
 
         except Exception:
             db_session.rollback()

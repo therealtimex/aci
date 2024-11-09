@@ -54,6 +54,11 @@ openai_service = OpenAIService(
     help="subscription plan, default is free",
     default=Plan.FREE,
 )
+@click.option(
+    "--skip-dry-run",
+    is_flag=True,
+    help="provide this flag to run the command and apply changes to the database",
+)
 def create_user(
     auth_provider: str,
     auth_user_id: str,
@@ -61,6 +66,7 @@ def create_user(
     email: str,
     profile_picture: str | None,
     plan: Plan,
+    skip_dry_run: bool,
 ) -> None:
     """Create a user in db."""
     with utils.create_db_session(config.DB_FULL_URL) as db_session:
@@ -75,12 +81,15 @@ def create_user(
                 profile_picture=profile_picture,
                 plan=plan,
             )
-            # make sure app and functions are upserted in one transaction
-            logger.info(f"creating user: {user_create.name}...")
-            db_user = crud.create_user(db_session, user_create)
-            db_session.commit()
-
-            logger.info(f"user created: {db_user}...")
+            if not skip_dry_run:
+                logger.info(
+                    f"provide --skip-dry-run to create new user with data \n{user_create.model_dump_json(indent=2, exclude_none=True)}"
+                )
+            else:
+                logger.info(f"creating user: {user_create.name}...")
+                db_user = crud.create_user(db_session, user_create)
+                db_session.commit()
+                logger.info(f"user created: {db_user}")
 
         except Exception as e:
             db_session.rollback()
