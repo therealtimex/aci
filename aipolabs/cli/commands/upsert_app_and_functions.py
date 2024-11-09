@@ -29,7 +29,12 @@ openai_service = OpenAIService(
     type=click.Path(exists=True, path_type=Path),
     help="Path to the function json file",
 )
-def upsert_app_and_functions(app_file: Path, functions_file: Path) -> None:
+@click.option(
+    "--skip-dry-run",
+    is_flag=True,
+    help="provide this flag to run the command and apply changes to the database",
+)
+def upsert_app_and_functions(app_file: Path, functions_file: Path, skip_dry_run: bool) -> None:
     """Upsert App and Functions to db from files."""
     with utils.create_db_session(config.DB_FULL_URL) as db_session:
         try:

@@ -84,7 +84,6 @@ def generate_app_and_functions_from_files(
     """
     app, app_embedding = generate_app_from_file(app_file, openai_service)
     functions, function_embeddings = generate_functions_from_file(functions_file, openai_service)
-    # TODO: validate app and function name match and function name uniqueness?
     # TODO: generate embeddings in batch
 
     return app, app_embedding, functions, function_embeddings

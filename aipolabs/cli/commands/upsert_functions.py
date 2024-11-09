@@ -25,7 +25,7 @@ openai_service = OpenAIService(
 @click.option(
     "--skip-dry-run",
     is_flag=True,
-    help="provide this flag to run the command and make changes to the system",
+    help="provide this flag to run the command and apply changes to the database",
 )
 def upsert_functions(functions_file: Path, skip_dry_run: bool) -> None:
     """Upsert Functions to db from file."""
@@ -35,6 +35,11 @@ def upsert_functions(functions_file: Path, skip_dry_run: bool) -> None:
                 functions_file, openai_service
             )
 
+            # each function name must be unique
+            if len(functions) != len(set(function.name for function in functions)):
+                raise ValueError("Function names must be unique")
+
+            # all functions must belong to the same app
             app_names = set(
                 [utils.parse_app_name_from_function_name(function.name) for function in functions]
             )

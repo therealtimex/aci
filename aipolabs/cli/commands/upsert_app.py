@@ -26,7 +26,7 @@ openai_service = OpenAIService(
 @click.option(
     "--skip-dry-run",
     is_flag=True,
-    help="provide this flag to run the command and make changes to the system",
+    help="provide this flag to run the command and apply changes to the database",
 )
 def upsert_app(app_file: Path, skip_dry_run: bool) -> None:
     """Upsert App to db from file."""
