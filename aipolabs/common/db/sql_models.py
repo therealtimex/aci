@@ -277,11 +277,9 @@ class App(Base):
     embedding: Mapped[list[float]] = mapped_column(Vector(EMBEDDING_DIMENTION), nullable=False)
     version: Mapped[str] = mapped_column(String(SHORT_STRING_LENGTH), nullable=False)
     # if private, the app is only visible to App creator (e.g., aipolabs team only, useful for internal testing)
-    visibility: Mapped[Visibility] = mapped_column(
-        Enum(Visibility), default=Visibility.PRIVATE, nullable=False
-    )
+    visibility: Mapped[Visibility] = mapped_column(Enum(Visibility), nullable=False)
     # if false, the app is not visible and reachable to all and will not be shown in the app store
-    enabled: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    enabled: Mapped[bool] = mapped_column(Boolean, nullable=False)
     created_at: Mapped[datetime.datetime] = mapped_column(
         DateTime(timezone=False), server_default=func.now(), nullable=False, init=False
     )
@@ -325,11 +323,9 @@ class Function(Base):
     # empty dict for function that takes no args
     parameters: Mapped[dict] = mapped_column(JSON, nullable=False)
     # if private, the app is only visible to App creator (e.g., aipolabs team only, useful for internal testing)
-    visibility: Mapped[Visibility] = mapped_column(
-        Enum(Visibility), default=Visibility.PRIVATE, nullable=False
-    )
+    visibility: Mapped[Visibility] = mapped_column(Enum(Visibility), nullable=False)
     # if false, the function is not visible and will not be searchable and executable
-    enabled: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    enabled: Mapped[bool] = mapped_column(Boolean, nullable=False)
 
     created_at: Mapped[datetime.datetime] = mapped_column(
         DateTime(timezone=False), server_default=func.now(), nullable=False, init=False

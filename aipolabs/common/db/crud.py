@@ -230,6 +230,8 @@ def upsert_app(db_session: Session, app: AppCreate, app_embedding: list[float]) 
             else None
         ),
         embedding=app_embedding,
+        visibility=app.visibility,
+        enabled=app.enabled,
     )
 
     # check if the app already exists
@@ -274,6 +276,8 @@ def upsert_functions(
             response={},  # TODO: add response schema
             tags=function.tags,
             embedding=function_embeddings[i],
+            visibility=function.visibility,
+            enabled=function.enabled,
         )
         if db_function.name in existing_function_dict:
             logger.warning(f"Function {function.name} already exists, will update")
