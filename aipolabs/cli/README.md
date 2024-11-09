@@ -11,10 +11,10 @@ For commands that require database connection, make sure the database you are co
   <summary>Upsert App and Functions</summary>
   This command will create or update an app and its functions in the database, based on the app json file provided.
 
-  Example files: [`aipolabs_test`](assets/aipolabs_test).
+  Example files: [`aipolabs_test`](../../apps/aipolabs_test).
 
   ```bash
-  python -m aipolabs.cli.aipolabs upsert-app-and-functions --app-file ./aipolabs/cli/assets/aipolabs_test/app.json --functions-file ./aipolabs/cli/assets/aipolabs_test/functions.json
+  python -m aipolabs.cli.aipolabs upsert-app-and-functions --app-file ./apps/aipolabs_test/app.json --functions-file ./apps/aipolabs_test/functions.json
   ```
 </details>
 
