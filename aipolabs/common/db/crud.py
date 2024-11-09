@@ -143,9 +143,6 @@ def get_api_key(db_session: Session, key: str) -> sql_models.APIKey | None:
     return db_api_key
 
 
-# TODO: return total count of apps, or return remaining count for pagination?
-# TODO: combine with postgres full text search for a hybrid search? https://github.com/pgvector/pgvector?tab=readme-ov-file#hybrid-search
-# TODO: filter out unnecessary columns
 def search_apps(
     db_session: Session,
     api_key_id: UUID,
@@ -173,7 +170,7 @@ def search_apps(
 
     statement = statement.offset(offset).limit(limit)
 
-    logger.warning(f"Executing statement: {statement}")
+    logger.debug(f"Executing statement: {statement}")
 
     results = db_session.execute(statement).all()
 
@@ -183,25 +180,40 @@ def search_apps(
         return [(app, None) for app, in results]
 
 
-# TODO: filter out unnecessary columns like embedding if not needed?
-# TODO: return total count of functions, or return remaining count for pagination?
 def search_functions(
     db_session: Session,
+    api_key_id: UUID,
     app_names: list[str] | None,
     intent_embedding: list[float] | None,
     limit: int,
     offset: int,
 ) -> list[sql_models.Function]:
+    """Get a list of functions with optional filtering by app names and sorting by vector similarity to intent."""
+    db_project = get_project_by_api_key_id(db_session, api_key_id)
     statement = select(sql_models.Function)
 
+    # filter out all functions of disabled apps and all disabled functions (where app is enabled buy specific functions can be disabled)
+    statement = (
+        statement.join(sql_models.App)
+        .filter(sql_models.App.enabled)
+        .filter(sql_models.Function.enabled)
+    )
+    # if the corresponding project (api key belongs to) can only access public apps and functions, filter out all functions of private apps
+    # and all private functions (where app is public but specific function is private)
+    if db_project.visibility_access == sql_models.Visibility.PUBLIC:
+        statement = statement.filter(
+            sql_models.App.visibility == sql_models.Visibility.PUBLIC
+        ).filter(sql_models.Function.visibility == sql_models.Visibility.PUBLIC)
+    # filter out functions that are not in the specified apps
     if app_names and len(app_names) > 0:
-        statement = statement.join(sql_models.App).filter(sql_models.App.name.in_(app_names))
+        statement = statement.filter(sql_models.App.name.in_(app_names))
+
     if intent_embedding:
         similarity_score = sql_models.Function.embedding.cosine_distance(intent_embedding)
         statement = statement.order_by(similarity_score)
 
     statement = statement.offset(offset).limit(limit)
-    logger.warning(f"Executing statement: {statement}")
+    logger.debug(f"Executing statement: {statement}")
     results: list[sql_models.Function] = db_session.execute(statement).scalars().all()
     return results
 
@@ -267,6 +279,13 @@ def set_app_visibility(
     db_session: Session, app_id: UUID, visibility: sql_models.Visibility
 ) -> None:
     statement = update(sql_models.App).filter_by(id=app_id).values(visibility=visibility)
+    db_session.execute(statement)
+
+
+def set_function_visibility(
+    db_session: Session, function_id: UUID, visibility: sql_models.Visibility
+) -> None:
+    statement = update(sql_models.Function).filter_by(id=function_id).values(visibility=visibility)
     db_session.execute(statement)
 
 

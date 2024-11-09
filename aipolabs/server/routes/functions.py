@@ -1,5 +1,6 @@
 from enum import Enum
 from typing import Annotated, Any
+from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, Field, field_validator
@@ -17,7 +18,7 @@ from aipolabs.common.schemas.function import (
 )
 from aipolabs.server import config
 from aipolabs.server.apps.base import AppBase, AppFactory
-from aipolabs.server.dependencies import yield_db_session
+from aipolabs.server.dependencies import validate_api_key, yield_db_session
 
 router = APIRouter()
 logger = get_logger(__name__)
@@ -71,7 +72,8 @@ class FunctionExecutionParams(BaseModel):
 @router.get("/search", response_model=list[FunctionBasicPublic])
 async def search_functions(
     search_params: Annotated[FunctionSearchParams, Query()],
-    db_session: Session = Depends(yield_db_session),
+    db_session: Annotated[Session, Depends(yield_db_session)],
+    api_key_id: Annotated[UUID, Depends(validate_api_key)],
 ) -> list[sql_models.Function]:
     """
     Returns the basic information of a list of functions.
@@ -86,6 +88,7 @@ async def search_functions(
         logger.debug(f"Generated intent embedding: {intent_embedding}")
         functions = crud.search_functions(
             db_session,
+            api_key_id,
             search_params.app_names,
             intent_embedding,
             search_params.limit,

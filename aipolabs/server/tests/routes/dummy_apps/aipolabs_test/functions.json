@@ -2,12 +2,16 @@
     {
         "name": "AIPOLABS_TEST__HELLO_WORLD_NO_ARGS",
         "description": "Say hello to the world with no args",
-        "tags": ["test", "hello_world"]
+        "tags": ["test", "hello_world"],
+        "visibility": "public",
+        "enabled": true
     },
     {
         "name": "AIPOLABS_TEST__HELLO_WORLD",
         "description": "Say hello to the world",
         "tags": ["test", "hello_world"],
+        "visibility": "public",
+        "enabled": true,
         "parameters": {
             "type": "object",
             "properties": {
@@ -27,6 +31,8 @@
         "name": "AIPOLABS_TEST__HELLO_WORLD_NESTED_ARGS",
         "description": "Say hello to the world with nested args",
         "tags": ["test", "hello_world"],
+        "visibility": "public",
+        "enabled": true,
         "parameters": {
             "type": "object",
             "properties": {

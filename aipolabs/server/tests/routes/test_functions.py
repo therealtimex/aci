@@ -1,6 +1,7 @@
 from fastapi.testclient import TestClient
+from sqlalchemy.orm import Session
 
-from aipolabs.common.db import sql_models
+from aipolabs.common.db import crud, sql_models
 from aipolabs.common.schemas.function import (
     AnthropicFunctionDefinition,
     FunctionBasicPublic,
@@ -16,6 +17,90 @@ AIPOLABS_TEST__HELLO_WORLD_NESTED_ARGS = "AIPOLABS_TEST__HELLO_WORLD_NESTED_ARGS
 AIPOLABS_TEST__HELLO_WORLD_NO_ARGS = "AIPOLABS_TEST__HELLO_WORLD_NO_ARGS"
 GITHUB = "GITHUB"
 GOOGLE = "GOOGLE"
+
+
+def test_search_functions_with_private_functions(
+    db_session: Session,
+    test_client: TestClient,
+    dummy_project: sql_models.Project,
+    dummy_functions: list[sql_models.Function],
+    dummy_api_key: str,
+) -> None:
+    # private functions should not be reachable for project with only public access
+    crud.set_function_visibility(db_session, dummy_functions[0].id, sql_models.Visibility.PRIVATE)
+    db_session.commit()
+
+    response = test_client.get(
+        "/v1/functions/search", params={}, headers={"x-api-key": dummy_api_key}
+    )
+    assert response.status_code == 200, response.json()
+    functions = [
+        FunctionBasicPublic.model_validate(response_function)
+        for response_function in response.json()
+    ]
+    assert len(functions) == len(dummy_functions) - 1
+
+    # private functions should be reachable for project with private access
+    crud.set_project_visibility_access(db_session, dummy_project.id, sql_models.Visibility.PRIVATE)
+    db_session.commit()
+
+    response = test_client.get(
+        "/v1/functions/search", params={}, headers={"x-api-key": dummy_api_key}
+    )
+    assert response.status_code == 200, response.json()
+    functions = [
+        FunctionBasicPublic.model_validate(response_function)
+        for response_function in response.json()
+    ]
+    assert len(functions) == len(dummy_functions)
+
+    # revert changes
+    crud.set_project_visibility_access(db_session, dummy_project.id, sql_models.Visibility.PUBLIC)
+    crud.set_function_visibility(db_session, dummy_functions[0].id, sql_models.Visibility.PUBLIC)
+    db_session.commit()
+
+
+def test_search_functions_with_private_apps(
+    db_session: Session,
+    test_client: TestClient,
+    dummy_project: sql_models.Project,
+    dummy_functions: list[sql_models.Function],
+    dummy_api_key: str,
+) -> None:
+    # all functions (public and private) under private apps should not be reachable for project with only public access
+    crud.set_app_visibility(db_session, dummy_functions[0].app_id, sql_models.Visibility.PRIVATE)
+    db_session.commit()
+
+    response = test_client.get(
+        "/v1/functions/search", params={}, headers={"x-api-key": dummy_api_key}
+    )
+    assert response.status_code == 200, response.json()
+    functions = [
+        FunctionBasicPublic.model_validate(response_function)
+        for response_function in response.json()
+    ]
+
+    private_functions_count = sum(
+        function.app_id == dummy_functions[0].app_id for function in dummy_functions
+    )
+    assert private_functions_count > 0, "there should be at least one private function"
+    assert (
+        len(functions) == len(dummy_functions) - private_functions_count
+    ), "all functions under private apps should not be returned"
+
+    # all functions (public and private) under private apps should be reachable for project with private access
+    crud.set_project_visibility_access(db_session, dummy_project.id, sql_models.Visibility.PRIVATE)
+    db_session.commit()
+
+    response = test_client.get(
+        "/v1/functions/search", params={}, headers={"x-api-key": dummy_api_key}
+    )
+    assert response.status_code == 200, response.json()
+    functions = [
+        FunctionBasicPublic.model_validate(response_function)
+        for response_function in response.json()
+    ]
+    assert len(functions) == len(dummy_functions)
 
 
 def test_search_functions_with_app_names(

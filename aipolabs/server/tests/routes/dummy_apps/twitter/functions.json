@@ -3,6 +3,8 @@
         "name": "TWITTER__POST_TWEET",
         "description": "Post a new tweet",
         "tags": ["tweet"],
+        "visibility": "public",
+        "enabled": true,
         "parameters": {
             "type": "object",
             "properties": {
@@ -27,6 +29,8 @@
         "name": "TWITTER__RETWEET",
         "description": "Retweet an existing tweet",
         "tags": ["retweet"],
+        "visibility": "public",
+        "enabled": true,
         "parameters": {
             "type": "object",
             "properties": {
@@ -44,6 +48,8 @@
         "name": "TWITTER__FOLLOW_USER",
         "description": "Follow a user on Twitter",
         "tags": ["follow"],
+        "visibility": "public",
+        "enabled": true,
         "parameters": {
             "type": "object",
             "properties": {
@@ -61,6 +67,8 @@
         "name": "TWITTER__SEND_DIRECT_MESSAGE",
         "description": "Send a direct message to a user",
         "tags": ["direct_message"],
+        "visibility": "public",
+        "enabled": true,
         "parameters": {
             "type": "object",
             "properties": {
