@@ -75,20 +75,6 @@ def generate_app_embedding(app: AppCreate, openai_service: OpenAIService) -> lis
     return openai_service.generate_embedding(text_for_embedding)
 
 
-def generate_app_and_functions_from_files(
-    app_file: Path, functions_file: Path, openai_service: OpenAIService
-) -> tuple[AppCreate, list[float], list[FunctionCreate], list[list[float]]]:
-    """
-    Generate app (AppCreate class) and app embedding from a app json file, and
-    functions (list of FunctionCreate class) and their embeddings from a functions json file.
-    """
-    app, app_embedding = generate_app_from_file(app_file, openai_service)
-    functions, function_embeddings = generate_functions_from_file(functions_file, openai_service)
-    # TODO: generate embeddings in batch
-
-    return app, app_embedding, functions, function_embeddings
-
-
 def generate_app_from_file(
     app_file: Path, openai_service: OpenAIService
 ) -> tuple[AppCreate, list[float]]:
@@ -100,6 +86,7 @@ def generate_app_from_file(
     return app, app_embedding
 
 
+# TODO: generate embeddings in batch
 def generate_functions_from_file(
     functions_file: Path, openai_service: OpenAIService
 ) -> tuple[list[FunctionCreate], list[list[float]]]:

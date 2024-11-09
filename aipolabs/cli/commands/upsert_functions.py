@@ -52,7 +52,6 @@ def upsert_functions(functions_file: Path, skip_dry_run: bool) -> None:
                 raise ValueError(f"App {app_name} does not exist")
 
             if not skip_dry_run:
-                # for each function, check if it already exists, if exists, log "function already exists, will update", if not, log "function does not exist, will insert"
                 for function in functions:
                     db_function = crud.get_function_by_name(db_session, function.name)
                     if db_function:
@@ -64,7 +63,7 @@ def upsert_functions(functions_file: Path, skip_dry_run: bool) -> None:
                             f"Function {function.name} does not exist, will insert, provide --skip-dry-run to proceed"
                         )
             else:
-                logger.info(f"Upserting {len(functions)} functions for app: {app_name}")
+                logger.info(f"Upserting {len(functions)} functions for app: {db_app.name}")
                 crud.upsert_functions(db_session, functions, function_embeddings, db_app.id)
                 db_session.commit()
                 logger.info("success!")

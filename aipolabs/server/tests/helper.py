@@ -30,15 +30,17 @@ def _upsert_app_and_functions(
     db_session: Session, app_file: Path, functions_file: Path
 ) -> sql_models.App:
     """Upsert App and Functions to db from a json file."""
-    app, app_embedding, functions, function_embeddings = (
-        utils.generate_app_and_functions_from_files(app_file, functions_file, openai_service)
+
+    app_create, app_embedding = utils.generate_app_from_file(app_file, openai_service)
+    functions, function_embeddings = utils.generate_functions_from_file(
+        functions_file, openai_service
     )
 
     # make sure app and functions are upserted in one transaction
-    logger.info(f"Upserting app: {app.name}...")
-    db_app = crud.upsert_app(db_session, app, app_embedding)
+    logger.info(f"Upserting app: {app_create.name}...")
+    db_app = crud.upsert_app(db_session, app_create, app_embedding)
 
-    logger.info(f"Upserting functions for app: {app.name}...")
+    logger.info(f"Upserting functions for app: {app_create.name}...")
     crud.upsert_functions(db_session, functions, function_embeddings, db_app.id)
 
     db_session.commit()
