@@ -218,11 +218,34 @@ def search_functions(
     return results
 
 
-def get_function(db_session: Session, function_name: str) -> sql_models.Function | None:
+def get_function(
+    db_session: Session, api_key_id: UUID, function_name: str
+) -> sql_models.Function | None:
+    """
+    Get a function by name.
+    Should filter out by function visibility, app visibility, and project visibility access.
+    Should filter out by function enabled status.
+    """
+    # function: sql_models.Function | None = db_session.execute(
+    #     select(sql_models.Function).filter_by(name=function_name)
+    # ).scalar_one_or_none()
+    db_project = get_project_by_api_key_id(db_session, api_key_id)
+    statement = select(sql_models.Function).filter_by(name=function_name)
 
-    function: sql_models.Function | None = db_session.execute(
-        select(sql_models.Function).filter_by(name=function_name)
-    ).scalar_one_or_none()
+    # filter out all functions of disabled apps and all disabled functions (where app is enabled buy specific functions can be disabled)
+    statement = (
+        statement.join(sql_models.App)
+        .filter(sql_models.App.enabled)
+        .filter(sql_models.Function.enabled)
+    )
+    # if the corresponding project (api key belongs to) can only access public apps and functions, filter out all functions of private apps
+    # and all private functions (where app is public but specific function is private)
+    if db_project.visibility_access == sql_models.Visibility.PUBLIC:
+        statement = statement.filter(
+            sql_models.App.visibility == sql_models.Visibility.PUBLIC
+        ).filter(sql_models.Function.visibility == sql_models.Visibility.PUBLIC)
+
+    function: sql_models.Function | None = db_session.execute(statement).scalar_one_or_none()
 
     return function
 

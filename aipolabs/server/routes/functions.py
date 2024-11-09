@@ -105,13 +105,14 @@ async def search_functions(
 @router.get("/{function_name}", response_model=FunctionPublic)
 async def get_function(
     function_name: str,
-    db_session: Session = Depends(yield_db_session),
+    db_session: Annotated[Session, Depends(yield_db_session)],
+    api_key_id: Annotated[UUID, Depends(validate_api_key)],
 ) -> sql_models.Function:
     """
     Returns the full function data.
     """
     try:
-        function = crud.get_function(db_session, function_name)
+        function = crud.get_function(db_session, api_key_id, function_name)
         if not function:
             logger.error(f"Function {function_name} not found.")
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Function not found.")
@@ -139,19 +140,20 @@ class InferenceProvider(str, Enum):
     response_model_exclude_none=True,  # having this to exclude "strict" field in openai's function definition if not set
 )
 async def get_function_definition(
+    db_session: Annotated[Session, Depends(yield_db_session)],
+    api_key_id: Annotated[UUID, Depends(validate_api_key)],
     function_name: str,
     inference_provider: InferenceProvider = Query(
         default=InferenceProvider.OPENAI,
         description="The inference provider, which determines the format of the function definition.",
     ),
-    db_session: Session = Depends(yield_db_session),
 ) -> sql_models.Function:
     """
     Return the function definition that can be used directly by LLM.
     The actual content depends on the intended model (inference provider, e.g., OpenAI, Anthropic, etc.) and the function itself.
     """
     try:
-        function = crud.get_function(db_session, function_name)
+        function = crud.get_function(db_session, api_key_id, function_name)
         if not function:
             logger.error(f"Function {function_name} not found.")
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Function not found.")
@@ -184,13 +186,14 @@ async def get_function_definition(
     response_model_exclude_none=True,
 )
 async def execute(
+    db_session: Annotated[Session, Depends(yield_db_session)],
+    api_key_id: Annotated[UUID, Depends(validate_api_key)],
     function_name: str,
     function_execution_params: FunctionExecutionParams,
-    db_session: Session = Depends(yield_db_session),
 ) -> FunctionExecutionResponse:
     try:
         # Fetch function definition
-        function = crud.get_function(db_session, function_name)
+        function = crud.get_function(db_session, api_key_id, function_name)
         if not function:
             logger.error(f"Function {function_name} not found.")
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Function not found.")

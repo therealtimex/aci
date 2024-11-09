@@ -305,6 +305,108 @@ def test_get_function(
     assert function.description == dummy_function.description
 
 
+def test_get_function_with_private_function(
+    db_session: Session,
+    test_client: TestClient,
+    dummy_functions: list[sql_models.Function],
+    dummy_api_key: str,
+    dummy_project: sql_models.Project,
+) -> None:
+    # private function should not be reachable for project with only public access
+    crud.set_function_visibility(db_session, dummy_functions[0].id, sql_models.Visibility.PRIVATE)
+    db_session.commit()
+
+    response = test_client.get(
+        f"/v1/functions/{dummy_functions[0].name}", headers={"x-api-key": dummy_api_key}
+    )
+    assert response.status_code == 404, response.json()
+
+    # should be reachable for project with private access
+    crud.set_project_visibility_access(db_session, dummy_project.id, sql_models.Visibility.PRIVATE)
+    db_session.commit()
+
+    response = test_client.get(
+        f"/v1/functions/{dummy_functions[0].name}", headers={"x-api-key": dummy_api_key}
+    )
+    assert response.status_code == 200, response.json()
+
+    # revert changes
+    crud.set_project_visibility_access(db_session, dummy_project.id, sql_models.Visibility.PUBLIC)
+    crud.set_function_visibility(db_session, dummy_functions[0].id, sql_models.Visibility.PUBLIC)
+    db_session.commit()
+
+
+def test_get_function_with_private_app(
+    db_session: Session,
+    test_client: TestClient,
+    dummy_functions: list[sql_models.Function],
+    dummy_api_key: str,
+    dummy_project: sql_models.Project,
+) -> None:
+    # public function under private app should not be reachable for project with only public access
+    crud.set_app_visibility(db_session, dummy_functions[0].app_id, sql_models.Visibility.PRIVATE)
+    db_session.commit()
+
+    response = test_client.get(
+        f"/v1/functions/{dummy_functions[0].name}", headers={"x-api-key": dummy_api_key}
+    )
+    assert response.status_code == 404, response.json()
+
+    # should be reachable for project with private access
+    crud.set_project_visibility_access(db_session, dummy_project.id, sql_models.Visibility.PRIVATE)
+    db_session.commit()
+
+    response = test_client.get(
+        f"/v1/functions/{dummy_functions[0].name}", headers={"x-api-key": dummy_api_key}
+    )
+    assert response.status_code == 200, response.json()
+
+    # revert changes
+    crud.set_app_visibility(db_session, dummy_functions[0].app_id, sql_models.Visibility.PUBLIC)
+    crud.set_project_visibility_access(db_session, dummy_project.id, sql_models.Visibility.PUBLIC)
+    db_session.commit()
+
+
+def test_get_function_with_disabled_function(
+    db_session: Session,
+    test_client: TestClient,
+    dummy_functions: list[sql_models.Function],
+    dummy_api_key: str,
+) -> None:
+    # disabled function should not be reachable
+    crud.set_function_enabled_status(db_session, dummy_functions[0].id, False)
+    db_session.commit()
+
+    response = test_client.get(
+        f"/v1/functions/{dummy_functions[0].name}", headers={"x-api-key": dummy_api_key}
+    )
+    assert response.status_code == 404, response.json()
+
+    # revert changes
+    crud.set_function_enabled_status(db_session, dummy_functions[0].id, True)
+    db_session.commit()
+
+
+def test_get_function_with_disabled_app(
+    db_session: Session,
+    test_client: TestClient,
+    dummy_functions: list[sql_models.Function],
+    dummy_api_key: str,
+) -> None:
+    # functions (public or private) under disabled app should not be reachable
+    crud.set_app_enabled_status(db_session, dummy_functions[0].app_id, False)
+    db_session.commit()
+
+    response = test_client.get(
+        f"/v1/functions/{dummy_functions[0].name}", headers={"x-api-key": dummy_api_key}
+    )
+    assert response.status_code == 404, response.json()
+
+    # revert changes
+    crud.set_app_enabled_status(db_session, dummy_functions[0].app_id, True)
+    db_session.commit()
+
+
 def test_get_function_definition_openai(
     test_client: TestClient, dummy_functions: list[sql_models.Function], dummy_api_key: str
 ) -> None:
