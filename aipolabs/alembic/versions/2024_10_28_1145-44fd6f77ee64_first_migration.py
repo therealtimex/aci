@@ -112,6 +112,9 @@ def upgrade() -> None:
         sa.Column("owner_user_id", sa.UUID(), nullable=True),
         sa.Column("owner_organization_id", sa.UUID(), nullable=True),
         sa.Column("created_by", sa.UUID(), nullable=False),
+        sa.Column(
+            "visibility_access", sa.Enum("PUBLIC", "PRIVATE", name="visibility"), nullable=False
+        ),
         sa.Column("daily_quota_used", sa.Integer(), nullable=False),
         sa.Column(
             "daily_quota_reset_at", sa.DateTime(), server_default=sa.text("now()"), nullable=False

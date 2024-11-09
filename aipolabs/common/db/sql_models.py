@@ -134,6 +134,13 @@ class Project(Base):
         PGUUID(as_uuid=True), ForeignKey("users.id"), nullable=False
     )
 
+    # if public, the project can only access public apps and functions
+    # if private, the project can access all apps and functions, useful for A/B testing and internal testing before releasing
+    # newly added apps and functions to public
+    visibility_access: Mapped[Visibility] = mapped_column(
+        Enum(Visibility), default=Visibility.PUBLIC, nullable=False
+    )
+
     """ quota related fields: TODO: TBD how to implement quota system """
     daily_quota_used: Mapped[int] = mapped_column(Integer, default=0, nullable=False, init=False)
     daily_quota_reset_at: Mapped[datetime.datetime] = mapped_column(
