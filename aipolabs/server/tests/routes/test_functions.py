@@ -19,6 +19,63 @@ GITHUB = "GITHUB"
 GOOGLE = "GOOGLE"
 
 
+def test_search_functions_with_disabled_functions(
+    db_session: Session,
+    test_client: TestClient,
+    dummy_functions: list[sql_models.Function],
+    dummy_api_key: str,
+) -> None:
+    # disabled functions should not be returned
+    crud.set_function_enabled_status(db_session, dummy_functions[0].id, False)
+    db_session.commit()
+
+    response = test_client.get(
+        "/v1/functions/search", params={}, headers={"x-api-key": dummy_api_key}
+    )
+    assert response.status_code == 200, response.json()
+    functions = [
+        FunctionBasicPublic.model_validate(response_function)
+        for response_function in response.json()
+    ]
+    assert len(functions) == len(dummy_functions) - 1
+
+    # revert changes
+    crud.set_function_enabled_status(db_session, dummy_functions[0].id, True)
+    db_session.commit()
+
+
+def test_search_functions_with_disabled_apps(
+    db_session: Session,
+    test_client: TestClient,
+    dummy_functions: list[sql_models.Function],
+    dummy_api_key: str,
+) -> None:
+    # all functions (enabled or not) under disabled apps should not be returned
+    crud.set_app_enabled_status(db_session, dummy_functions[0].app_id, False)
+    db_session.commit()
+
+    response = test_client.get(
+        "/v1/functions/search", params={}, headers={"x-api-key": dummy_api_key}
+    )
+    assert response.status_code == 200, response.json()
+    functions = [
+        FunctionBasicPublic.model_validate(response_function)
+        for response_function in response.json()
+    ]
+
+    disabled_functions_count = sum(
+        function.app_id == dummy_functions[0].app_id for function in dummy_functions
+    )
+    assert disabled_functions_count > 0, "there should be at least one disabled function"
+    assert (
+        len(functions) == len(dummy_functions) - disabled_functions_count
+    ), "all functions under disabled apps should not be returned"
+
+    # revert changes
+    crud.set_app_enabled_status(db_session, dummy_functions[0].app_id, True)
+    db_session.commit()
+
+
 def test_search_functions_with_private_functions(
     db_session: Session,
     test_client: TestClient,
@@ -101,6 +158,11 @@ def test_search_functions_with_private_apps(
         for response_function in response.json()
     ]
     assert len(functions) == len(dummy_functions)
+
+    # revert changes
+    crud.set_app_visibility(db_session, dummy_functions[0].app_id, sql_models.Visibility.PUBLIC)
+    crud.set_project_visibility_access(db_session, dummy_project.id, sql_models.Visibility.PUBLIC)
+    db_session.commit()
 
 
 def test_search_functions_with_app_names(

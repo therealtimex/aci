@@ -275,10 +275,20 @@ def upsert_app(db_session: Session, app: AppCreate, app_embedding: list[float]) 
     return db_app
 
 
+def set_app_enabled_status(db_session: Session, app_id: UUID, enabled: bool) -> None:
+    statement = update(sql_models.App).filter_by(id=app_id).values(enabled=enabled)
+    db_session.execute(statement)
+
+
 def set_app_visibility(
     db_session: Session, app_id: UUID, visibility: sql_models.Visibility
 ) -> None:
     statement = update(sql_models.App).filter_by(id=app_id).values(visibility=visibility)
+    db_session.execute(statement)
+
+
+def set_function_enabled_status(db_session: Session, function_id: UUID, enabled: bool) -> None:
+    statement = update(sql_models.Function).filter_by(id=function_id).values(enabled=enabled)
     db_session.execute(statement)
 
 
