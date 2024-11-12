@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 from aipolabs.common.db import crud
 from aipolabs.common.logging import get_logger
 from aipolabs.common.openai_service import OpenAIService
-from aipolabs.common.schemas.app import AppBasicPublic
+from aipolabs.common.schemas.app import AppPublic
 from aipolabs.server import config
 from aipolabs.server.dependencies import validate_api_key, yield_db_session
 
@@ -59,13 +59,12 @@ class AppFilterParams(BaseModel):
         return v
 
 
-# TODO: filter out disabled apps first before doing any other filtering
-@router.get("/search", response_model=list[AppBasicPublic], response_model_exclude_unset=True)
+@router.get("/search", response_model=list[AppPublic], response_model_exclude_unset=True)
 async def search_apps(
     filter_params: Annotated[AppFilterParams, Query()],
     db_session: Annotated[Session, Depends(yield_db_session)],
     api_key_id: Annotated[UUID, Depends(validate_api_key)],
-) -> list[AppBasicPublic]:
+) -> list[AppPublic]:
     """
     Returns a list of applications (name and description).
     """
@@ -86,9 +85,9 @@ async def search_apps(
             filter_params.offset,
         )
         # build apps list with similarity scores if they exist
-        apps: list[AppBasicPublic] = []
+        apps: list[AppPublic] = []
         for app, score in apps_with_scores:
-            app = AppBasicPublic.model_validate(app)
+            app = AppPublic.model_validate(app)
             if score is not None:
                 app.similarity_score = score
             apps.append(app)

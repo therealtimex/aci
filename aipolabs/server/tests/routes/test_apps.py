@@ -4,7 +4,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
 from aipolabs.common.db import crud, sql_models
-from aipolabs.common.schemas.app import AppBasicPublic
+from aipolabs.common.schemas.app import AppPublic
 
 AIPOLABS_TEST = "AIPOLABS_TEST"
 GITHUB = "GITHUB"
@@ -28,7 +28,7 @@ def test_search_apps_with_intent(
     )
 
     assert response.status_code == 200, response.json()
-    apps = [AppBasicPublic.model_validate(response_app) for response_app in response.json()]
+    apps = [AppPublic.model_validate(response_app) for response_app in response.json()]
     assert len(apps) == len(dummy_apps)
     assert apps[0].name == GITHUB
 
@@ -41,7 +41,7 @@ def test_search_apps_with_intent(
     )
 
     assert response.status_code == 200, response.json()
-    apps = [AppBasicPublic.model_validate(response_app) for response_app in response.json()]
+    apps = [AppPublic.model_validate(response_app) for response_app in response.json()]
     assert len(apps) == len(dummy_apps)
     assert apps[0].name == GOOGLE
 
@@ -56,7 +56,7 @@ def test_search_apps_without_intent(
     for app in response.json():
         assert "similarity_score" not in app
 
-    apps = [AppBasicPublic.model_validate(response_app) for response_app in response.json()]
+    apps = [AppPublic.model_validate(response_app) for response_app in response.json()]
     assert len(apps) == len(dummy_apps)
 
 
@@ -72,7 +72,7 @@ def test_search_apps_with_categories(test_client: TestClient, dummy_api_key: str
     )
 
     assert response.status_code == 200, response.json()
-    apps = [AppBasicPublic.model_validate(response_app) for response_app in response.json()]
+    apps = [AppPublic.model_validate(response_app) for response_app in response.json()]
     assert len(apps) == 1
     assert apps[0].name == AIPOLABS_TEST
 
@@ -91,7 +91,7 @@ def test_search_apps_with_categories_and_intent(
     )
 
     assert response.status_code == 200, response.json()
-    apps = [AppBasicPublic.model_validate(response_app) for response_app in response.json()]
+    apps = [AppPublic.model_validate(response_app) for response_app in response.json()]
     assert len(apps) == 2
     assert apps[0].name == GITHUB
     assert apps[1].name == GOOGLE
@@ -114,7 +114,7 @@ def test_search_apps_pagination(
     )
 
     assert response.status_code == 200, response.json()
-    apps = [AppBasicPublic.model_validate(response_app) for response_app in response.json()]
+    apps = [AppPublic.model_validate(response_app) for response_app in response.json()]
     assert len(apps) == len(dummy_apps) - 1
 
     filter_params["offset"] = len(dummy_apps) - 1
@@ -123,7 +123,7 @@ def test_search_apps_pagination(
     )
 
     assert response.status_code == 200, response.json()
-    apps = [AppBasicPublic.model_validate(response_app) for response_app in response.json()]
+    apps = [AppPublic.model_validate(response_app) for response_app in response.json()]
     assert len(apps) == 1
 
 
@@ -139,7 +139,7 @@ def test_search_apps_with_disabled_apps(
     # disabled app should not be returned
     response = test_client.get("/v1/apps/search", params={}, headers={"x-api-key": dummy_api_key})
     assert response.status_code == 200, response.json()
-    apps = [AppBasicPublic.model_validate(response_app) for response_app in response.json()]
+    apps = [AppPublic.model_validate(response_app) for response_app in response.json()]
     assert len(apps) == len(dummy_apps) - 1
 
     # revert changes
@@ -165,7 +165,7 @@ def test_search_apps_with_private_apps(
     )
 
     assert response.status_code == 200, response.json()
-    apps = [AppBasicPublic.model_validate(response_app) for response_app in response.json()]
+    apps = [AppPublic.model_validate(response_app) for response_app in response.json()]
     assert len(apps) == len(dummy_apps) - 1
 
     # private app should be reachable for project with private access
@@ -179,7 +179,7 @@ def test_search_apps_with_private_apps(
     )
 
     assert response.status_code == 200, response.json()
-    apps = [AppBasicPublic.model_validate(response_app) for response_app in response.json()]
+    apps = [AppPublic.model_validate(response_app) for response_app in response.json()]
     assert len(apps) == len(dummy_apps)
 
     # revert changes

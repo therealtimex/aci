@@ -27,7 +27,7 @@ class AppCreate(BaseModel):
         return v
 
 
-class AppBasicPublic(BaseModel):
+class AppPublic(BaseModel):
     name: str
     description: str
     similarity_score: float | None = None
