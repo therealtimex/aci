@@ -61,24 +61,20 @@ def create_project(
     """
 
     with utils.create_db_session(config.DB_FULL_URL) as db_session:
-        try:
-            project_create = ProjectCreate(
-                name=project_name,
-                owner_type=owner_type,
-                owner_id=owner_id,
-                created_by=created_by,
+        project_create = ProjectCreate(
+            name=project_name,
+            owner_type=owner_type,
+            owner_id=owner_id,
+            created_by=created_by,
+        )
+
+        db_project = crud.create_project(db_session, project_create)
+        if not skip_dry_run:
+            logger.info(
+                f"provide --skip-dry-run to create new project with data \n{project_create.model_dump_json(indent=2, exclude_none=True)}"
             )
-
-            if not skip_dry_run:
-                logger.info(
-                    f"provide --skip-dry-run to create new project with data \n{project_create.model_dump_json(indent=2, exclude_none=True)}"
-                )
-            else:
-                logger.info("creating project...")
-                db_project = crud.create_project(db_session, project_create)
-                db_session.commit()
-                logger.info(f"project created: {db_project}")
-
-        except Exception:
             db_session.rollback()
-            logger.exception("Error creating project")
+        else:
+            logger.info(f"committing creation of project {db_project.name}")
+            db_session.commit()
+            logger.info("success!")

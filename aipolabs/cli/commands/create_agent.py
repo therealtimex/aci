@@ -77,26 +77,23 @@ def create_agent(
     """
 
     with utils.create_db_session(config.DB_FULL_URL) as db_session:
-        try:
-            agent_create = AgentCreate(
-                name=agent_name,
-                description=description,
-                project_id=project_id,
-                created_by=created_by,
-                excluded_apps=excluded_apps,
-                excluded_functions=excluded_functions,
+        agent_create = AgentCreate(
+            name=agent_name,
+            description=description,
+            project_id=project_id,
+            created_by=created_by,
+            excluded_apps=excluded_apps,
+            excluded_functions=excluded_functions,
+        )
+
+        db_agent = crud.create_agent(db_session, agent_create)
+
+        if not skip_dry_run:
+            logger.info(
+                f"provide --skip-dry-run to create new agent with data \n{agent_create.model_dump_json(indent=2, exclude_none=True)}"
             )
-
-            if not skip_dry_run:
-                logger.info(
-                    f"provide --skip-dry-run to create new agent with data \n{agent_create.model_dump_json(indent=2, exclude_none=True)}"
-                )
-            else:
-                logger.info("creating agent...")
-                db_agent = crud.create_agent(db_session, agent_create)
-                db_session.commit()
-                logger.info(f"agent created: {db_agent}")
-
-        except Exception:
             db_session.rollback()
-            logger.exception("Error creating agent")
+        else:
+            logger.info(f"committing creation of agent {db_agent.name}")
+            db_session.commit()
+            logger.info("success!")

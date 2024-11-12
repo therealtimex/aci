@@ -1,3 +1,8 @@
+"""
+CRUD operations for the database.
+Do NOT commit to db in these functions. Handle commit and rollback in the caller.
+"""
+
 import datetime
 import secrets
 from typing import Union

@@ -70,27 +70,24 @@ def create_user(
 ) -> None:
     """Create a user in db."""
     with utils.create_db_session(config.DB_FULL_URL) as db_session:
-        try:
-            # no need to check if user exists, db will raise an error if user already exists
-            # with same auth_provider and auth_user_id
-            user_create = UserCreate(
-                auth_provider=auth_provider,
-                auth_user_id=auth_user_id,
-                name=name,
-                email=email,
-                profile_picture=profile_picture,
-                plan=plan,
-            )
-            if not skip_dry_run:
-                logger.info(
-                    f"provide --skip-dry-run to create new user with data \n{user_create.model_dump_json(indent=2, exclude_none=True)}"
-                )
-            else:
-                logger.info(f"creating user: {user_create.name}...")
-                db_user = crud.create_user(db_session, user_create)
-                db_session.commit()
-                logger.info(f"user created: {db_user}")
+        # no need to check if user exists, db will raise an error if user already exists
+        # with same auth_provider and auth_user_id
+        user_create = UserCreate(
+            auth_provider=auth_provider,
+            auth_user_id=auth_user_id,
+            name=name,
+            email=email,
+            profile_picture=profile_picture,
+            plan=plan,
+        )
+        db_user = crud.create_user(db_session, user_create)
 
-        except Exception as e:
+        if not skip_dry_run:
+            logger.info(
+                f"provide --skip-dry-run to create new user with data \n{user_create.model_dump_json(indent=2, exclude_none=True)}"
+            )
             db_session.rollback()
-            logger.error(f"Error upserting app and functions: {e}")
+        else:
+            logger.info(f"committing creation of user {db_user.name}")
+            db_session.commit()
+            logger.info("success!")
