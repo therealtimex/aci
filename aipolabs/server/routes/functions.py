@@ -15,7 +15,7 @@ from aipolabs.common.schemas.function import (
     AnthropicFunctionDefinition,
     FunctionDefinitionPublic,
     FunctionExecution,
-    FunctionExecutionResponse,
+    FunctionExecutionResult,
     FunctionPublic,
     HttpMetadata,
     OpenAIFunctionDefinition,
@@ -185,7 +185,7 @@ async def get_function_definition(
 
 @router.post(
     "/{function_name}/execute",
-    response_model=FunctionExecutionResponse,
+    response_model=FunctionExecutionResult,
     response_model_exclude_none=True,
 )
 async def execute(
@@ -193,7 +193,7 @@ async def execute(
     api_key_id: Annotated[UUID, Depends(validate_api_key)],
     function_name: str,
     function_execution_params: FunctionExecutionParams,
-) -> FunctionExecutionResponse:
+) -> FunctionExecutionResult:
     try:
         # Fetch function definition
         db_function = crud.get_function(db_session, api_key_id, function_name)
@@ -226,7 +226,7 @@ async def execute(
 # return app_instance.execute(function_name, function_execution_params.function_input)
 def _execute(
     function_execution: FunctionExecution, function_input: dict
-) -> FunctionExecutionResponse:
+) -> FunctionExecutionResult:
     try:
         jsonschema.validate(instance=function_input, schema=function_execution.parameters)
     except jsonschema.ValidationError as e:
@@ -278,6 +278,6 @@ def _execute(
         logger.info("======================== REQUEST ========================")
         logger.info(request_json)
         if response.status_code >= 400:
-            return FunctionExecutionResponse(success=False, error=response.json())
+            return FunctionExecutionResult(success=False, error=response.json())
         else:
-            return FunctionExecutionResponse(success=True, data=response.json())
+            return FunctionExecutionResult(success=True, data=response.json())

@@ -10,7 +10,7 @@ from aipolabs.common.db import crud, sql_models
 from aipolabs.common.schemas.function import (
     AnthropicFunctionDefinition,
     FunctionDefinitionPublic,
-    FunctionExecutionResponse,
+    FunctionExecutionResult,
     FunctionPublic,
     OpenAIFunctionDefinition,
 )
@@ -470,7 +470,7 @@ def test_mock_execute_function_with_no_args(test_client: TestClient, dummy_api_k
     )
     assert response.status_code == 200, response.json()
     assert "error" not in response.json()
-    function_execution_response = FunctionExecutionResponse.model_validate(response.json())
+    function_execution_response = FunctionExecutionResult.model_validate(response.json())
     assert function_execution_response.success
     assert function_execution_response.data == response_data
 
@@ -529,7 +529,7 @@ def test_execute_function_with_args(test_client: TestClient, dummy_api_key: str)
     )
     assert response.status_code == 200, response.json()
     assert "error" not in response.json()
-    function_execution_response = FunctionExecutionResponse.model_validate(response.json())
+    function_execution_response = FunctionExecutionResult.model_validate(response.json())
     assert function_execution_response.success
     assert function_execution_response.data == mock_response_data
 
@@ -587,6 +587,6 @@ def test_execute_function_with_nested_args(test_client: TestClient, dummy_api_ke
     )
     assert response.status_code == 200, response.json()
     assert "error" not in response.json()
-    function_execution_response = FunctionExecutionResponse.model_validate(response.json())
+    function_execution_response = FunctionExecutionResult.model_validate(response.json())
     assert function_execution_response.success
     assert function_execution_response.data == mock_response_data

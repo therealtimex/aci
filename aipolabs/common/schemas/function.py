@@ -141,7 +141,7 @@ class FunctionExecution(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
-class FunctionExecutionResponse(BaseModel):
+class FunctionExecutionResult(BaseModel):
     success: bool
     data: Any | None = None  # adding "| None" just for clarity
     error: str | None = None
