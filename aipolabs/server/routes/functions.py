@@ -13,7 +13,7 @@ from aipolabs.common.logging import get_logger
 from aipolabs.common.openai_service import OpenAIService
 from aipolabs.common.schemas.function import (
     AnthropicFunctionDefinition,
-    FunctionBasicPublic,
+    FunctionDefinitionPublic,
     FunctionExecution,
     FunctionExecutionResponse,
     FunctionPublic,
@@ -72,7 +72,7 @@ class FunctionExecutionParams(BaseModel):
     # TODO: can add other params like account_id
 
 
-@router.get("/search", response_model=list[FunctionBasicPublic])
+@router.get("/search", response_model=list[FunctionPublic])
 async def search_functions(
     search_params: Annotated[FunctionSearchParams, Query()],
     db_session: Annotated[Session, Depends(yield_db_session)],
@@ -105,7 +105,7 @@ async def search_functions(
 
 
 # TODO: get list of functions by list of names
-@router.get("/{function_name}", response_model=FunctionPublic)
+@router.get("/{function_name}", response_model=FunctionDefinitionPublic)
 async def get_function(
     function_name: str,
     db_session: Annotated[Session, Depends(yield_db_session)],

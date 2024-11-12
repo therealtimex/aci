@@ -100,19 +100,15 @@ class FunctionCreate(BaseModel):
         return self
 
 
-class FunctionBasicPublic(BaseModel):
-    name: str
-    description: str
-
-    model_config = ConfigDict(from_attributes=True)
-
-
 class FunctionPublic(BaseModel):
     name: str
     description: str
-    parameters: dict
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class FunctionDefinitionPublic(FunctionPublic):
+    parameters: dict
 
 
 class OpenAIFunctionDefinition(BaseModel):
@@ -134,6 +130,8 @@ class AnthropicFunctionDefinition(BaseModel):
 
 
 class FunctionExecution(BaseModel):
+    """essential information for executing a function"""
+
     name: str
     protocol: Protocol
     protocol_data: HttpMetadata | GraphQLMetadata = Field(default_factory=dict)
