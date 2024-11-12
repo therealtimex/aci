@@ -39,9 +39,8 @@ def validate_http_bearer(
     """
     token = auth_data.credentials
     try:
-        logger.info("Decoding JWT token.")
         payload = jwt.decode(token, JWT_SECRET_KEY)
-        logger.info(f"Decoded token payload: {payload}")
+        logger.debug(f"Decoded token payload: {payload}")
         payload.validate()  # This will raise a JoseError if validation fails
 
         user_id: str = payload.get("sub")
@@ -49,10 +48,10 @@ def validate_http_bearer(
             logger.error("Token is missing 'sub' claim.")
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid authentication credentials",
+                detail="Invalid authentication credentials, missing 'sub' claim",
             )
 
-        logger.info(f"Token valid. User ID: {user_id}")
+        logger.debug(f"Token valid. User ID: {user_id}")
         return UUID(user_id)
 
     except JoseError as e:

@@ -131,7 +131,7 @@ async def auth_callback(
             str(user.id),
             timedelta(minutes=config.JWT_ACCESS_TOKEN_EXPIRE_MINUTES),
         )
-        logger.info(
+        logger.debug(
             f"JWT generated successfully for user: {user.id}, jwt_token: {jwt_token[:4]}...{jwt_token[-4:]}"
         )
     except Exception:

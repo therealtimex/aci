@@ -82,7 +82,7 @@ async def search_functions(
     Returns the basic information of a list of functions.
     """
     try:
-        logger.info(f"Getting functions with params: {search_params}")
+        logger.debug(f"Getting functions with params: {search_params}")
         intent_embedding = (
             openai_service.generate_embedding(search_params.intent)
             if search_params.intent
@@ -117,7 +117,6 @@ async def get_function(
     try:
         function = crud.get_function(db_session, api_key_id, function_name)
         if not function:
-            logger.error(f"Function {function_name} not found.")
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Function not found.")
         return function
     except HTTPException as e:
@@ -158,7 +157,6 @@ async def get_function_definition(
     try:
         function = crud.get_function(db_session, api_key_id, function_name)
         if not function:
-            logger.error(f"Function {function_name} not found.")
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Function not found.")
 
         if inference_provider == InferenceProvider.OPENAI:
@@ -198,7 +196,6 @@ async def execute(
         # Fetch function definition
         db_function = crud.get_function(db_session, api_key_id, function_name)
         if not db_function:
-            logger.error(f"Function {function_name} not found.")
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Function not found.")
 
         return _execute(
@@ -206,7 +203,6 @@ async def execute(
         )
 
     except ValueError as e:
-        logger.exception(f"Error executing function {function_name}")
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     except HTTPException as e:
         raise e
@@ -262,21 +258,16 @@ def _execute(
 
         # Prepare the request to access its components
         prepared_request = request.prepare()
-
-        # Dump the prepared request to JSON
-        request_json = {
-            "method": prepared_request.method,
-            "url": prepared_request.url,
-            "headers": dict(prepared_request.headers),
-            "body": prepared_request.body.decode("utf-8") if prepared_request.body else None,
-        }
+        # TODO: remove logging
+        logger.info(
+            "======================== FUNCTION EXECUTION HTTP REQUEST ========================"
+        )
+        logger.info(
+            f"method: {prepared_request.method}, url: {prepared_request.url}, headers: {prepared_request.headers}, body: {prepared_request.body}"
+        )
         # execute request
         response = requests.Session().send(prepared_request)
-        logger.info(f"Response: {response.json()}")
 
-        # print request in nice format
-        logger.info("======================== REQUEST ========================")
-        logger.info(request_json)
         if response.status_code >= 400:
             return FunctionExecutionResult(success=False, error=response.json())
         else:
