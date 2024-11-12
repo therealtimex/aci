@@ -1,4 +1,9 @@
+import json
+from urllib.parse import parse_qs, urlparse
+
+import responses
 from fastapi.testclient import TestClient
+from requests import PreparedRequest
 from sqlalchemy.orm import Session
 
 from aipolabs.common.db import crud, sql_models
@@ -12,7 +17,7 @@ from aipolabs.common.schemas.function import (
 
 GOOGLE__CALENDAR_CREATE_EVENT = "GOOGLE__CALENDAR_CREATE_EVENT"
 GITHUB__CREATE_REPOSITORY = "GITHUB__CREATE_REPOSITORY"
-AIPOLABS_TEST__HELLO_WORLD = "AIPOLABS_TEST__HELLO_WORLD"
+AIPOLABS_TEST__HELLO_WORLD_WITH_ARGS = "AIPOLABS_TEST__HELLO_WORLD_WITH_ARGS"
 AIPOLABS_TEST__HELLO_WORLD_NESTED_ARGS = "AIPOLABS_TEST__HELLO_WORLD_NESTED_ARGS"
 AIPOLABS_TEST__HELLO_WORLD_NO_ARGS = "AIPOLABS_TEST__HELLO_WORLD_NO_ARGS"
 GITHUB = "GITHUB"
@@ -451,21 +456,8 @@ def test_get_function_definition_anthropic(
     assert function_definition.description == dummy_function.description
 
 
-def test_execute_function(test_client: TestClient, dummy_api_key: str) -> None:
-    function_name = AIPOLABS_TEST__HELLO_WORLD
-    body = {"function_input": {"name": "John", "greeting": "Hello"}}
-    response = test_client.post(
-        f"/v1/functions/{function_name}/execute", json=body, headers={"x-api-key": dummy_api_key}
-    )
-    assert response.status_code == 200, response.json()
-    assert "error" not in response.json()
-    function_execution_response = FunctionExecutionResponse.model_validate(response.json())
-    assert function_execution_response.success
-    assert function_execution_response.data == {"message": "Hello, John!"}
-
-
 def test_execute_function_with_invalid_input(test_client: TestClient, dummy_api_key: str) -> None:
-    function_name = AIPOLABS_TEST__HELLO_WORLD
+    function_name = AIPOLABS_TEST__HELLO_WORLD_WITH_ARGS
     body = {"function_input": {"name": "John"}}
     response = test_client.post(
         f"/v1/functions/{function_name}/execute", json=body, headers={"x-api-key": dummy_api_key}
@@ -473,43 +465,140 @@ def test_execute_function_with_invalid_input(test_client: TestClient, dummy_api_
     assert response.status_code == 400, response.json()
 
 
-def test_execute_function_with_nested_args(test_client: TestClient, dummy_api_key: str) -> None:
-    function_name = AIPOLABS_TEST__HELLO_WORLD_NESTED_ARGS
-    body = {
-        "function_input": {
-            "person": {"name": "John", "title": "Mr"},
-            "greeting": "Hello",
-            "location": {"city": "New York", "country": "USA"},
-        }
-    }
-    response = test_client.post(
-        f"/v1/functions/{function_name}/execute", json=body, headers={"x-api-key": dummy_api_key}
+@responses.activate
+def test_mock_execute_function_with_no_args(test_client: TestClient, dummy_api_key: str) -> None:
+    # Mock the HTTP endpoint
+    response_data = {"message": "Hello, test_mock_execute_function_with_no_args!"}
+    responses.add(
+        responses.GET,
+        "https://api.mock.aipolabs.com/v1/hello_world_no_args",
+        json=response_data,
+        status=200,
     )
-    assert response.status_code == 200, response.json()
-    assert "error" not in response.json()
-    function_execution_response = FunctionExecutionResponse.model_validate(response.json())
-    assert function_execution_response.success
-    assert function_execution_response.data == {"message": "Hello, Mr John in New York, USA!"}
 
-
-def test_execute_function_with_no_args(test_client: TestClient, dummy_api_key: str) -> None:
-    # empty body
     function_name = AIPOLABS_TEST__HELLO_WORLD_NO_ARGS
     response = test_client.post(
         f"/v1/functions/{function_name}/execute", json={}, headers={"x-api-key": dummy_api_key}
     )
     assert response.status_code == 200, response.json()
+    assert "error" not in response.json()
     function_execution_response = FunctionExecutionResponse.model_validate(response.json())
     assert function_execution_response.success
-    assert function_execution_response.data == {"message": "Hello, world!"}
+    assert function_execution_response.data == response_data
 
-    # empty function_input
+
+@responses.activate
+def test_execute_function_with_args(test_client: TestClient, dummy_api_key: str) -> None:
+    # Mock the HTTP endpoint
+    mock_response_data = {"message": "Hello, test_execute_function_with_args!"}
+
+    # Create a callback to verify request details
+    def request_callback(request: PreparedRequest) -> tuple[int, dict, str]:
+        # Parse URL to verify components separately
+        parsed_url = urlparse(request.url)
+        query_params = parse_qs(parsed_url.query)
+
+        # Verify base URL and path
+        assert (
+            f"{parsed_url.scheme}://{parsed_url.netloc}{parsed_url.path}"
+            == "https://api.mock.aipolabs.com/v1/greet/John"
+        )
+
+        # Verify query parameters
+        assert query_params == {"lang": ["en"]}
+
+        # Verify body
+        assert request.body == b'{"name": "John", "greeting": "Hello"}'
+
+        # Verify headers
+        assert request.headers["X-CUSTOM-HEADER"] == "header123"
+
+        # Verify cookies
+        assert request.headers["Cookie"] == "sessionId=session123"
+
+        return (200, {}, json.dumps(mock_response_data))
+
+    responses.add_callback(
+        method=responses.POST,
+        url="https://api.mock.aipolabs.com/v1/greet/John",
+        callback=request_callback,
+    )
+
+    function_name = AIPOLABS_TEST__HELLO_WORLD_WITH_ARGS
+    function_execution_request_body = {
+        "function_input": {
+            "path": {"userId": "John"},
+            "query": {"lang": "en"},
+            "body": {"name": "John", "greeting": "Hello"},
+            "header": {"X-CUSTOM-HEADER": "header123"},
+            "cookie": {"sessionId": "session123"},
+        }
+    }
     response = test_client.post(
         f"/v1/functions/{function_name}/execute",
-        json={"function_input": {}},
+        json=function_execution_request_body,
         headers={"x-api-key": dummy_api_key},
     )
     assert response.status_code == 200, response.json()
+    assert "error" not in response.json()
     function_execution_response = FunctionExecutionResponse.model_validate(response.json())
     assert function_execution_response.success
-    assert function_execution_response.data == {"message": "Hello, world!"}
+    assert function_execution_response.data == mock_response_data
+
+
+@responses.activate
+def test_execute_function_with_nested_args(test_client: TestClient, dummy_api_key: str) -> None:
+    # Mock the HTTP endpoint
+    mock_response_data = {"message": "Hello, test_execute_function_with_args!"}
+
+    # Create a callback to verify request details
+    def request_callback(request: PreparedRequest) -> tuple[int, dict, str]:
+        # Parse URL to verify components separately
+        parsed_url = urlparse(request.url)
+        query_params = parse_qs(parsed_url.query)
+
+        # Verify base URL and path
+        assert (
+            f"{parsed_url.scheme}://{parsed_url.netloc}{parsed_url.path}"
+            == "https://api.mock.aipolabs.com/v1/greet/John"
+        )
+
+        # Verify query parameters
+        assert query_params == {"lang": ["cn"]}
+
+        # Verify body
+        assert (
+            request.body
+            == b'{"person": {"name": "John", "title": "Mr"}, "greeting": "Hello", "location": {"city": "New York", "country": "USA"}}'
+        )
+
+        return (200, {}, json.dumps(mock_response_data))
+
+    responses.add_callback(
+        method=responses.POST,
+        url="https://api.mock.aipolabs.com/v1/greet/John",
+        callback=request_callback,
+    )
+
+    function_name = AIPOLABS_TEST__HELLO_WORLD_NESTED_ARGS
+    function_execution_request_body = {
+        "function_input": {
+            "path": {"userId": "John"},
+            "query": {"lang": "cn"},
+            "body": {
+                "person": {"name": "John", "title": "Mr"},
+                "greeting": "Hello",
+                "location": {"city": "New York", "country": "USA"},
+            },
+        }
+    }
+    response = test_client.post(
+        f"/v1/functions/{function_name}/execute",
+        json=function_execution_request_body,
+        headers={"x-api-key": dummy_api_key},
+    )
+    assert response.status_code == 200, response.json()
+    assert "error" not in response.json()
+    function_execution_response = FunctionExecutionResponse.model_validate(response.json())
+    assert function_execution_response.success
+    assert function_execution_response.data == mock_response_data

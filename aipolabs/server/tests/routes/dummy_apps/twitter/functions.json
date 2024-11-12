@@ -5,25 +5,40 @@
         "tags": ["tweet"],
         "visibility": "public",
         "enabled": true,
+        "protocol": "rest",
+        "protocol_data": {
+            "method": "POST",
+            "path": "/tweets",
+            "server_url": "https://api.twitter.com/2"
+        },
         "parameters": {
             "type": "object",
             "properties": {
-                "content": {
-                    "type": "string",
-                    "description": "The content of the tweet"
-                },
-                "media_ids": {
-                    "type": "array",
-                    "items": {
-                        "type": "string",
-                        "description": "An array of media IDs to attach to the tweet"
-                    }
+                "body": {
+                    "type": "object",
+                    "properties": {
+                        "content": {
+                            "type": "string",
+                            "description": "The content of the tweet"
+                        },
+                        "media_ids": {
+                            "type": "array",
+                            "items": {
+                                "type": "string",
+                                "description": "An array of media IDs to attach to the tweet"
+                            }
+                        }
+                    },
+                    "required": [
+                        "content"
+                    ],
+                    "additionalProperties": false
                 }
             },
-            "required": [
-                "content"
-            ]
-        }
+            "required": ["body"],
+            "additionalProperties": false
+        },
+        "response": {}
     },
     {
         "name": "TWITTER__RETWEET",
@@ -31,18 +46,33 @@
         "tags": ["retweet"],
         "visibility": "public",
         "enabled": true,
+        "protocol": "rest",
+        "protocol_data": {
+            "method": "POST",
+            "path": "/tweets/{tweet_id}/retweet",
+            "server_url": "https://api.twitter.com/2"
+        },
         "parameters": {
             "type": "object",
             "properties": {
-                "tweet_id": {
-                    "type": "string",
-                    "description": "The ID of the tweet to retweet"
+                "path": {
+                    "type": "object",
+                    "properties": {
+                        "tweet_id": {
+                            "type": "string",
+                            "description": "The ID of the tweet to retweet"
+                        }
+                    },
+                    "required": [
+                        "tweet_id"
+                    ],
+                    "additionalProperties": false
                 }
             },
-            "required": [
-                "tweet_id"
-            ]
-        }
+            "required": ["path"],
+            "additionalProperties": false
+        },
+        "response": {}
     },
     {
         "name": "TWITTER__FOLLOW_USER",
@@ -50,18 +80,33 @@
         "tags": ["follow"],
         "visibility": "public",
         "enabled": true,
+        "protocol": "rest",
+        "protocol_data": {
+            "method": "POST",
+            "path": "/users/{user_id}/follow",
+            "server_url": "https://api.twitter.com/2"
+        },
         "parameters": {
             "type": "object",
             "properties": {
-                "user_id": {
-                    "type": "string",
-                    "description": "The ID of the user to follow"
+                "path": {
+                    "type": "object",
+                    "properties": {
+                        "user_id": {
+                            "type": "string",
+                            "description": "The ID of the user to follow"
+                        }
+                    },
+                    "required": [
+                        "user_id"
+                    ],
+                    "additionalProperties": false
                 }
             },
-            "required": [
-                "user_id"
-            ]
-        }
+            "required": ["path"],
+            "additionalProperties": false
+        },
+        "response": {}
     },
     {
         "name": "TWITTER__SEND_DIRECT_MESSAGE",
@@ -69,22 +114,37 @@
         "tags": ["direct_message"],
         "visibility": "public",
         "enabled": true,
+        "protocol": "rest",
+        "protocol_data": {
+            "method": "POST",
+            "path": "/direct_messages",
+            "server_url": "https://api.twitter.com/2"
+        },
         "parameters": {
             "type": "object",
             "properties": {
-                "recipient_id": {
-                    "type": "string",
-                    "description": "The ID of the recipient"
-                },
-                "message": {
-                    "type": "string",
-                    "description": "The content of the direct message"
+                "body": {
+                    "type": "object",
+                    "properties": {
+                        "recipient_id": {
+                            "type": "string",
+                            "description": "The ID of the recipient"
+                        },
+                        "message": {
+                            "type": "string",
+                            "description": "The content of the direct message"
+                        }
+                    },
+                    "required": [
+                        "recipient_id",
+                        "message"
+                    ],
+                    "additionalProperties": false
                 }
             },
-            "required": [
-                "recipient_id",
-                "message"
-            ]
-        }
+            "required": ["body"],
+            "additionalProperties": false
+        },
+        "response": {}
     }
 ]

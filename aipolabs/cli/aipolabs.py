@@ -2,11 +2,10 @@ import click
 
 from aipolabs.cli.commands import (
     create_agent,
+    create_app,
+    create_functions,
     create_project,
     create_user,
-    upsert_app,
-    upsert_app_and_functions,
-    upsert_functions,
 )
 from aipolabs.common.logging import setup_logging
 
@@ -18,12 +17,11 @@ def cli() -> None:
 
 
 # Add commands to the group
-cli.add_command(upsert_app_and_functions.upsert_app_and_functions)
 cli.add_command(create_user.create_user)
 cli.add_command(create_project.create_project)
 cli.add_command(create_agent.create_agent)
-cli.add_command(upsert_app.upsert_app)
-cli.add_command(upsert_functions.upsert_functions)
+cli.add_command(create_app.create_app)
+cli.add_command(create_functions.create_functions)
 
 if __name__ == "__main__":
     setup_logging()

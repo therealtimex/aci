@@ -1,18 +1,20 @@
 {
     "name": "TWITTER",
     "display_name": "Twitter",
-    "version": "1.0.0",
-    "provider": "twitter",
-    "description": "Twitter is a social media platform that allows users to post and interact with short messages known as tweets. It provides a real-time way to communicate and share updates, news, and media, with support for likes, retweets, and hashtags for categorization. Twitter's API allows developers to access tweets, users' profiles, and other social interactions programmatically.",
-    "server_url": "https://api.twitter.com",
     "logo": "https://example.com/twitter-logo.png",
+    "provider": "twitter",
+    "version": "1.0.0",
+    "description": "Twitter is a social media platform that allows users to post and interact with short messages known as tweets. It provides a real-time way to communicate and share updates, news, and media, with support for likes, retweets, and hashtags for categorization. Twitter's API allows developers to access tweets, users' profiles, and other social interactions programmatically.",
+    "security_schemes": {
+        "api_key": {
+            "in": "header",
+            "name": "X-API-KEY"
+        },
+        "http_basic": {}
+    },
     "categories": [
         "socialmedia"
     ],
     "visibility": "public",
-    "enabled": true,
-    "supported_auth_types": [
-    ],
-    "auth_configs": {
-    }
+    "enabled": true
 }

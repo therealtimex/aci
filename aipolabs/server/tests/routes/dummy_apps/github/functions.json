@@ -6,28 +6,43 @@
         "tags": ["repository"],
         "visibility": "public",
         "enabled": true,
+        "protocol": "rest",
+        "protocol_data": {
+            "method": "POST",
+            "path": "/repositories",
+            "server_url": "https://api.github.com"
+        },
         "parameters": {
             "type": "object",
             "properties": {
-                "name": {
-                    "type": "string",
-                    "description": "The name of the repository"
-                },
-                "description": {
-                    "type": "string",
-                    "description": "A description for the repository"
-                },
-                "private": {
-                    "type": "boolean",
-                    "description": "Whether the repository is private or public"
+                "body": {
+                    "type": "object",
+                    "properties": {
+                        "name": {
+                            "type": "string",
+                            "description": "The name of the repository"
+                        },
+                        "description": {
+                            "type": "string",
+                            "description": "A description for the repository"
+                        },
+                        "private": {
+                            "type": "boolean",
+                            "description": "Whether the repository is private or public"
+                        }
+                    },
+                    "required": [
+                        "name",
+                        "description",
+                        "private"
+                    ],
+                    "additionalProperties": false
                 }
             },
-            "required": [
-                "name",
-                "description",
-                "private"
-            ]
-        }
+            "required": ["body"],
+            "additionalProperties": false
+        },
+        "response": {}
     },
     {
         "name": "GITHUB__CREATE_ISSUE",
@@ -35,23 +50,42 @@
         "tags": ["issue"],
         "visibility": "public",
         "enabled": true,
+        "protocol": "rest",
+        "protocol_data": {
+            "method": "POST",
+            "path": "/repositories/{repository}/issues",
+            "server_url": "https://api.github.com"
+        },
         "parameters": {
             "type": "object",
             "properties": {
-                "repository": {
-                    "type": "string",
-                    "description": "The name of the repository"
+                "path": {
+                    "type": "object",
+                    "properties": {
+                        "repository": {
+                            "type": "string",
+                            "description": "The name of the repository"
+                        }
+                    },
+                    "required": ["repository"],
+                    "additionalProperties": false
                 },
-                "title": {
-                    "type": "string",
-                    "description": "The title of the issue"
+                "body": {
+                    "type": "object",
+                    "properties": {
+                        "title": {
+                            "type": "string",
+                            "description": "The title of the issue"
+                        }
+                    },
+                    "required": ["title"],
+                    "additionalProperties": false
                 }
             },
-            "required": [
-                "repository",
-                "title"
-            ]
-        }
+            "required": ["path", "body"],
+            "additionalProperties": false
+        },
+        "response": {}
     },
     {
         "name": "GITHUB__CREATE_PULL_REQUEST",
@@ -59,50 +93,72 @@
         "tags": ["pull_request"],
         "visibility": "public",
         "enabled": true,
+        "protocol": "rest",
+        "protocol_data": {
+            "method": "POST",
+            "path": "/repositories/{repository}/pulls",
+            "server_url": "https://api.github.com"
+        },
         "parameters": {
             "type": "object",
             "properties": {
-                "repository": {
-                    "type": "string",
-                    "description": "The name of the repository"
-                },
-                "source_branch": {
-                    "type": "string",
-                    "description": "The name of the source branch for the pull request"
-                },
-                "target_branch": {
-                    "type": "string",
-                    "description": "The name of the target branch where the pull request will be merged"
-                },
-                "title": {
-                    "type": "string",
-                    "description": "The title of the pull request"
-                },
-                "metadata": {
+                "path": {
                     "type": "object",
                     "properties": {
-                        "author": {
+                        "repository": {
                             "type": "string",
-                            "description": "The author of the pull request"
+                            "description": "The name of the repository"
+                        }
+                    },
+                    "required": ["repository"],
+                    "additionalProperties": false
+                },
+                "body": {
+                    "type": "object",
+                    "properties": {
+                        "source_branch": {
+                            "type": "string",
+                            "description": "The name of the source branch for the pull request"
                         },
-                        "reviewer": {
+                        "target_branch": {
                             "type": "string",
-                            "description": "The primary reviewer for the pull request"
+                            "description": "The name of the target branch where the pull request will be merged"
+                        },
+                        "title": {
+                            "type": "string",
+                            "description": "The title of the pull request"
+                        },
+                        "metadata": {
+                            "type": "object",
+                            "properties": {
+                                "author": {
+                                    "type": "string",
+                                    "description": "The author of the pull request"
+                                },
+                                "reviewer": {
+                                    "type": "string",
+                                    "description": "The primary reviewer for the pull request"
+                                }
+                            },
+                            "required": [
+                                "author",
+                                "reviewer"
+                            ],
+                            "additionalProperties": false
                         }
                     },
                     "required": [
-                        "author",
-                        "reviewer"
-                    ]
+                        "source_branch",
+                        "target_branch",
+                        "title",
+                        "metadata"
+                    ],
+                    "additionalProperties": false
                 }
             },
-            "required": [
-                "repository",
-                "source_branch",
-                "target_branch",
-                "title",
-                "metadata"
-            ]
-        }
+            "required": ["path", "body"],
+            "additionalProperties": false
+        },
+        "response": {}
     }     
 ]

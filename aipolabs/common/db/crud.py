@@ -6,6 +6,7 @@ from uuid import UUID
 from sqlalchemy import select, update
 from sqlalchemy.orm import Session
 
+from aipolabs.common import utils
 from aipolabs.common.db import sql_models
 from aipolabs.common.logging import get_logger
 from aipolabs.common.schemas.agent import AgentCreate
@@ -250,40 +251,80 @@ def get_function(
     return function
 
 
-def upsert_app(db_session: Session, app: AppCreate, app_embedding: list[float]) -> sql_models.App:
-    logger.debug(f"upserting app: {app}")
+def create_app(
+    db_session: Session,
+    app: AppCreate,
+    app_embedding: list[float],
+) -> sql_models.App:
+    logger.debug(f"creating app: {app}")
 
+    # Check if app already exists
+    existing_app = db_session.execute(
+        select(sql_models.App).filter_by(name=app.name)
+    ).scalar_one_or_none()
+
+    if existing_app:
+        raise ValueError(f"App {app.name} already exists")
+
+    # Create new app
     db_app = sql_models.App(
         name=app.name,
         display_name=app.display_name,
-        version=app.version,
         provider=app.provider,
+        version=app.version,
         description=app.description,
-        server_url=app.server_url,
         logo=app.logo,
         categories=app.categories,
-        supported_auth_types=app.supported_auth_types,
-        auth_configs=app.auth_configs,
-        embedding=app_embedding,
         visibility=app.visibility,
         enabled=app.enabled,
+        security_schemes=app.security_schemes,
+        embedding=app_embedding,
     )
 
-    # check if the app already exists
-    existing_app = db_session.execute(
-        select(sql_models.App).filter_by(name=app.name).with_for_update()
-    ).scalar_one_or_none()
-    if existing_app:
-        logger.debug(f"App {app.name} already exists, will update")
-        db_app.id = existing_app.id
-        db_app = db_session.merge(db_app)
-    else:
-        logger.debug(f"App {app.name} does not exist, will insert")
-        db_session.add(db_app)
-        db_session.flush()
-        db_session.refresh(db_app)
+    db_session.add(db_app)
+    db_session.flush()
+    db_session.refresh(db_app)
 
     return db_app
+
+
+def create_functions(
+    db_session: Session, functions: list[FunctionCreate], function_embeddings: list[list[float]]
+) -> None:
+    """Create functions of the same app"""
+    logger.debug(f"upserting functions: {functions}")
+    # each function name must be unique
+    if len(functions) != len(set(function.name for function in functions)):
+        raise ValueError("Function names must be unique")
+    # all functions must belong to the same app
+    app_names = set(
+        [utils.parse_app_name_from_function_name(function.name) for function in functions]
+    )
+    if len(app_names) != 1:
+        raise ValueError("All functions must belong to the same app")
+    app_name = app_names.pop()
+    # check if the app exists
+    db_app = get_app_by_name(db_session, app_name)
+    if not db_app:
+        raise ValueError(f"App {app_name} does not exist")
+
+    for i, function in enumerate(functions):
+        db_function = sql_models.Function(
+            app_id=db_app.id,
+            name=function.name,
+            description=function.description,
+            tags=function.tags,
+            visibility=function.visibility,
+            enabled=function.enabled,
+            protocol=function.protocol,
+            protocol_data=function.protocol_data.model_dump(),
+            parameters=function.parameters,
+            response=function.response,
+            embedding=function_embeddings[i],
+        )
+        db_session.add(db_function)
+
+    db_session.flush()
 
 
 def set_app_enabled_status(db_session: Session, app_id: UUID, enabled: bool) -> None:
@@ -333,45 +374,6 @@ def set_project_visibility_access(
         .values(visibility_access=visibility_access)
     )
     db_session.execute(statement)
-
-
-def upsert_functions(
-    db_session: Session,
-    functions: list[FunctionCreate],
-    function_embeddings: list[list[float]],
-    app_id: UUID,
-) -> None:
-    logger.debug(f"upserting functions: {functions}")
-    # Retrieve all existing functions for the app
-    existing_functions = (
-        (db_session.execute(select(sql_models.Function).filter_by(app_id=app_id).with_for_update()))
-        .scalars()
-        .all()
-    )
-    # Create a dictionary of existing functions by name for easy lookup
-    existing_function_dict = {f.name: f for f in existing_functions}
-
-    for i, function in enumerate(functions):
-        db_function = sql_models.Function(
-            name=function.name,
-            description=function.description,
-            parameters=function.parameters,
-            app_id=app_id,
-            response={},  # TODO: add response schema
-            tags=function.tags,
-            embedding=function_embeddings[i],
-            visibility=function.visibility,
-            enabled=function.enabled,
-        )
-        if db_function.name in existing_function_dict:
-            logger.debug(f"Function {function.name} already exists, will update")
-            db_function.id = existing_function_dict[function.name].id
-            db_function = db_session.merge(db_function)
-        else:
-            logger.debug(f"Function {function.name} does not exist, will insert")
-            db_session.add(db_function)
-
-    db_session.flush()
 
 
 def get_project_by_api_key_id(db_session: Session, api_key_id: UUID) -> sql_models.Project:

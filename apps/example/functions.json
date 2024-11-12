@@ -1,0 +1,112 @@
+[
+    {
+        "name": "BRAVE_SEARCH__WEB_SEARCH",
+        "description": "Brave Web Search API is a REST API to query Brave Search and get back search results from the web.",
+        "tags": ["search"],
+        "visibility": "public",
+        "enabled": true,
+        "protocol": "rest",
+        "protocol_data": {
+            "method": "GET",
+            "path": "/web/{userId}",
+            "server_url": "https://api.search.brave.com/res/v1"
+        },
+        "parameters": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "object",
+                "description": "path object",
+                "properties": {
+                  "userId": {
+                    "type": "string",
+                    "description": "ID of the user"
+                  }
+                },
+                "required": [
+                  "userId"
+                ],
+                "additionalProperties": false
+              },
+              "query": {
+                "type": "object",
+                "description": "query object",
+                "properties": {
+                  "verbose": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Verbose output"
+                  },
+                  "freeForm": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "integer"
+                    },
+                    "description": "Free form query"
+                  }
+                },
+                "required": [],
+                "additionalProperties": false
+              },
+              "header": {
+                "type": "object",
+                "description": "header object",
+                "properties": {
+                  "token": {
+                    "type": "array",
+                    "items": {
+                      "type": "integer",
+                      "format": "int64"
+                    },
+                    "description": "token to be passed as a header"
+                  },
+                  "X-Custom-Header": {
+                    "type": "string",
+                    "description": "Custom header value"
+                  }
+                },
+                "required": [
+                  "token"
+                ],
+                "additionalProperties": false
+              },
+              "cookie": {
+                "type": "object",
+                "description": "cookie object",
+                "properties": {
+                  "session_id": {
+                    "type": "string",
+                    "description": "Session identifier"
+                  }
+                },
+                "required": [],
+                "additionalProperties": false
+              },
+              "body": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "example": "123"
+                  },
+                  "price": {
+                    "type": "number",
+                    "format": "double",
+                    "example": 999.99
+                  }
+                },
+                "required": ["id", "price"],
+                "description": "body object"
+              }
+            },
+            "required": [
+              "path",
+              "header",
+              "cookie",
+              "body"
+            ],
+            "additionalProperties": false
+        },
+        "response": {}
+    }
+]

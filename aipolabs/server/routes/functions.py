@@ -1,7 +1,9 @@
 from enum import Enum
-from typing import Annotated, Any
+from typing import Annotated
 from uuid import UUID
 
+import jsonschema
+import requests
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, Field, field_validator
 from sqlalchemy.orm import Session
@@ -12,12 +14,14 @@ from aipolabs.common.openai_service import OpenAIService
 from aipolabs.common.schemas.function import (
     AnthropicFunctionDefinition,
     FunctionBasicPublic,
+    FunctionExecution,
     FunctionExecutionResponse,
     FunctionPublic,
+    HttpMetadata,
     OpenAIFunctionDefinition,
+    Protocol,
 )
 from aipolabs.server import config
-from aipolabs.server.apps.base import AppBase, AppFactory
 from aipolabs.server.dependencies import validate_api_key, yield_db_session
 
 router = APIRouter()
@@ -25,7 +29,6 @@ logger = get_logger(__name__)
 openai_service = OpenAIService(
     config.OPENAI_API_KEY, config.OPENAI_EMBEDDING_MODEL, config.OPENAI_EMBEDDING_DIMENSION
 )
-app_factory = AppFactory()
 
 
 # TODO: convert app names to lowercase/uppercase (in crud or here) to avoid case sensitivity issues?
@@ -63,7 +66,7 @@ class FunctionSearchParams(BaseModel):
 
 
 class FunctionExecutionParams(BaseModel):
-    function_input: dict[str, Any] = Field(
+    function_input: dict = Field(
         default_factory=dict, description="The input parameters for the function."
     )
     # TODO: can add other params like account_id
@@ -193,19 +196,14 @@ async def execute(
 ) -> FunctionExecutionResponse:
     try:
         # Fetch function definition
-        function = crud.get_function(db_session, api_key_id, function_name)
-        if not function:
+        db_function = crud.get_function(db_session, api_key_id, function_name)
+        if not db_function:
             logger.error(f"Function {function_name} not found.")
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Function not found.")
 
-        # get the child class instance of AppBase based on function name
-        app_instance: AppBase = app_factory.get_app_instance(function_name)
-
-        # validate input
-        app_instance.validate_input(function.parameters, function_execution_params.function_input)
-
-        # Execute the function
-        return app_instance.execute(function_name, function_execution_params.function_input)
+        return _execute(
+            FunctionExecution.model_validate(db_function), function_execution_params.function_input
+        )
 
     except ValueError as e:
         logger.exception(f"Error executing function {function_name}")
@@ -219,3 +217,67 @@ async def execute(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error."
         )
+
+
+# TODO: allow local code execution override by using AppBase.execute() e.g.,:
+# app_factory = AppFactory()
+# app_instance: AppBase = app_factory.get_app_instance(function_name)
+# app_instance.validate_input(db_function.parameters, function_execution_params.function_input)
+# return app_instance.execute(function_name, function_execution_params.function_input)
+def _execute(
+    function_execution: FunctionExecution, function_input: dict
+) -> FunctionExecutionResponse:
+    try:
+        jsonschema.validate(instance=function_input, schema=function_execution.parameters)
+    except jsonschema.ValidationError as e:
+        logger.error(f"Invalid input: {e.message}")
+        raise ValueError(f"Invalid input: {e.message}") from e
+
+    if function_execution.protocol == Protocol.REST:
+        # Extract parameters by location
+        path_params = function_input.get("path", {})
+        query_params = function_input.get("query", {})
+        headers = function_input.get("header", {})
+        cookies = function_input.get("cookie", {})
+        body = function_input.get("body", {})
+
+        # TODO: validate protocol_data is of type HttpMetadata?
+        protocol_data: HttpMetadata = function_execution.protocol_data
+        # Construct URL with path parameters
+        url = f"{protocol_data.server_url}{protocol_data.path}"
+        if path_params:
+            # Replace path parameters in URL
+            for path_param_name, path_param_value in path_params.items():
+                url = url.replace(f"{{{path_param_name}}}", str(path_param_value))
+
+        # Create request object
+        request = requests.Request(
+            method=protocol_data.method,
+            url=url,
+            params=query_params if query_params else None,
+            headers=headers if headers else None,
+            cookies=cookies if cookies else None,
+            json=body if body else None,
+        )
+
+        # Prepare the request to access its components
+        prepared_request = request.prepare()
+
+        # Dump the prepared request to JSON
+        request_json = {
+            "method": prepared_request.method,
+            "url": prepared_request.url,
+            "headers": dict(prepared_request.headers),
+            "body": prepared_request.body.decode("utf-8") if prepared_request.body else None,
+        }
+        # execute request
+        response = requests.Session().send(prepared_request)
+        logger.info(f"Response: {response.json()}")
+
+        # print request in nice format
+        logger.info("======================== REQUEST ========================")
+        logger.info(request_json)
+        if response.status_code >= 400:
+            return FunctionExecutionResponse(success=False, error=response.json())
+        else:
+            return FunctionExecutionResponse(success=True, data=response.json())

@@ -6,54 +6,70 @@
         "tags": ["calendar"],
         "visibility": "public",
         "enabled": true,
+        "protocol": "rest",
+        "protocol_data": {
+            "method": "POST",
+            "path": "/calendar/events",
+            "server_url": "https://api.google.com/calendar/v1"
+        },
         "parameters": {
             "type": "object",
             "properties": {
-                "calendar_id": {
-                    "type": "string",
-                    "description": "The ID of the Google Calendar"
-                },
-                "event_title": {
-                    "type": "string",
-                    "description": "The title of the event"
-                },
-                "start_time": {
-                    "type": "string",
-                    "description": "The start time of the event (in ISO 8601 format)"
-                },
-                "end_time": {
-                    "type": "string",
-                    "description": "The end time of the event (in ISO 8601 format)"
-                },
-                "metadata": {
+                "path": {
                     "type": "object",
+                    "description": "Path parameters",
                     "properties": {
-                        "description": {
+                        "calendar_id": {
                             "type": "string",
-                            "description": "A detailed description of the event"
-                        },
-                        "attendees": {
-                            "type": "array",
-                            "items": {
-                                "type": "string",
-                                "description": "Email addresses of attendees"
-                            }
+                            "description": "The ID of the Google Calendar"
                         }
                     },
-                    "required": [
-                        "description",
-                        "attendees"
-                    ]
+                    "required": ["calendar_id"],
+                    "additionalProperties": false
+                },
+                "body": {
+                    "type": "object",
+                    "description": "Body parameters",
+                    "properties": {
+                        "event_title": {
+                            "type": "string",
+                            "description": "The title of the event"
+                        },
+                        "start_time": {
+                            "type": "string",
+                            "description": "The start time of the event (in ISO 8601 format)"
+                        },
+                        "end_time": {
+                            "type": "string",
+                            "description": "The end time of the event (in ISO 8601 format)"
+                        },
+                        "metadata": {
+                            "type": "object",
+                            "properties": {
+                                "description": {
+                                    "type": "string",
+                                    "description": "A detailed description of the event"
+                                },
+                                "attendees": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "string",
+                                        "description": "Email addresses of attendees"
+                                    }
+                                }
+                            },
+                            "required": ["description", "attendees"],
+                            "additionalProperties": false
+                        }
+                    },
+                    "required": ["event_title", "start_time", "end_time", "metadata"],
+                    "additionalProperties": false
                 }
             },
-            "required": [
-                "calendar_id",
-                "event_title",
-                "start_time",
-                "end_time",
-                "metadata"
-            ]
-        }
+            "required": ["path", "body"],
+            "additionalProperties": false
+        },
+        "response": {}
     },
     {
         "name": "GOOGLE__DRIVE_UPLOAD_FILE",
@@ -61,60 +77,77 @@
         "tags": ["drive"],
         "visibility": "public",
         "enabled": true,
+        "protocol": "rest",
+        "protocol_data": {
+            "method": "POST",
+            "path": "/drive/files",
+            "server_url": "https://api.google.com/drive/v1"
+        },
         "parameters": {
             "type": "object",
             "properties": {
-                "folder_id": {
-                    "type": "string",
-                    "description": "The ID of the folder where the file will be uploaded"
-                },
-                "file_name": {
-                    "type": "string",
-                    "description": "The name of the file to be uploaded"
-                },
-                "file_type": {
-                    "type": "string",
-                    "description": "The MIME type of the file"
-                },
-                "metadata": {
+                "path": {
                     "type": "object",
+                    "description": "Path parameters",
                     "properties": {
-                        "description": {
+                        "folder_id": {
                             "type": "string",
-                            "description": "Description of the file"
-                        },
-                        "permissions": {
-                            "type": "array",
-                            "items": {
-                                "type": "object",
-                                "properties": {
-                                    "email": {
-                                        "type": "string",
-                                        "description": "Email address of the person to share with"
-                                    },
-                                    "role": {
-                                        "type": "string",
-                                        "enum": ["owner", "writer", "reader"],
-                                        "description": "Permission role for the person"
-                                    }
-                                },
-                                "required": [
-                                    "email",
-                                    "role"
-                                ]
-                            }
+                            "description": "The ID of the folder where the file will be uploaded"
                         }
                     },
-                    "required": [
-                        "permissions"
-                    ]
+                    "required": ["folder_id"],
+                    "additionalProperties": false
+                },
+                "body": {
+                    "type": "object",
+                    "description": "Body parameters",
+                    "properties": {
+                        "file_name": {
+                            "type": "string",
+                            "description": "The name of the file to be uploaded"
+                        },
+                        "file_type": {
+                            "type": "string",
+                            "description": "The MIME type of the file"
+                        },
+                        "metadata": {
+                            "type": "object",
+                            "properties": {
+                                "description": {
+                                    "type": "string",
+                                    "description": "Description of the file"
+                                },
+                                "permissions": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "properties": {
+                                            "email": {
+                                                "type": "string",
+                                                "description": "Email address of the person to share with"
+                                            },
+                                            "role": {
+                                                "type": "string",
+                                                "enum": ["owner", "writer", "reader"],
+                                                "description": "Permission role for the person"
+                                            }
+                                        },
+                                        "required": ["email", "role"],
+                                        "additionalProperties": false
+                                    }
+                                }
+                            },
+                            "required": ["permissions"],
+                            "additionalProperties": false
+                        }
+                    },
+                    "required": ["file_name", "file_type", "metadata"],
+                    "additionalProperties": false
                 }
             },
-            "required": [
-                "folder_id",
-                "file_name",
-                "file_type"
-            ]
-        }
+            "required": ["path", "body"],
+            "additionalProperties": false
+        },
+        "response": {}
     }
 ]

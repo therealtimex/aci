@@ -1,36 +1,29 @@
 import re
-from typing import Any
 
-from pydantic import BaseModel, ConfigDict, ValidationInfo, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-from aipolabs.common.db import sql_models
-from aipolabs.common.logging import get_logger
-from aipolabs.common.schemas.app_auth import (
-    ApiKeyAuthScheme,
-    HttpBasicAuthScheme,
-    HttpBearerAuthScheme,
-    OAuth2AuthScheme,
-    OpenIDAuthScheme,
-)
+from aipolabs.common.db.sql_models import SecuritySchemeType, Visibility
 
-logger = get_logger(__name__)
+
+# TODO: move to common utils, and solve circular import in utils
+def snake_to_camel(string: str) -> str:
+    """Convert a snake case string to a camel case string."""
+    parts = string.split("_")
+    return parts[0] + "".join(word.capitalize() for word in parts[1:])
 
 
 class AppCreate(BaseModel):
-    """Used to load app data for app creation or overwrite existing app."""
-
     name: str
     display_name: str
     provider: str
-    description: str
-    server_url: str
-    logo: str | None = None
-    categories: list[str]
-    supported_auth_types: list[sql_models.App.AuthType]
-    auth_configs: dict[sql_models.App.AuthType, Any]
     version: str
-    visibility: sql_models.Visibility = sql_models.Visibility.PRIVATE
-    enabled: bool = True
+    description: str
+    logo: str
+    categories: list[str]
+    visibility: Visibility
+    enabled: bool
+    # TODO: consider making schema for each security scheme instead of using dict
+    security_schemes: dict[SecuritySchemeType, dict] = Field(default_factory=dict)
 
     @field_validator("name")
     def validate_name(cls, v: str) -> str:
@@ -39,38 +32,6 @@ class AppCreate(BaseModel):
                 "name must be uppercase, contain only letters and underscores, and not have consecutive underscores"
             )
         return v
-
-    # key in auth_configs must be in supported_auth_types
-    @field_validator("auth_configs")
-    def validate_auth_configs(
-        cls,
-        v: dict[sql_models.App.AuthType, Any],
-        info: ValidationInfo,  # Use ValidationInfo to access other fields
-    ) -> dict[sql_models.App.AuthType, Any]:
-
-        if set(v.keys()) != set(info.data["supported_auth_types"]):
-            raise ValueError(
-                f"auth_configs must be a dict with keys in supported_auth_types: {info.data['supported_auth_types']}"
-            )
-
-        # Validate each auth_config value against its schema
-        for auth_type, config in v.items():
-            if auth_type == sql_models.App.AuthType.API_KEY:
-                ApiKeyAuthScheme.model_validate(config)
-            elif auth_type == sql_models.App.AuthType.HTTP_BASIC:
-                HttpBasicAuthScheme.model_validate(config)
-            elif auth_type == sql_models.App.AuthType.HTTP_BEARER:
-                HttpBearerAuthScheme.model_validate(config)
-            elif auth_type == sql_models.App.AuthType.OAUTH2:
-                OAuth2AuthScheme.model_validate(config)
-            elif auth_type == sql_models.App.AuthType.OPEN_ID:
-                OpenIDAuthScheme.model_validate(config)
-            else:
-                raise ValueError(f"Unsupported auth type: {auth_type}")
-        return v
-
-    # enables the model to be initialized with attributes from a SQLAlchemy object.
-    model_config = ConfigDict(from_attributes=True)
 
 
 class AppBasicPublic(BaseModel):

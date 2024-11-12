@@ -1,8 +1,8 @@
 """first migration
 
-Revision ID: 44fd6f77ee64
+Revision ID: 15b48d96db4f
 Revises:
-Create Date: 2024-10-28 11:45:29.234848+00:00
+Create Date: 2024-11-11 20:12:24.517609+00:00
 
 """
 
@@ -14,7 +14,7 @@ from pgvector.sqlalchemy import Vector
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
-revision: str = "44fd6f77ee64"
+revision: str = "15b48d96db4f"
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -28,34 +28,16 @@ def upgrade() -> None:
         "apps",
         sa.Column("id", sa.UUID(), nullable=False),
         sa.Column("name", sa.String(length=100), nullable=False),
-        sa.Column("display_name", sa.String(length=100), nullable=False),
+        sa.Column("display_name", sa.String(length=255), nullable=False),
         sa.Column("provider", sa.String(length=255), nullable=False),
+        sa.Column("version", sa.String(length=255), nullable=False),
         sa.Column("description", sa.Text(), nullable=False),
-        sa.Column("server_url", sa.String(length=255), nullable=False),
         sa.Column("logo", sa.Text(), nullable=True),
-        # Note: need to use postgresql.ARRAY to use the "overlaps" operator
         sa.Column("categories", postgresql.ARRAY(sa.String()), nullable=False),
-        sa.Column(
-            "supported_auth_types",
-            postgresql.ARRAY(
-                sa.Enum(
-                    "CUSTOM",
-                    "NO_AUTH",
-                    "API_KEY",
-                    "HTTP_BASIC",
-                    "HTTP_BEARER",
-                    "OAUTH2",
-                    "OPEN_ID",
-                    name="authtype",
-                )
-            ),
-            nullable=False,
-        ),
-        sa.Column("auth_configs", sa.JSON(), nullable=False),
-        sa.Column("embedding", Vector(dim=1024), nullable=False),
-        sa.Column("version", sa.String(length=100), nullable=False),
         sa.Column("visibility", sa.Enum("PUBLIC", "PRIVATE", name="visibility"), nullable=False),
         sa.Column("enabled", sa.Boolean(), nullable=False),
+        sa.Column("security_schemes", sa.JSON(), nullable=False),
+        sa.Column("embedding", Vector(dim=1024), nullable=False),
         sa.Column("created_at", sa.DateTime(), server_default=sa.text("now()"), nullable=False),
         sa.Column("updated_at", sa.DateTime(), server_default=sa.text("now()"), nullable=False),
         sa.PrimaryKeyConstraint("id"),
@@ -77,7 +59,7 @@ def upgrade() -> None:
         sa.Column("email", sa.String(length=255), nullable=False),
         sa.Column("profile_picture", sa.Text(), nullable=True),
         sa.Column(
-            "plan", sa.Enum("FREE", "BASIC", "PRO", "ENTERPRISE", name="plan"), nullable=False
+            "plan", sa.Enum("CUSTOM", "FREE", "PRO", "ENTERPRISE", name="plan"), nullable=False
         ),
         sa.Column("created_at", sa.DateTime(), server_default=sa.text("now()"), nullable=False),
         sa.Column("updated_at", sa.DateTime(), server_default=sa.text("now()"), nullable=False),
@@ -87,15 +69,17 @@ def upgrade() -> None:
     op.create_table(
         "functions",
         sa.Column("id", sa.UUID(), nullable=False),
-        sa.Column("name", sa.String(length=255), nullable=False),
         sa.Column("app_id", sa.UUID(), nullable=False),
+        sa.Column("name", sa.String(length=255), nullable=False),
         sa.Column("description", sa.Text(), nullable=False),
-        sa.Column("response", sa.JSON(), nullable=False),
         sa.Column("tags", postgresql.ARRAY(sa.String()), nullable=False),
-        sa.Column("embedding", Vector(dim=1024), nullable=False),
-        sa.Column("parameters", sa.JSON(), nullable=False),
         sa.Column("visibility", sa.Enum("PUBLIC", "PRIVATE", name="visibility"), nullable=False),
         sa.Column("enabled", sa.Boolean(), nullable=False),
+        sa.Column("protocol", sa.Enum("REST", name="protocol"), nullable=False),
+        sa.Column("protocol_data", sa.JSON(), nullable=False),
+        sa.Column("parameters", sa.JSON(), nullable=False),
+        sa.Column("response", sa.JSON(), nullable=False),
+        sa.Column("embedding", Vector(dim=1024), nullable=False),
         sa.Column("created_at", sa.DateTime(), server_default=sa.text("now()"), nullable=False),
         sa.Column("updated_at", sa.DateTime(), server_default=sa.text("now()"), nullable=False),
         sa.ForeignKeyConstraint(
@@ -108,10 +92,10 @@ def upgrade() -> None:
     op.create_table(
         "projects",
         sa.Column("id", sa.UUID(), nullable=False),
-        sa.Column("name", sa.String(length=255), nullable=False),
+        sa.Column("created_by", sa.UUID(), nullable=False),
         sa.Column("owner_user_id", sa.UUID(), nullable=True),
         sa.Column("owner_organization_id", sa.UUID(), nullable=True),
-        sa.Column("created_by", sa.UUID(), nullable=False),
+        sa.Column("name", sa.String(length=255), nullable=False),
         sa.Column(
             "visibility_access", sa.Enum("PUBLIC", "PRIVATE", name="visibility"), nullable=False
         ),
@@ -144,9 +128,9 @@ def upgrade() -> None:
         "agents",
         sa.Column("id", sa.UUID(), nullable=False),
         sa.Column("project_id", sa.UUID(), nullable=False),
+        sa.Column("created_by", sa.UUID(), nullable=False),
         sa.Column("name", sa.String(length=255), nullable=False),
         sa.Column("description", sa.Text(), nullable=False),
-        sa.Column("created_by", sa.UUID(), nullable=False),
         sa.Column("excluded_apps", postgresql.ARRAY(sa.UUID()), nullable=False),
         sa.Column("excluded_functions", postgresql.ARRAY(sa.UUID()), nullable=False),
         sa.Column("created_at", sa.DateTime(), server_default=sa.text("now()"), nullable=False),
@@ -205,23 +189,23 @@ def upgrade() -> None:
         sa.Column("project_app_integration_id", sa.UUID(), nullable=False),
         sa.Column("account_owner_id", sa.String(length=255), nullable=False),
         sa.Column(
-            "auth_type",
+            "security_scheme_type",
             sa.Enum(
-                "CUSTOM",
-                "NO_AUTH",
                 "API_KEY",
                 "HTTP_BASIC",
                 "HTTP_BEARER",
-                "OAUTH2",
-                "OPEN_ID",
-                name="authtype",
+                "OAUTH2_PASSWORD",
+                "OAUTH2_AUTH_CODE",
+                "OAUTH2_AUTH_IMPLICIT",
+                "OPEN_ID_CONNECT",
+                name="securityschemetype",
             ),
-            nullable=False,
+            nullable=True,
         ),
-        sa.Column("auth_data", sa.JSON(), nullable=True),
+        sa.Column("security_scheme_data", sa.JSON(), nullable=True),
+        sa.Column("enabled", sa.Boolean(), nullable=False),
         sa.Column("created_at", sa.DateTime(), server_default=sa.text("now()"), nullable=False),
         sa.Column("updated_at", sa.DateTime(), server_default=sa.text("now()"), nullable=False),
-        sa.Column("enabled", sa.Boolean(), nullable=False),
         sa.ForeignKeyConstraint(
             ["project_app_integration_id"],
             ["project_app_integrations.id"],
@@ -250,17 +234,36 @@ def downgrade() -> None:
     # Drop the Enum types
     op_bind = op.get_bind()
     sa.Enum(
+        "PUBLIC",
+        "PRIVATE",
+        name="visibility",
+    ).drop(op_bind)
+    sa.Enum(
+        "ACTIVE",
+        "DISABLED",
+        "DELETED",
+        name="status",
+    ).drop(op_bind)
+    sa.Enum(
+        "REST",
+        name="protocol",
+    ).drop(op_bind)
+    sa.Enum(
         "CUSTOM",
-        "NO_AUTH",
+        "FREE",
+        "PRO",
+        "ENTERPRISE",
+        name="plan",
+    ).drop(op_bind)
+    sa.Enum(
         "API_KEY",
         "HTTP_BASIC",
         "HTTP_BEARER",
-        "OAUTH2",
-        "OPEN_ID",
-        name="authtype",
+        "OAUTH2_PASSWORD",
+        "OAUTH2_AUTH_CODE",
+        "OAUTH2_AUTH_IMPLICIT",
+        "OPEN_ID_CONNECT",
+        name="securityschemetype",
     ).drop(op_bind)
-    sa.Enum("ACTIVE", "DISABLED", "DELETED", name="status").drop(op_bind)
-    sa.Enum("FREE", "BASIC", "PRO", "ENTERPRISE", name="plan").drop(op_bind)
-    sa.Enum("PUBLIC", "PRIVATE", name="visibility").drop(op_bind)
-    # Drop the extension
+    # drop extentions
     op.execute("DROP EXTENSION IF EXISTS vector;")

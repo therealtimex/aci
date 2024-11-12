@@ -1,11 +1,14 @@
+import json
 import logging
 from pathlib import Path
 
 from sqlalchemy.orm import Session
 
-from aipolabs.common import utils
+from aipolabs.common import embeddings
 from aipolabs.common.db import crud, sql_models
 from aipolabs.common.openai_service import OpenAIService
+from aipolabs.common.schemas.app import AppCreate
+from aipolabs.common.schemas.function import FunctionCreate
 from aipolabs.server import config
 
 logger = logging.getLogger(__name__)
@@ -21,7 +24,6 @@ def create_dummy_apps_and_functions(db_session: Session) -> list[sql_models.App]
     for app_dir in dummy_apps_dir.glob("*"):
         app_file = app_dir / "app.json"
         functions_file = app_dir / "functions.json"
-        logger.info(f"app_file: {app_file}, functions_file: {functions_file}")
         dummy_apps.append(_upsert_app_and_functions(db_session, app_file, functions_file))
     return dummy_apps
 
@@ -30,18 +32,20 @@ def _upsert_app_and_functions(
     db_session: Session, app_file: Path, functions_file: Path
 ) -> sql_models.App:
     """Upsert App and Functions to db from a json file."""
+    with open(app_file, "r") as f:
+        app: AppCreate = AppCreate.model_validate(json.load(f))
+    with open(functions_file, "r") as f:
+        functions: list[FunctionCreate] = [
+            FunctionCreate.model_validate(function) for function in json.load(f)
+        ]
 
-    app_create, app_embedding = utils.generate_app_from_file(app_file, openai_service)
-    functions, function_embeddings = utils.generate_functions_from_file(
-        functions_file, openai_service
-    )
+    app_embedding = embeddings.generate_app_embedding(app, openai_service)
+    function_embeddings = embeddings.generate_function_embeddings(functions, openai_service)
 
-    # make sure app and functions are upserted in one transaction
-    logger.info(f"Upserting app: {app_create.name}...")
-    db_app = crud.upsert_app(db_session, app_create, app_embedding)
-
-    logger.info(f"Upserting functions for app: {app_create.name}...")
-    crud.upsert_functions(db_session, functions, function_embeddings, db_app.id)
+    # TODO: check app name and functio name match?
+    logger.info(f"Upserting app and functions for app: {app.name}...")
+    db_app = crud.create_app(db_session, app, app_embedding)
+    crud.create_functions(db_session, functions, function_embeddings)
 
     db_session.commit()
 
