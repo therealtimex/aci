@@ -47,4 +47,17 @@ def create_db_session(db_url: str) -> Session:
 
 
 def parse_app_name_from_function_name(function_name: str) -> str:
+    """
+    Parse the app name from a function name.
+    e.g., "AIPOLABS_TEST__HELLO_WORLD" -> "AIPOLABS_TEST"
+    """
     return function_name.split("__")[0]
+
+
+def snake_to_camel(string: str) -> str:
+    """
+    Convert a snake case string to a camel case string.
+    e.g., "snake_case_string" -> "SnakeCaseString"
+    """
+    parts = string.split("_")
+    return parts[0] + "".join(word.capitalize() for word in parts[1:])

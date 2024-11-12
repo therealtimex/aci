@@ -5,13 +5,6 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 from aipolabs.common.db.sql_models import SecuritySchemeType, Visibility
 
 
-# TODO: move to common utils, and solve circular import in utils
-def snake_to_camel(string: str) -> str:
-    """Convert a snake case string to a camel case string."""
-    parts = string.split("_")
-    return parts[0] + "".join(word.capitalize() for word in parts[1:])
-
-
 class AppCreate(BaseModel):
     name: str
     display_name: str
