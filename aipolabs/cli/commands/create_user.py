@@ -82,10 +82,15 @@ def create_user(
 
         if not skip_dry_run:
             logger.info(
-                f"provide --skip-dry-run to create new user with data \n{user_create.model_dump_json(indent=2, exclude_none=True)}"
+                f"\n\n============ will create new user {db_user.name} ============\n\n"
+                f"{db_user}\n\n"
+                "============ provide --skip-dry-run to commit changes ============="
             )
             db_session.rollback()
         else:
-            logger.info(f"committing creation of user {db_user.name}")
+            logger.info(
+                f"\n\n============ committing creation of user {db_user.name} ============\n\n"
+                f"{db_user}\n\n"
+            )
             db_session.commit()
-            logger.info("success!")
+            logger.info("============ success! =============")

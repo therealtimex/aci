@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Annotated
+from typing import Annotated, Any
 from uuid import UUID
 
 import jsonschema
@@ -226,12 +226,15 @@ def _execute(
     db_app: sql_models.App, function_execution: FunctionExecution, function_input: dict
 ) -> FunctionExecutionResult:
     try:
+        logger.info(f"validating function input for {function_execution.name}")
         jsonschema.validate(instance=function_input, schema=function_execution.parameters)
     except jsonschema.ValidationError as e:
         logger.error(f"Invalid input: {e.message}")
         raise ValueError(f"Invalid input: {e.message}") from e
-
     if function_execution.protocol == Protocol.REST:
+        # remove None values from the input
+        # TODO: better way to remove None values? and if it's ok to remove all of them?
+        function_input = _remove_none_values(function_input)
         # Extract parameters by location
         path_params = function_input.get("path", {})
         query_params = function_input.get("query", {})
@@ -273,11 +276,25 @@ def _execute(
         )
         # execute request
         response = requests.Session().send(prepared_request)
+        # try to parse response as json, if failed, use the raw response content
+        try:
+            response_data = response.json()
+        except Exception as e:
+            logger.error(f"Failed to parse JSON response: {str(e)}")
+            # TODO: can this fail?
+            response_data = _get_response_data(response)
+            logger.error(f"Raw response content: {response_data}")
 
         if response.status_code >= 400:
-            return FunctionExecutionResult(success=False, error=response.json())
+            logger.error(
+                f"Function execution failed for {function_execution.name}, response: {response_data}"
+            )
+            return FunctionExecutionResult(success=False, error=response_data)
         else:
-            return FunctionExecutionResult(success=True, data=response.json())
+            logger.info(
+                f"Function execution succeeded for {function_execution.name}, response: {response_data}"
+            )
+            return FunctionExecutionResult(success=True, data=response_data)
 
 
 # get the default api key and header name for an app if exists, for example
@@ -300,3 +317,24 @@ def _get_default_api_key_and_header_name(db_app: sql_models.App) -> tuple[str, s
             db_app.security_schemes["api_key"]["name"],
         )
     return None
+
+
+def _remove_none_values(data: Any) -> Any:
+    if isinstance(data, dict):
+        return {k: _remove_none_values(v) for k, v in data.items() if v is not None}
+    elif isinstance(data, list):
+        return [_remove_none_values(item) for item in data if item is not None]
+    else:
+        return data
+
+
+def _get_response_data(response: requests.Response) -> Any:
+    response_data: Any = None
+    try:
+        if response.content:
+            response_data = response.content.decode("utf-8", errors="replace")
+    except Exception as e:
+        logger.error(f"Failed to decode response content: {str(e)}")
+        response_data = "Invalid response content"
+
+    return response_data

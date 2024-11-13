@@ -1,68 +1,163 @@
 [
     {
-        "name": "BRAVE_SEARCH__HELLO_WORLD_NO_ARGS",
-        "description": "Say hello to the world with no args"
-    },
-    {
-        "name": "BRAVE_SEARCH__HELLO_WORLD",
-        "description": "Say hello to the world",
+        "name": "BRAVE_SEARCH__WEB_SEARCH",
+        "description": "Brave Web Search API is a REST API to query Brave Search and get back search results from the web.",
+        "tags": ["search"],
+        "visibility": "public",
+        "enabled": true,
+        "protocol": "rest",
+        "protocol_data": {
+            "method": "GET",
+            "path": "/web/search",
+            "server_url": "https://api.search.brave.com/res/v1"
+        },
         "parameters": {
             "type": "object",
             "properties": {
-                "name": {
-                    "type": "string",
-                    "description": "The name of the person to greet"
-                },
-                "greeting": {
-                    "type": "string",
-                    "description": "The greeting message"
-                }
-            },
-            "required": ["name", "greeting"]
-        }
-    },
-    {
-        "name": "BRAVE_SEARCH__HELLO_WORLD_NESTED_ARGS",
-        "description": "Say hello to the world with nested args",
-        "parameters": {
-            "type": "object",
-            "properties": {
-                "person": {
+                "query": {
                     "type": "object",
-                    "description": "The person to greet",
+                    "description": "query parameters",
                     "properties": {
-                        "name": {
+                        "q": {
                             "type": "string",
-                            "description": "The name of the person"
-                        },
-                        "title": {
-                            "type": "string",
-                            "description": "The title of the person"
-                        }
-                    },
-                    "required": ["name", "title"]
-                },
-                "greeting": {
-                    "type": "string",
-                    "description": "The greeting message"
-                },
-                "location": {
-                    "type": "object",
-                    "description": "The location of the person",
-                    "properties": {
-                        "city": {
-                            "type": "string",
-                            "description": "The city of the location"
+                            "description": "The user's search query term. Maximum of 400 characters and 50 words",
+                            "maxLength": 400
                         },
                         "country": {
                             "type": "string",
-                            "description": "The country of the location"
+                            "description": "The search query country (2 character country codes)",
+                            "default": "US",
+                            "enum": [
+                                "ALL", "AR", "AU", "AT", "BE", "BR", "CA", "CL", 
+                                "DK", "FI", "FR", "DE", "HK", "IN", "ID", "IT", 
+                                "JP", "KR", "MY", "MX", "NL", "NZ", "NO", "CN", 
+                                "PL", "PT", "PH", "RU", "SA", "ZA", "ES", "SE", 
+                                "CH", "TW", "TR", "GB", "US"
+                            ]
+                        },
+                        "search_lang": {
+                            "type": "string",
+                            "description": "The search language preference (2+ character language code)",
+                            "default": "en",
+                            "enum": [
+                                "ar", "eu", "bn", "bg", "ca", 
+                                "zh-hans", "zh-hant", "hr", "cs", "da",
+                                "nl", "en", "en-gb", "et", "fi",
+                                "fr", "gl", "de", "gu", "he",
+                                "hi", "hu", "is", "it", "jp",
+                                "kn", "ko", "lv", "lt", "ms",
+                                "ml", "mr", "nb", "pl", "pt-br",
+                                "pt-pt", "pa", "ro", "ru", "sr",
+                                "sk", "sl", "es", "sv", "ta",
+                                "te", "th", "tr", "uk", "vi"
+                            ]
+                        },
+                        "ui_lang": {
+                            "type": "string",
+                            "description": "User interface language preferred in response (format: <language_code>-<country_code>)",
+                            "default": "en-US",
+                            "enum": [
+                                "es-AR", "en-AU", "de-AT",
+                                "nl-BE", "fr-BE", "pt-BR",
+                                "en-CA", "fr-CA", "es-CL",
+                                "da-DK", "fi-FI", "fr-FR",
+                                "de-DE", "zh-HK", "en-IN",
+                                "en-ID", "it-IT", "ja-JP",
+                                "ko-KR", "en-MY", "es-MX",
+                                "nl-NL", "en-NZ", "no-NO",
+                                "zh-CN", "pl-PL", "en-PH",
+                                "ru-RU", "en-ZA", "es-ES",
+                                "sv-SE", "fr-CH", "de-CH",
+                                "zh-TW", "tr-TR", "en-GB",
+                                "en-US", "es-US"
+                            ]
+                        },
+                        "count": {
+                            "type": "integer",
+                            "description": "Number of search results returned in response (max 20) The actual number delivered may be less than requested. Combine this parameter with offset to paginate search results.",
+                            "default": 20,
+                            "maximum": 20,
+                            "minimum": 1
+                        },
+                        "offset": {
+                            "type": "integer",
+                            "description": "The zero based offset that indicates number of search results per page (count) to skip before returning the result. The maximum is 9. The actual number delivered may be less than requested based on the query. In order to paginate results use this parameter together with count",
+                            "default": 0,
+                            "maximum": 9,
+                            "minimum": 0
+                        },
+                        "safesearch": {
+                            "type": "string",
+                            "description": "Filters search results for adult content",
+                            "default": "moderate",
+                            "enum": ["off", "moderate", "strict"]
+                        },
+                        "freshness": {
+                            "type": ["string", "null"],
+                            "description": "Filters search results by when they were discovered. Can be a predefined value (pd, pw, pm, py) or a date range in format YYYY-MM-DDtoYYYY-MM-DD",
+                            "default": null,
+                            "anyOf": [
+                                { "enum": [null, "pd", "pw", "pm", "py"] },
+                                { "pattern": "^\\d{4}-\\d{2}-\\d{2}to\\d{4}-\\d{2}-\\d{2}$" }
+                            ]
+                        },
+                        "text_decorations": {
+                            "type": "boolean",
+                            "description": "Whether display strings should include decoration markers",
+                            "default": true
+                        },
+                        "spellcheck": {
+                            "type": "boolean",
+                            "description": "Whether to spellcheck provided query",
+                            "default": true
+                        },
+                        "result_filter": {
+                            "type": ["string", "null"],
+                            "description": "Comma delimited string of result types to include. Available result filter values are: discussions, faq, infobox, news, query, summarizer, videos, web, locations",
+                            "default": null
+                        },
+                        "goggles_id": {
+                            "type": ["string", "null"],
+                            "description": "Goggles act as a custom re-ranking on top of Brave’s search index",
+                            "default": null
+                        },
+                        "units": {
+                            "type": ["string", "null"],
+                            "description": "The measurement units. If not provided, units are derived from search country.",
+                            "default": null,
+                            "enum": [null, "metric", "imperial"]
+                        },
+                        "extra_snippets": {
+                            "type": "boolean",
+                            "description": "A snippet is an excerpt from a page you get as a result of the query, and extra_snippets allow you to get up to 5 additional, alternative excerpts.",
+                            "default": false
+                        },
+                        "summary": {
+                            "type": "boolean",
+                            "description": "This parameter enables summary key generation in web search results. This is required for summarizer to be enabled.",
+                            "default": false
                         }
                     },
-                    "required": ["city", "country"]
+                    "required": ["q"],
+                    "additionalProperties": false
+                },
+                "header": {
+                    "type": "object",
+                    "description": "header parameters",
+                    "properties": {
+                        "Cache-Control": {
+                            "type": ["string", "null"],
+                            "description": "Search will return cached web search results by default. To prevent caching set the Cache-Control header to no-cache",
+                            "default": null,
+                            "enum": [null, "no-cache"]
+                        }
+                    },
+                    "required": ["Cache-Control"],
+                    "additionalProperties": false
                 }
             },
-            "required": ["person", "greeting", "location"]
+            "required": ["query", "header"],
+            "additionalProperties": false
         }
     }
 ]

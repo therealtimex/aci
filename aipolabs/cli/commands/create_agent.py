@@ -90,10 +90,15 @@ def create_agent(
 
         if not skip_dry_run:
             logger.info(
-                f"provide --skip-dry-run to create new agent with data \n{agent_create.model_dump_json(indent=2, exclude_none=True)}"
+                f"\n\n============ will create new agent {db_agent.name} ============\n\n"
+                f"{db_agent}\n\n"
+                "============ provide --skip-dry-run to commit changes ============="
             )
             db_session.rollback()
         else:
-            logger.info(f"committing creation of agent {db_agent.name}")
+            logger.info(
+                f"\n\n============ committing creation of agent {db_agent.name} ============\n\n"
+                f"{db_agent}\n\n"
+            )
             db_session.commit()
-            logger.info("success!")
+            logger.info("============ success! =============")

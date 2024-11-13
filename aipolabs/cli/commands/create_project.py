@@ -76,9 +76,16 @@ def create_project(
 
         db_project = crud.create_project(db_session, project_create, visibility_access)
         if not skip_dry_run:
-            logger.info(f"provide --skip-dry-run to create new project \n{db_project}")
+            logger.info(
+                f"\n\n============ will create new project {db_project.name} ============\n\n"
+                f"{db_project}\n\n"
+                "============ provide --skip-dry-run to commit changes ============="
+            )
             db_session.rollback()
         else:
-            logger.info(f"committing creation of project {db_project.name}")
+            logger.info(
+                f"\n\n============ committing creation of project {db_project.name} ============\n\n"
+                f"{db_project}\n\n"
+            )
             db_session.commit()
-            logger.info("success!")
+            logger.info("============ success! =============")
