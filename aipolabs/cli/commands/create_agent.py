@@ -17,18 +17,6 @@ openai_service = OpenAIService(
 
 @click.command()
 @click.option(
-    "--agent-name",
-    "agent_name",
-    required=True,
-    help="agent name",
-)
-@click.option(
-    "--description",
-    "description",
-    required=True,
-    help="agent description",
-)
-@click.option(
     "--project-id",
     "project_id",
     required=True,
@@ -41,6 +29,18 @@ openai_service = OpenAIService(
     required=True,
     type=UUID,
     help="user id of the creator of the agent",
+)
+@click.option(
+    "--agent-name",
+    "agent_name",
+    required=True,
+    help="agent name",
+)
+@click.option(
+    "--description",
+    "description",
+    required=True,
+    help="agent description",
 )
 @click.option(
     "--excluded-apps",

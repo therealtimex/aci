@@ -75,6 +75,7 @@ def get_or_create_user(db_session: Session, user: UserCreate) -> sql_models.User
 def create_project(
     db_session: Session,
     project: ProjectCreate,
+    # visibility_access can not be part of ProjectCreate otherwise users can create projects with private visibility
     visibility_access: sql_models.Visibility = sql_models.Visibility.PUBLIC,
 ) -> sql_models.Project:
     """

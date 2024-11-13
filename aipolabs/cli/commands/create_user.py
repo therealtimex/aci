@@ -19,9 +19,7 @@ openai_service = OpenAIService(
     "--auth-provider",
     "auth_provider",
     required=True,
-    type=click.Choice(
-        ["google", "github", "email"]
-    ),  # TODO: update according to auth provider when db finalized
+    type=click.Choice(["google"]),  # TODO: update according to auth provider when db finalized
     help="Auth provider",
 )
 @click.option(

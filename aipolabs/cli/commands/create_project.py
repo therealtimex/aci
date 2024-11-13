@@ -5,6 +5,7 @@ import click
 from aipolabs.cli import config
 from aipolabs.common import utils
 from aipolabs.common.db import crud
+from aipolabs.common.db.sql_models import Visibility
 from aipolabs.common.logging import get_logger
 from aipolabs.common.openai_service import OpenAIService
 from aipolabs.common.schemas.project import ProjectCreate, ProjectOwnerType
@@ -41,7 +42,14 @@ openai_service = OpenAIService(
     "created_by",
     required=True,
     type=UUID,
-    help="user id of the creator of the project, ideally the same as owner_id if owner_type is user",
+    help="user id of the creator of the project, should be the same as owner_id if owner_type is user",
+)
+@click.option(
+    "--visibility-access",
+    "visibility_access",
+    required=True,
+    type=Visibility,
+    help="visibility access of the project, if 'public', the project can only access public apps and functions",
 )
 @click.option(
     "--skip-dry-run",
@@ -53,6 +61,7 @@ def create_project(
     owner_type: ProjectOwnerType,
     owner_id: UUID,
     created_by: UUID,
+    visibility_access: Visibility,
     skip_dry_run: bool,
 ) -> None:
     """
@@ -62,17 +71,12 @@ def create_project(
 
     with utils.create_db_session(config.DB_FULL_URL) as db_session:
         project_create = ProjectCreate(
-            name=project_name,
-            owner_type=owner_type,
-            owner_id=owner_id,
-            created_by=created_by,
+            name=project_name, owner_type=owner_type, owner_id=owner_id, created_by=created_by
         )
 
-        db_project = crud.create_project(db_session, project_create)
+        db_project = crud.create_project(db_session, project_create, visibility_access)
         if not skip_dry_run:
-            logger.info(
-                f"provide --skip-dry-run to create new project with data \n{project_create.model_dump_json(indent=2, exclude_none=True)}"
-            )
+            logger.info(f"provide --skip-dry-run to create new project \n{db_project}")
             db_session.rollback()
         else:
             logger.info(f"committing creation of project {db_project.name}")
