@@ -199,7 +199,9 @@ async def execute(
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Function not found.")
 
         return _execute(
-            FunctionExecution.model_validate(db_function), function_execution_params.function_input
+            db_function.app,
+            FunctionExecution.model_validate(db_function),
+            function_execution_params.function_input,
         )
 
     except ValueError as e:
@@ -221,7 +223,7 @@ async def execute(
 # app_instance.validate_input(db_function.parameters, function_execution_params.function_input)
 # return app_instance.execute(function_name, function_execution_params.function_input)
 def _execute(
-    function_execution: FunctionExecution, function_input: dict
+    db_app: sql_models.App, function_execution: FunctionExecution, function_input: dict
 ) -> FunctionExecutionResult:
     try:
         jsonschema.validate(instance=function_input, schema=function_execution.parameters)
@@ -246,6 +248,10 @@ def _execute(
             for path_param_name, path_param_value in path_params.items():
                 url = url.replace(f"{{{path_param_name}}}", str(path_param_value))
 
+        # get default api key and header name for the app
+        default_api_key_data = _get_default_api_key_and_header_name(db_app)
+        if default_api_key_data:
+            headers[default_api_key_data[1]] = default_api_key_data[0]
         # Create request object
         request = requests.Request(
             method=protocol_data.method,
@@ -272,3 +278,25 @@ def _execute(
             return FunctionExecutionResult(success=False, error=response.json())
         else:
             return FunctionExecutionResult(success=True, data=response.json())
+
+
+# get the default api key and header name for an app if exists, for example
+# "api_key": {
+#   "in": "header",
+#   "name": "X-Subscription-Token",
+#   "default": ["BSAnf8MFuERsHzyYzNPjOdX5lFc9zXv"]
+# },
+# and put it in the header of the request
+# TODO: the right way for auth is to get from the connected account first (need app & project integration),
+# and if not found, then use the app's default
+def _get_default_api_key_and_header_name(db_app: sql_models.App) -> tuple[str, str] | None:
+    if (
+        db_app.security_schemes
+        and "api_key" in db_app.security_schemes
+        and db_app.security_schemes["api_key"]["default"]
+    ):
+        return (
+            db_app.security_schemes["api_key"]["default"][0],
+            db_app.security_schemes["api_key"]["name"],
+        )
+    return None

@@ -299,6 +299,9 @@ class Function(Base):
         init=False,
     )
 
+    # each function belongs to one app
+    app: Mapped[App] = relationship("App", lazy="select", back_populates="functions", init=False)
+
 
 class App(Base):
     __tablename__ = "apps"
@@ -337,7 +340,7 @@ class App(Base):
 
     # deleting app will delete all functions under the app
     functions: Mapped[list[Function]] = relationship(
-        "Function", lazy="select", cascade="all, delete-orphan", init=False
+        "Function", lazy="select", cascade="all, delete-orphan", back_populates="app", init=False
     )
 
 

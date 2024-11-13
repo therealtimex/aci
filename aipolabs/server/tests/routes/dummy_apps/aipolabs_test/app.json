@@ -8,7 +8,8 @@
     "security_schemes": {
         "api_key": {
             "in": "header",
-            "name": "X-Test-API-Key"
+            "name": "X-Test-API-Key",
+            "default": ["test-api-key"]
         },
         "http_basic": {}
     },

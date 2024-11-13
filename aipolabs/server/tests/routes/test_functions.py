@@ -500,6 +500,8 @@ def test_execute_function_with_args(test_client: TestClient, dummy_api_key: str)
 
         # Verify headers
         assert request.headers["X-CUSTOM-HEADER"] == "header123"
+        # verify default api key is injected
+        assert request.headers["X-Test-API-Key"] == "test-api-key"
 
         # Verify cookies
         assert request.headers["Cookie"] == "sessionId=session123"
@@ -550,6 +552,9 @@ def test_execute_function_with_nested_args(test_client: TestClient, dummy_api_ke
             f"{parsed_url.scheme}://{parsed_url.netloc}{parsed_url.path}"
             == "https://api.mock.aipolabs.com/v1/greet/John"
         )
+
+        # verify default api key is injected
+        assert request.headers["X-Test-API-Key"] == "test-api-key"
 
         # Verify query parameters
         assert query_params == {"lang": ["cn"]}

@@ -344,6 +344,13 @@ def set_app_visibility(
     db_session.execute(statement)
 
 
+def get_app_by_id(db_session: Session, app_id: UUID) -> sql_models.App | None:
+    db_app: sql_models.App | None = db_session.execute(
+        select(sql_models.App).filter_by(id=app_id)
+    ).scalar_one_or_none()
+    return db_app
+
+
 def get_app_by_name(db_session: Session, app_name: str) -> sql_models.App | None:
     db_app: sql_models.App | None = db_session.execute(
         select(sql_models.App).filter_by(name=app_name)
