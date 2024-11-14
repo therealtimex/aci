@@ -6,11 +6,9 @@ from aipolabs.cli import config
 from aipolabs.common import utils
 from aipolabs.common.db import crud
 from aipolabs.common.db.sql_models import Visibility
-from aipolabs.common.logging import get_logger
 from aipolabs.common.openai_service import OpenAIService
 from aipolabs.common.schemas.project import ProjectCreate, ProjectOwnerType
 
-logger = get_logger(__name__)
 openai_service = OpenAIService(
     config.OPENAI_API_KEY, config.OPENAI_EMBEDDING_MODEL, config.OPENAI_EMBEDDING_DIMENSION
 )
@@ -63,7 +61,7 @@ def create_project(
     created_by: UUID,
     visibility_access: Visibility,
     skip_dry_run: bool,
-) -> None:
+) -> UUID:
     """
     Create a project in db.
     Note this is a privileged command, as it can create projects under any user or organization.
@@ -76,16 +74,17 @@ def create_project(
 
         db_project = crud.create_project(db_session, project_create, visibility_access)
         if not skip_dry_run:
-            logger.info(
+            click.echo(
                 f"\n\n============ will create new project {db_project.name} ============\n\n"
                 f"{db_project}\n\n"
                 "============ provide --skip-dry-run to commit changes ============="
             )
             db_session.rollback()
         else:
-            logger.info(
+            click.echo(
                 f"\n\n============ committing creation of project {db_project.name} ============\n\n"
                 f"{db_project}\n\n"
             )
             db_session.commit()
-            logger.info("============ success! =============")
+            click.echo("============ success! =============")
+        return db_project.id  # type: ignore

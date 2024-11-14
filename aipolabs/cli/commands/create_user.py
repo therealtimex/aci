@@ -1,14 +1,14 @@
+from uuid import UUID
+
 import click
 
 from aipolabs.cli import config
 from aipolabs.common import utils
 from aipolabs.common.db import crud
 from aipolabs.common.db.sql_models import Plan
-from aipolabs.common.logging import get_logger
 from aipolabs.common.openai_service import OpenAIService
 from aipolabs.common.schemas.user import UserCreate
 
-logger = get_logger(__name__)
 openai_service = OpenAIService(
     config.OPENAI_API_KEY, config.OPENAI_EMBEDDING_MODEL, config.OPENAI_EMBEDDING_DIMENSION
 )
@@ -65,11 +65,11 @@ def create_user(
     profile_picture: str | None,
     plan: Plan,
     skip_dry_run: bool,
-) -> None:
+) -> UUID:
     """Create a user in db."""
+    # no need to check if user exists, db will raise an error if user already exists
+    # with same auth_provider and auth_user_id
     with utils.create_db_session(config.DB_FULL_URL) as db_session:
-        # no need to check if user exists, db will raise an error if user already exists
-        # with same auth_provider and auth_user_id
         user_create = UserCreate(
             auth_provider=auth_provider,
             auth_user_id=auth_user_id,
@@ -81,16 +81,18 @@ def create_user(
         db_user = crud.create_user(db_session, user_create)
 
         if not skip_dry_run:
-            logger.info(
+            click.echo(
                 f"\n\n============ will create new user {db_user.name} ============\n\n"
                 f"{db_user}\n\n"
                 "============ provide --skip-dry-run to commit changes ============="
             )
             db_session.rollback()
         else:
-            logger.info(
+            click.echo(
                 f"\n\n============ committing creation of user {db_user.name} ============\n\n"
                 f"{db_user}\n\n"
             )
             db_session.commit()
-            logger.info("============ success! =============")
+            click.echo("============ success! =============")
+
+        return db_user.id  # type: ignore

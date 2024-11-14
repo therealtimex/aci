@@ -5,11 +5,9 @@ import click
 from aipolabs.cli import config
 from aipolabs.common import utils
 from aipolabs.common.db import crud
-from aipolabs.common.logging import get_logger
 from aipolabs.common.openai_service import OpenAIService
 from aipolabs.common.schemas.agent import AgentCreate
 
-logger = get_logger(__name__)
 openai_service = OpenAIService(
     config.OPENAI_API_KEY, config.OPENAI_EMBEDDING_MODEL, config.OPENAI_EMBEDDING_DIMENSION
 )
@@ -71,7 +69,7 @@ def create_agent(
     excluded_apps: list[UUID],
     excluded_functions: list[UUID],
     skip_dry_run: bool,
-) -> None:
+) -> UUID:
     """
     Create an agent in db.
     """
@@ -89,16 +87,18 @@ def create_agent(
         db_agent = crud.create_agent(db_session, agent_create)
 
         if not skip_dry_run:
-            logger.info(
+            click.echo(
                 f"\n\n============ will create new agent {db_agent.name} ============\n\n"
                 f"{db_agent}\n\n"
                 "============ provide --skip-dry-run to commit changes ============="
             )
             db_session.rollback()
         else:
-            logger.info(
+            click.echo(
                 f"\n\n============ committing creation of agent {db_agent.name} ============\n\n"
                 f"{db_agent}\n\n"
             )
             db_session.commit()
-            logger.info("============ success! =============")
+            click.echo("============ success! =============")
+
+        return db_agent.id  # type: ignore

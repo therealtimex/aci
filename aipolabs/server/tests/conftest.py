@@ -136,7 +136,7 @@ def dummy_functions(dummy_apps: list[sql_models.App]) -> list[sql_models.Functio
     return dummy_functions
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="function")
 def db_session() -> Generator[Session, None, None]:
     with utils.create_db_session(config.DB_FULL_URL) as db_session:
         yield db_session
