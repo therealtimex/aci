@@ -139,24 +139,99 @@
                         }
                     },
                     "required": ["q"],
+                    "visible": ["q", "count", "offset", "safesearch", "freshness", "extra_snippets"],
                     "additionalProperties": false
                 },
                 "header": {
                     "type": "object",
                     "description": "header parameters",
                     "properties": {
+                        "Accept": {
+                            "type": ["string"],
+                            "description": "The supported media type",
+                            "default": "application/json"
+                        },
+                        "Accept-Encoding": {
+                            "type": ["string"],
+                            "description": "The supported compression type",
+                            "default": "gzip"
+                        },
+                        "Api-Version": {
+                            "type": ["string", "null"],
+                            "description": "The Brave Web Search API version to use. Format: YYYY-MM-DD. Latest version used by default",
+                            "default": null,
+                            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                        },
                         "Cache-Control": {
                             "type": ["string", "null"],
                             "description": "Search will return cached web search results by default. To prevent caching set the Cache-Control header to no-cache",
                             "default": null,
                             "enum": [null, "no-cache"]
+                        },
+                        "User-Agent": {
+                            "type": ["string", "null"],
+                            "description": "The user agent of the client sending the request. Should follow commonly used browser agent strings",
+                            "default": null
+                        },
+                        "X-Loc-Lat": {
+                            "type": ["number", "null"],
+                            "description": "The latitude of the client's geographical location in degrees, to provide relevant local results",
+                            "default": null,
+                            "minimum": -90.0,
+                            "maximum": 90.0
+                        },
+                        "X-Loc-Long": {
+                            "type": ["number", "null"],
+                            "description": "The longitude of the client's geographical location in degrees, to provide relevant local results",
+                            "default": null,
+                            "minimum": -180.0,
+                            "maximum": 180.0
+                        },
+                        "X-Loc-Timezone": {
+                            "type": ["string", "null"],
+                            "description": "The IANA timezone for the client's device (e.g., America/New_York)",
+                            "default": null
+                        },
+                        "X-Loc-City": {
+                            "type": ["string", "null"],
+                            "description": "The generic name of the client city",
+                            "default": null
+                        },
+                        "X-Loc-State": {
+                            "type": ["string", "null"],
+                            "description": "The code representing the client's state/region (up to 3 characters)",
+                            "default": null,
+                            "maxLength": 3
+                        },
+                        "X-Loc-State-Name": {
+                            "type": ["string", "null"],
+                            "description": "The name of the client's state/region. The region is the first-level subdivision (the broadest or least specific) of the ISO 3166-2 code.",
+                            "default": null
+                        },
+                        "X-Loc-Country": {
+                            "type": ["string", "null"],
+                            "description": "The two letter code for the client's country (ISO 3166-1 alpha-2)",
+                            "default": null,
+                            "pattern": "^[A-Z]{2}$"
+                        },
+                        "X-Loc-Postal-Code": {
+                            "type": ["string", "null"],
+                            "description": "The postal code of the client's location",
+                            "default": null
+                        },
+                        "X-Subscription-Token": {
+                            "type": ["string", "null"],
+                            "description": "The secret token for the subscribed plan to authenticate the request",
+                            "default": null
                         }
                     },
-                    "required": ["Cache-Control"],
+                    "required": ["X-Subscription-Token"],
+                    "visible": [],
                     "additionalProperties": false
                 }
             },
             "required": ["query", "header"],
+            "visible": ["query"],
             "additionalProperties": false
         }
     }
