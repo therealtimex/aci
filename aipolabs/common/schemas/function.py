@@ -1,10 +1,14 @@
 from enum import Enum
 from typing import Any, Literal
 
-import jsonschema as js
+import jsonschema
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from aipolabs.common.db.sql_models import Protocol, Visibility
+from aipolabs.common.validators.function import (
+    validate_function_parameters_schema_common,
+    validate_function_parameters_schema_rest_protocol,
+)
 
 
 class HttpLocation(str, Enum):
@@ -42,107 +46,27 @@ class FunctionCreate(BaseModel):
     visibility: Visibility
     enabled: bool
     protocol: Protocol
-    # TODO: validate protocol_data against protocol type
     protocol_data: HttpMetadata | GraphQLMetadata = Field(default_factory=dict)
     parameters: dict = Field(default_factory=dict)
     response: dict = Field(default_factory=dict)
 
     # validate parameters json schema
-    # TODO: validate parameters must have "description"
     @model_validator(mode="after")
     def validate_parameters(self) -> "FunctionCreate":
+
         # Validate that parameters schema itself is a valid JSON Schema
-        try:
-            js.validate(instance=self.parameters, schema=js.Draft7Validator.META_SCHEMA)
-        except Exception as e:
-            raise ValueError(f"Invalid JSON Schema: {str(e)}")
-        # validate parameters for REST protocol
-        if self.protocol == Protocol.REST and self.parameters:
-            # type must be "object"
-            if self.parameters.get("type") != "object":
-                raise ValueError("top level type must be 'object' for REST protocol's parameters")
-            # properties must be a dict and can only have "path", "query", "header", "cookie", "body" keys
-            properties = self.parameters["properties"]
-            if not isinstance(properties, dict):
-                raise ValueError("'properties' must be a dict for REST protocol's parameters")
-            allowed_keys = [location.value for location in HttpLocation]
-            for key in properties.keys():
-                if key not in allowed_keys:
-                    raise ValueError(
-                        f"invalid key '{key}' for REST protocol's parameters's top level 'properties'"
-                    )
-            # required must be present and must be a list and can only have keys in "properties"
-            required = self.parameters["required"]
-            if not isinstance(required, list):
-                raise ValueError("'required' must be a list for REST protocol's parameters")
-            for key in required:
-                if key not in properties:
-                    raise ValueError(
-                        f"key '{key}' in 'required' must be in 'properties' for REST protocol's parameters"
-                    )
-            # additionalProperties must be present and must be false
-            if "additionalProperties" not in self.parameters or not isinstance(
-                self.parameters["additionalProperties"], bool
-            ):
-                raise ValueError(
-                    "'additionalProperties' must be present and must be a boolean for REST protocol's parameters"
-                )
-            if self.parameters["additionalProperties"]:
-                raise ValueError(
-                    "'additionalProperties' must be false for REST protocol's parameters"
-                )
+        jsonschema.validate(instance=self.parameters, schema=jsonschema.Draft7Validator.META_SCHEMA)
 
-        def validate_object_level(schema: dict, path: str) -> None:
-            # Skip if not an object type schema
-            if not isinstance(schema, dict) or schema.get("type") != "object":
-                return
+        # common validation
+        validate_function_parameters_schema_common(self.parameters, "parameters")
 
-            # Ensure required field exists
-            if "required" not in schema:
-                raise ValueError(f"Missing 'required' field at {path}")
-
-            # Ensure visible field exists
-            if "visible" not in schema:
-                raise ValueError(f"Missing 'visible' field at {path}")
-
-            properties = schema.get("properties", {})
-            required = schema.get("required", [])
-            visible = schema.get("visible", [])
-
-            # Check that all required properties actually exist
-            for prop in required:
-                if prop not in properties:
-                    raise ValueError(
-                        f"Required property '{prop}' at {path} not found in properties"
-                    )
-
-            # Check that all visible properties actually exist
-            for prop in visible:
-                if prop not in properties:
-                    raise ValueError(f"Visible property '{prop}' at {path} not found in properties")
-
-            # Check that non-visible properties have defaults (except for objects)
-            for prop_name, prop_schema in properties.items():
-                if prop_name not in visible:
-                    is_object = prop_schema.get("type") == "object"
-                    if not is_object and "default" not in prop_schema:
-                        raise ValueError(
-                            f"Non-visible property '{prop_name}' at {path} must have a default value"
-                        )
-
-            # Recursively validate nested objects
-            for prop_name, prop_schema in properties.items():
-                if isinstance(prop_schema, dict) and prop_schema.get("type") == "object":
-                    validate_object_level(prop_schema, f"{path}/{prop_name}")
-
-                    # Check if parent should be visible based on children
-                    child_visible = prop_schema.get("visible", [])
-                    if not child_visible and prop_name in visible:
-                        raise ValueError(
-                            f"Property '{prop_name}' at {path} cannot be visible when all its children are non-visible"
-                        )
-
-        validate_object_level(self.parameters, "parameters")
+        # specific validation per protocol
+        if self.protocol == Protocol.REST:
+            validate_function_parameters_schema_rest_protocol(
+                self.parameters, "parameters", [location.value for location in HttpLocation]
+            )
+        else:
+            pass
 
         return self
 
