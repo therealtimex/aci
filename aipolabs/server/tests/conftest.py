@@ -1,4 +1,5 @@
 import logging
+import time
 from datetime import timedelta
 from typing import Generator, cast
 
@@ -134,6 +135,12 @@ def dummy_functions(dummy_apps: list[sql_models.App]) -> list[sql_models.Functio
     for dummy_app in dummy_apps:
         dummy_functions.extend(dummy_app.functions)
     return dummy_functions
+
+
+# sleep for 1 second to avoid rate limit for each module
+@pytest.fixture(scope="module", autouse=True)
+def sleep_for_rate_limit() -> None:
+    time.sleep(1)
 
 
 @pytest.fixture(scope="function")

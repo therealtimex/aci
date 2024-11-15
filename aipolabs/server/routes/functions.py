@@ -16,7 +16,6 @@ from aipolabs.common.schemas.function import (
     FunctionExecution,
     FunctionExecutionResult,
     FunctionPublic,
-    FunctionVerbosePublic,
     HttpMetadata,
     OpenAIFunctionDefinition,
     Protocol,
@@ -104,28 +103,6 @@ async def search_functions(
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
 
-# TODO: get list of functions by list of names
-@router.get("/{function_name}", response_model=FunctionVerbosePublic)
-async def get_function(
-    function_name: str,
-    db_session: Annotated[Session, Depends(yield_db_session)],
-    api_key_id: Annotated[UUID, Depends(validate_api_key)],
-) -> sql_models.Function:
-    """
-    Returns the full function data.
-    """
-    try:
-        function = crud.get_function(db_session, api_key_id, function_name)
-        if not function:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Function not found.")
-        return function
-    except HTTPException as e:
-        raise e
-    except Exception as e:
-        logger.exception(f"Error getting function for {function_name}")
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
-
-
 class InferenceProvider(str, Enum):
     OPENAI = "openai"
     ANTHROPIC = "anthropic"
@@ -137,7 +114,7 @@ class InferenceProvider(str, Enum):
 # TODO: client sdk can use pydantic to validate model output for parameters used for function execution
 # TODO: "flatten" flag to make sure nested parameters are flattened?
 @router.get(
-    "/{function_name}/definition",
+    "/{function_name}",
     response_model=OpenAIFunctionDefinition | AnthropicFunctionDefinition,
     response_model_exclude_none=True,  # having this to exclude "strict" field in openai's function definition if not set
 )
