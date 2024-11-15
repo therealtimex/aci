@@ -93,10 +93,6 @@ class FunctionPublic(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
-class FunctionVerbosePublic(FunctionPublic):
-    parameters: dict
-
-
 class OpenAIFunctionDefinition(BaseModel):
     class OpenAIFunction(BaseModel):
         name: str
