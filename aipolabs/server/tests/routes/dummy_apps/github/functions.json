@@ -1,4 +1,3 @@
-
 [
     {
         "name": "GITHUB__CREATE_REPOSITORY",
@@ -36,129 +35,14 @@
                         "description",
                         "private"
                     ],
+                    "visible": ["name", "description", "private"],
                     "additionalProperties": false
                 }
             },
             "required": ["body"],
+            "visible": ["body"],
             "additionalProperties": false
         },
         "response": {}
-    },
-    {
-        "name": "GITHUB__CREATE_ISSUE",
-        "description": "Create a new issue in a repository",
-        "tags": ["issue"],
-        "visibility": "public",
-        "enabled": true,
-        "protocol": "rest",
-        "protocol_data": {
-            "method": "POST",
-            "path": "/repositories/{repository}/issues",
-            "server_url": "https://api.github.com"
-        },
-        "parameters": {
-            "type": "object",
-            "properties": {
-                "path": {
-                    "type": "object",
-                    "properties": {
-                        "repository": {
-                            "type": "string",
-                            "description": "The name of the repository"
-                        }
-                    },
-                    "required": ["repository"],
-                    "additionalProperties": false
-                },
-                "body": {
-                    "type": "object",
-                    "properties": {
-                        "title": {
-                            "type": "string",
-                            "description": "The title of the issue"
-                        }
-                    },
-                    "required": ["title"],
-                    "additionalProperties": false
-                }
-            },
-            "required": ["path", "body"],
-            "additionalProperties": false
-        },
-        "response": {}
-    },
-    {
-        "name": "GITHUB__CREATE_PULL_REQUEST",
-        "description": "Create a new pull request in a repository",
-        "tags": ["pull_request"],
-        "visibility": "public",
-        "enabled": true,
-        "protocol": "rest",
-        "protocol_data": {
-            "method": "POST",
-            "path": "/repositories/{repository}/pulls",
-            "server_url": "https://api.github.com"
-        },
-        "parameters": {
-            "type": "object",
-            "properties": {
-                "path": {
-                    "type": "object",
-                    "properties": {
-                        "repository": {
-                            "type": "string",
-                            "description": "The name of the repository"
-                        }
-                    },
-                    "required": ["repository"],
-                    "additionalProperties": false
-                },
-                "body": {
-                    "type": "object",
-                    "properties": {
-                        "source_branch": {
-                            "type": "string",
-                            "description": "The name of the source branch for the pull request"
-                        },
-                        "target_branch": {
-                            "type": "string",
-                            "description": "The name of the target branch where the pull request will be merged"
-                        },
-                        "title": {
-                            "type": "string",
-                            "description": "The title of the pull request"
-                        },
-                        "metadata": {
-                            "type": "object",
-                            "properties": {
-                                "author": {
-                                    "type": "string",
-                                    "description": "The author of the pull request"
-                                },
-                                "reviewer": {
-                                    "type": "string",
-                                    "description": "The primary reviewer for the pull request"
-                                }
-                            },
-                            "required": [
-                                "author",
-                                "reviewer"
-                            ],
-                            "additionalProperties": false
-                        }
-                    },
-                    "required": [
-                        "source_branch",
-                        "target_branch",
-                        "title",
-                        "metadata"
-                    ],
-                    "additionalProperties": false
-                }
-            },
-            "required": ["path", "body"],
-            "additionalProperties": false
-        },
-        "response": {}
-    }     
+    }   
 ]

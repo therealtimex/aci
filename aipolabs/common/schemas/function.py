@@ -58,12 +58,14 @@ class FunctionCreate(BaseModel):
         jsonschema.validate(instance=self.parameters, schema=jsonschema.Draft7Validator.META_SCHEMA)
 
         # common validation
-        validate_function_parameters_schema_common(self.parameters, "parameters")
+        validate_function_parameters_schema_common(self.parameters, f"{self.name}.parameters")
 
         # specific validation per protocol
         if self.protocol == Protocol.REST:
             validate_function_parameters_schema_rest_protocol(
-                self.parameters, "parameters", [location.value for location in HttpLocation]
+                self.parameters,
+                f"{self.name}.parameters",
+                [location.value for location in HttpLocation],
             )
         else:
             pass

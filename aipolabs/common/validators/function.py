@@ -3,9 +3,17 @@ def validate_function_parameters_schema_common(parameters_schema: dict, path: st
     Validate a function parameters schema based on a set of common rules.
     These rules should be true for all types of protocols. (rest, graphql, etc.)
     """
-    # Skip if not an object type schema
-    if not isinstance(parameters_schema, dict) or parameters_schema.get("type") != "object":
+    # if not an object type schema, skip most of the validation but make sure required and visible does NOT exist
+    if parameters_schema.get("type") != "object":
+        if "required" in parameters_schema or "visible" in parameters_schema:
+            raise ValueError(
+                f"Invalid schema at {path}: 'required' and 'visible' fields are not allowed for non-object type schemas"
+            )
         return
+
+    # Ensure properties field exists
+    if "properties" not in parameters_schema:
+        raise ValueError(f"Missing 'properties' field at {path}")
 
     # Ensure required field exists
     if "required" not in parameters_schema:
@@ -14,6 +22,10 @@ def validate_function_parameters_schema_common(parameters_schema: dict, path: st
     # Ensure visible field exists
     if "visible" not in parameters_schema:
         raise ValueError(f"Missing 'visible' field at {path}")
+
+    # Ensure additionalProperties field exists
+    if "additionalProperties" not in parameters_schema:
+        raise ValueError(f"Missing 'additionalProperties' field at {path}")
 
     properties = parameters_schema.get("properties", {})
     required = parameters_schema.get("required", [])
@@ -32,19 +44,19 @@ def validate_function_parameters_schema_common(parameters_schema: dict, path: st
     # Check that non-visible properties have defaults (except for objects)
     for prop_name, prop_schema in properties.items():
         if prop_name not in visible:
-            is_object = prop_schema.get("type") == "object"
-            if not is_object and "default" not in prop_schema:
+            if prop_schema.get("type") != "object" and "default" not in prop_schema:
                 raise ValueError(
                     f"Non-visible property '{prop_name}' at {path} must have a default value"
                 )
 
-    # Recursively validate nested objects
     for prop_name, prop_schema in properties.items():
-        if isinstance(prop_schema, dict) and prop_schema.get("type") == "object":
-            validate_function_parameters_schema_common(prop_schema, f"{path}/{prop_name}")
+        # Recursively validate nested properties
+        validate_function_parameters_schema_common(prop_schema, f"{path}.{prop_name}")
 
-            # Check if parent should be visible based on children
+        # Check if each property should be visible based on children's visibility
+        if prop_schema.get("type") == "object":
             child_visible = prop_schema.get("visible", [])
+            # if all properties of this object are not visible, then this object itself should not be visible
             if not child_visible and prop_name in visible:
                 raise ValueError(
                     f"Property '{prop_name}' at {path} cannot be visible when all its children are non-visible"

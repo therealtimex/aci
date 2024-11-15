@@ -11,7 +11,6 @@
             "path": "/hello_world_no_args",
             "server_url": "https://api.mock.aipolabs.com/v1"
         },
-        "parameters": {},
         "response": {}
     },
     {
@@ -37,6 +36,7 @@
                             "description": "The ID of the user"
                         }
                     },
+                    "visible": ["userId"],
                     "required": ["userId"],
                     "additionalProperties": false
                 },
@@ -45,10 +45,12 @@
                     "properties": {
                         "lang": {
                             "type": "string",
-                            "description": "The language of the greeting"
+                            "description": "The language of the greeting",
+                            "default": "en"
                         }
                     },
                     "required": ["lang"],
+                    "visible": ["lang"],
                     "additionalProperties": false
                 },
                 "body": {
@@ -60,9 +62,11 @@
                         },
                         "greeting": {
                             "type": "string",
-                            "description": "The greeting message"
+                            "description": "The greeting message",
+                            "default": "Hello"
                         }
                     },
+                    "visible": ["name"],
                     "required": ["name", "greeting"],
                     "additionalProperties": false
                 },
@@ -71,9 +75,11 @@
                     "properties": {
                         "X-CUSTOM-HEADER": {
                             "type": "string",
-                            "description": "The custom header"
+                            "description": "The custom header",
+                            "default": "default-header"
                         }
                     },
+                    "visible": [],
                     "required": ["X-CUSTOM-HEADER"],
                     "additionalProperties": false
                 },
@@ -82,13 +88,16 @@
                     "properties": {
                         "sessionId": {
                             "type": "string",
-                            "description": "The session ID cookie"
+                            "description": "The session ID cookie",
+                            "default": "default-session"
                         }
                     },
+                    "visible": [],
                     "required": ["sessionId"],
                     "additionalProperties": false
                 }
             },
+            "visible": ["path", "body"],
             "required": ["path", "query", "body", "header", "cookie"],
             "additionalProperties": false
         },
@@ -117,6 +126,7 @@
                             "description": "The ID of the user"
                         }
                     },
+                    "visible": ["userId"],
                     "required": ["userId"],
                     "additionalProperties": false
                 },
@@ -125,9 +135,11 @@
                     "properties": {
                         "lang": {
                             "type": "string",
-                            "description": "The language of the greeting"
+                            "description": "The language of the greeting",
+                            "default": "en"
                         }
                     },
+                    "visible": [],
                     "required": ["lang"],
                     "additionalProperties": false
                 },
@@ -144,15 +156,18 @@
                                 },
                                 "title": {
                                     "type": "string",
-                                    "description": "The title of the person"
+                                    "description": "The title of the person",
+                                    "default": "Mr/Ms"
                                 }
                             },
+                            "visible": ["name"],
                             "required": ["name", "title"],
                             "additionalProperties": false
                         },
                         "greeting": {
                             "type": "string",
-                            "description": "The greeting message"
+                            "description": "The greeting message",
+                            "default": "Hello"
                         },
                         "location": {
                             "type": "object",
@@ -164,17 +179,21 @@
                                 },
                                 "country": {
                                     "type": "string",
-                                    "description": "The country of the location"
+                                    "description": "The country of the location",
+                                    "default": "USA"
                                 }
                             },
+                            "visible": ["city"],
                             "required": ["city", "country"],
                             "additionalProperties": false
                         }
                     },
+                    "visible": ["person", "location"],
                     "required": ["person", "greeting", "location"],
                     "additionalProperties": false
                 }
             },
+            "visible": ["path", "body"],
             "required": ["path", "query", "body"],
             "additionalProperties": false
         },
