@@ -67,6 +67,20 @@ def create_user(
     skip_dry_run: bool,
 ) -> UUID:
     """Create a user in db."""
+    return create_user_helper(
+        auth_provider, auth_user_id, name, email, profile_picture, plan, skip_dry_run
+    )
+
+
+def create_user_helper(
+    auth_provider: str,
+    auth_user_id: str,
+    name: str,
+    email: str,
+    profile_picture: str | None,
+    plan: Plan,
+    skip_dry_run: bool,
+) -> UUID:
     # no need to check if user exists, db will raise an error if user already exists
     # with same auth_provider and auth_user_id
     with utils.create_db_session(config.DB_FULL_URL) as db_session:

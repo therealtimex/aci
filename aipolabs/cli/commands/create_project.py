@@ -66,7 +66,19 @@ def create_project(
     Create a project in db.
     Note this is a privileged command, as it can create projects under any user or organization.
     """
+    return create_project_helper(
+        project_name, owner_type, owner_id, created_by, visibility_access, skip_dry_run
+    )
 
+
+def create_project_helper(
+    project_name: str,
+    owner_type: ProjectOwnerType,
+    owner_id: UUID,
+    created_by: UUID,
+    visibility_access: Visibility,
+    skip_dry_run: bool,
+) -> UUID:
     with utils.create_db_session(config.DB_FULL_URL) as db_session:
         project_create = ProjectCreate(
             name=project_name, owner_type=owner_type, owner_id=owner_id, created_by=created_by

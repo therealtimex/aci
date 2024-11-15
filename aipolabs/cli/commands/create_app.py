@@ -1,16 +1,15 @@
 import json
 from pathlib import Path
+from uuid import UUID
 
 import click
 
 from aipolabs.cli import config
 from aipolabs.common import embeddings, utils
 from aipolabs.common.db import crud
-from aipolabs.common.logging import get_logger
 from aipolabs.common.openai_service import OpenAIService
 from aipolabs.common.schemas.app import AppCreate
 
-logger = get_logger(__name__)
 openai_service = OpenAIService(
     config.OPENAI_API_KEY, config.OPENAI_EMBEDDING_MODEL, config.OPENAI_EMBEDDING_DIMENSION
 )
@@ -29,8 +28,12 @@ openai_service = OpenAIService(
     is_flag=True,
     help="provide this flag to run the command and apply changes to the database",
 )
-def create_app(app_file: Path, skip_dry_run: bool) -> None:
+def create_app(app_file: Path, skip_dry_run: bool) -> UUID:
     """Create App in db from file."""
+    return create_app_helper(app_file, skip_dry_run)
+
+
+def create_app_helper(app_file: Path, skip_dry_run: bool) -> UUID:
     with utils.create_db_session(config.DB_FULL_URL) as db_session:
         with open(app_file, "r") as f:
             app: AppCreate = AppCreate.model_validate(json.load(f))
@@ -38,11 +41,18 @@ def create_app(app_file: Path, skip_dry_run: bool) -> None:
 
         db_app = crud.create_app(db_session, app, app_embedding)
         if not skip_dry_run:
-            logger.info(
-                f"provide --skip-dry-run to insert new app {db_app.name} with app data \n{app.model_dump_json(indent=2)}"
+            click.echo(
+                f"\n\n============ will create new app {db_app.name} ============\n\n"
+                f"{db_app}\n\n"
+                "============ provide --skip-dry-run to commit changes ============="
             )
             db_session.rollback()
         else:
-            logger.info(f"committing insert of new app: {db_app.name}")
+            click.echo(
+                f"\n\n============ committing creation of app {db_app.name} ============\n\n"
+                f"{db_app}\n\n"
+            )
             db_session.commit()
-            logger.info("success!")
+            click.echo("============ success! =============")
+
+        return db_app.id  # type: ignore

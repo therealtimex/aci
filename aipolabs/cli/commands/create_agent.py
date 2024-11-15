@@ -73,7 +73,26 @@ def create_agent(
     """
     Create an agent in db.
     """
+    return create_agent_helper(
+        agent_name,
+        description,
+        project_id,
+        created_by,
+        excluded_apps,
+        excluded_functions,
+        skip_dry_run,
+    )
 
+
+def create_agent_helper(
+    agent_name: str,
+    description: str,
+    project_id: UUID,
+    created_by: UUID,
+    excluded_apps: list[UUID],
+    excluded_functions: list[UUID],
+    skip_dry_run: bool,
+) -> UUID:
     with utils.create_db_session(config.DB_FULL_URL) as db_session:
         agent_create = AgentCreate(
             name=agent_name,

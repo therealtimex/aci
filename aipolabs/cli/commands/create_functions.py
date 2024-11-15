@@ -1,16 +1,15 @@
 import json
 from pathlib import Path
+from uuid import UUID
 
 import click
 
 from aipolabs.cli import config
 from aipolabs.common import embeddings, utils
 from aipolabs.common.db import crud
-from aipolabs.common.logging import get_logger
 from aipolabs.common.openai_service import OpenAIService
 from aipolabs.common.schemas.function import FunctionCreate
 
-logger = get_logger(__name__)
 openai_service = OpenAIService(
     config.OPENAI_API_KEY, config.OPENAI_EMBEDDING_MODEL, config.OPENAI_EMBEDDING_DIMENSION
 )
@@ -29,8 +28,12 @@ openai_service = OpenAIService(
     is_flag=True,
     help="provide this flag to run the command and apply changes to the database",
 )
-def create_functions(functions_file: Path, skip_dry_run: bool) -> None:
+def create_functions(functions_file: Path, skip_dry_run: bool) -> list[UUID]:
     """Create Functions in db from file."""
+    return create_functions_helper(functions_file, skip_dry_run)
+
+
+def create_functions_helper(functions_file: Path, skip_dry_run: bool) -> list[UUID]:
     with utils.create_db_session(config.DB_FULL_URL) as db_session:
         with open(functions_file, "r") as f:
             functions: list[FunctionCreate] = [
@@ -39,11 +42,18 @@ def create_functions(functions_file: Path, skip_dry_run: bool) -> None:
 
         function_embeddings = embeddings.generate_function_embeddings(functions, openai_service)
 
-        crud.create_functions(db_session, functions, function_embeddings)
+        db_functions = crud.create_functions(db_session, functions, function_embeddings)
         if not skip_dry_run:
-            logger.info(f"provide --skip-dry-run to insert {len(functions)} functions")
+            click.echo(
+                f"\n\n============ will create {len(functions)} functions ============\n\n"
+                "============ provide --skip-dry-run to commit changes ============="
+            )
             db_session.rollback()
         else:
-            logger.info(f"committing insert of {len(functions)} functions")
+            click.echo(
+                f"\n\n============ committing creation of {len(functions)} functions ============\n\n"
+            )
             db_session.commit()
-            logger.info("success!")
+            click.echo("============ success! =============")
+
+        return [db_function.id for db_function in db_functions]

@@ -123,6 +123,22 @@ def create_agent(db_session: Session, agent: AgentCreate) -> sql_models.Agent:
     return db_agent
 
 
+def get_agent_by_id(db_session: Session, agent_id: UUID) -> sql_models.Agent | None:
+    db_agent: sql_models.Agent | None = db_session.execute(
+        select(sql_models.Agent).filter_by(id=agent_id)
+    ).scalar_one_or_none()
+
+    return db_agent
+
+
+def get_api_key_by_agent_id(db_session: Session, agent_id: UUID) -> sql_models.APIKey | None:
+    db_api_key: sql_models.APIKey | None = db_session.execute(
+        select(sql_models.APIKey).filter_by(agent_id=agent_id)
+    ).scalar_one_or_none()
+
+    return db_api_key
+
+
 def user_has_admin_access_to_org(db_session: Session, user_id: UUID, org_id: UUID) -> bool:
     """Check if a user has admin access to an organization."""
     # TODO: implement this
@@ -296,7 +312,7 @@ def create_app(
 
 def create_functions(
     db_session: Session, functions: list[FunctionCreate], function_embeddings: list[list[float]]
-) -> None:
+) -> list[sql_models.Function]:
     """Create functions of the same app"""
     logger.debug(f"upserting functions: {functions}")
     # each function name must be unique
@@ -314,6 +330,7 @@ def create_functions(
     if not db_app:
         raise ValueError(f"App {app_name} does not exist")
 
+    db_functions = []
     for i, function in enumerate(functions):
         db_function = sql_models.Function(
             app_id=db_app.id,
@@ -329,8 +346,10 @@ def create_functions(
             embedding=function_embeddings[i],
         )
         db_session.add(db_function)
+        db_functions.append(db_function)
 
     db_session.flush()
+    return db_functions
 
 
 def set_app_enabled_status(db_session: Session, app_id: UUID, enabled: bool) -> None:
