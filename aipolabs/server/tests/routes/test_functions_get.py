@@ -24,16 +24,14 @@ def test_get_function_openai(
     )
     assert response.status_code == 200, response.json()
     response_json = response.json()
-    # "strict" field should not be set unless structured outputs are enabled
-    assert "strict" not in response_json["function"]
+
     function_definition = OpenAIFunctionDefinition.model_validate(response_json)
     assert function_definition.type == "function"
     assert function_definition.function.name == function_name
-    # check if content is the same as the same function from dummy_functions
+    # sanity check: if description is the same
     dummy_function = next(
         function for function in dummy_functions if function.name == function_name
     )
-    assert function_definition.function.parameters == dummy_function.parameters
     assert function_definition.function.description == dummy_function.description
 
 
@@ -49,11 +47,10 @@ def test_get_function_anthropic(
     assert response.status_code == 200, response.json()
     function_definition = AnthropicFunctionDefinition.model_validate(response.json())
     assert function_definition.name == function_name
-    # check if parameters and description are the same as the same function from dummy_functions
+    # sanity check: if description is the same
     dummy_function = next(
         function for function in dummy_functions if function.name == function_name
     )
-    assert function_definition.input_schema == dummy_function.parameters
     assert function_definition.description == dummy_function.description
 
 

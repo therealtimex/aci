@@ -1,3 +1,4 @@
+import json
 from enum import Enum
 from typing import Annotated, Any
 from uuid import UUID
@@ -11,6 +12,7 @@ from sqlalchemy.orm import Session
 from aipolabs.common.db import crud, sql_models
 from aipolabs.common.logging import get_logger
 from aipolabs.common.openai_service import OpenAIService
+from aipolabs.common.processors.function import filter_visible_properties
 from aipolabs.common.schemas.function import (
     AnthropicFunctionDefinition,
     FunctionExecution,
@@ -136,19 +138,24 @@ async def get_function_definition(
         if not function:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Function not found.")
 
+        filtered_parameters = filter_visible_properties(function.parameters)
+        logger.debug(
+            f"========== Filtered parameters ========== \n\n {json.dumps(filtered_parameters, indent=2)}"
+        )
+
         if inference_provider == InferenceProvider.OPENAI:
             function_definition = OpenAIFunctionDefinition(
                 function={
                     "name": function.name,
                     "description": function.description,
-                    "parameters": function.parameters,
+                    "parameters": filtered_parameters,
                 }
             )
         elif inference_provider == InferenceProvider.ANTHROPIC:
             function_definition = AnthropicFunctionDefinition(
                 name=function.name,
                 description=function.description,
-                input_schema=function.parameters,
+                input_schema=filtered_parameters,
             )
         return function_definition
     except HTTPException as e:
