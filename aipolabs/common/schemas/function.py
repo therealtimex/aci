@@ -91,7 +91,7 @@ class FunctionPublic(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
-class FunctionDefinitionPublic(FunctionPublic):
+class FunctionVerbosePublic(FunctionPublic):
     parameters: dict
 
 

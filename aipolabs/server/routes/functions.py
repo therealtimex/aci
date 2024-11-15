@@ -13,10 +13,10 @@ from aipolabs.common.logging import get_logger
 from aipolabs.common.openai_service import OpenAIService
 from aipolabs.common.schemas.function import (
     AnthropicFunctionDefinition,
-    FunctionDefinitionPublic,
     FunctionExecution,
     FunctionExecutionResult,
     FunctionPublic,
+    FunctionVerbosePublic,
     HttpMetadata,
     OpenAIFunctionDefinition,
     Protocol,
@@ -105,7 +105,7 @@ async def search_functions(
 
 
 # TODO: get list of functions by list of names
-@router.get("/{function_name}", response_model=FunctionDefinitionPublic)
+@router.get("/{function_name}", response_model=FunctionVerbosePublic)
 async def get_function(
     function_name: str,
     db_session: Annotated[Session, Depends(yield_db_session)],

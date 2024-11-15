@@ -9,9 +9,9 @@ from sqlalchemy.orm import Session
 from aipolabs.common.db import crud, sql_models
 from aipolabs.common.schemas.function import (
     AnthropicFunctionDefinition,
-    FunctionDefinitionPublic,
     FunctionExecutionResult,
     FunctionPublic,
+    FunctionVerbosePublic,
     OpenAIFunctionDefinition,
 )
 
@@ -288,7 +288,7 @@ def test_get_function(
     )
 
     assert response.status_code == 200, response.json()
-    function = FunctionDefinitionPublic.model_validate(response.json())
+    function = FunctionVerbosePublic.model_validate(response.json())
     assert function.name == function_name
     # check if parameters and description are the same as the same function from dummy_functions
     dummy_function = next(
