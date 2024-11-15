@@ -5,7 +5,7 @@ import jsonschema
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from aipolabs.common.db.sql_models import Protocol, Visibility
-from aipolabs.common.validators.function import (
+from aipolabs.common.validator import (
     validate_function_parameters_schema_common,
     validate_function_parameters_schema_rest_protocol,
 )

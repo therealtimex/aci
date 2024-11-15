@@ -12,7 +12,7 @@ from sqlalchemy.orm import Session
 from aipolabs.common.db import crud, sql_models
 from aipolabs.common.logging import get_logger
 from aipolabs.common.openai_service import OpenAIService
-from aipolabs.common.processors.function import filter_visible_properties
+from aipolabs.common.processor import filter_visible_properties
 from aipolabs.common.schemas.function import (
     AnthropicFunctionDefinition,
     FunctionExecution,

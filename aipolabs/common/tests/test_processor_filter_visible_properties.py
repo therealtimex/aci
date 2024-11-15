@@ -1,6 +1,6 @@
 from copy import deepcopy
 
-from aipolabs.common.processors.function import filter_visible_properties
+from aipolabs.common.processor import filter_visible_properties
 
 
 def test_basic_filtering() -> None:
