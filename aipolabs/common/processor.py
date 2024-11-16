@@ -1,34 +1,80 @@
 import copy
+from typing import Any
+
+from aipolabs.common.logging import get_logger
+
+logger = get_logger(__name__)
 
 
-def filter_visible_properties(parameters: dict) -> dict:
+def filter_visible_properties(parameters_schema: dict) -> dict:
     """
     Filter the schema to include only visible properties and remove the 'visible' field itself.
+    Ideally, visible and required should be defined for type "object", but we don't make that assumption here.
     """
-    # Create a deep copy of the schema to avoid modifying the original input
-    filtered_parameters = copy.deepcopy(parameters)
-    if filtered_parameters.get("type") != "object":
-        return filtered_parameters
 
-    # Get the visible list
-    visible = filtered_parameters.pop("visible", [])
+    # create a separate function to avoid deep copying the schema at each recursive call
+    def filter(schema: dict) -> dict:
+        # if the schema is not an object return the schema as is
+        if schema.get("type") != "object":
+            return schema
 
-    # Filter properties to include only visible properties
-    properties = filtered_parameters.get("properties", {})
-    filtered_properties = {key: value for key, value in properties.items() if key in visible}
+        visible: list[str] = schema.pop("visible", [])  # remove visible field itself
+        properties: dict | None = schema.get("properties")
+        required: list[str] | None = schema.get("required")
 
-    # Update the required list to include only visible properties
-    # (because the ones that are not in the visible list are removed already)
-    required = filtered_parameters.get("required", [])
-    filtered_required = [key for key in required if key in visible]
-    filtered_parameters["required"] = filtered_required
+        # only continue if properties are defined
+        if properties is not None:
+            # Filter properties to include only visible properties
+            filtered_properties = {
+                key: value for key, value in properties.items() if key in visible
+            }
 
-    # Recursively filter nested properties
-    for key, value in filtered_properties.items():
-        if value.get("type") == "object":
-            filtered_properties[key] = filter_visible_properties(value)
+            # if required is defined, update the required list to include only visible properties
+            if required is not None:
+                schema["required"] = [key for key in required if key in visible]
 
-    # Update the schema with filtered properties
-    filtered_parameters["properties"] = filtered_properties
+            # Recursively filter nested properties
+            for key, value in filtered_properties.items():
+                filtered_properties[key] = filter(value)
 
-    return filtered_parameters
+            # Update the schema with filtered properties
+            schema["properties"] = filtered_properties
+
+        return schema
+
+    # Create a deep copy of the schema once
+    filtered_parameters_schema = copy.deepcopy(parameters_schema)
+    return filter(filtered_parameters_schema)
+
+
+def inject_non_visible_defaults(parameters_schema: dict, input_data: dict) -> dict:
+    """
+    Recursively injects non-visible parameters with their default values into the input data.
+    """
+    for key, subschema in parameters_schema.get("properties", {}).items():
+        if key not in input_data:
+            # If the key is not in input_data, check if it has a default value
+            if "default" in subschema:
+                input_data[key] = subschema["default"]
+            else:
+                # If no default value, but it's an object, initialize it as an empty dict
+                if subschema.get("type") == "object":
+                    input_data[key] = {}
+                else:
+                    logger.error(
+                        f"No default value found for key: {key}, type: {subschema.get('type')}"
+                    )
+        # Recursively inject defaults for nested objects
+        if isinstance(input_data.get(key), dict):
+            inject_non_visible_defaults(subschema, input_data[key])
+
+    return input_data
+
+
+def remove_none_values(data: Any) -> Any:
+    if isinstance(data, dict):
+        return {k: remove_none_values(v) for k, v in data.items() if v is not None}
+    elif isinstance(data, list):
+        return [remove_none_values(item) for item in data if item is not None]
+    else:
+        return data

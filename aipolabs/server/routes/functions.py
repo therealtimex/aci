@@ -9,10 +9,10 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, Field, field_validator
 from sqlalchemy.orm import Session
 
+from aipolabs.common import processor
 from aipolabs.common.db import crud, sql_models
 from aipolabs.common.logging import get_logger
 from aipolabs.common.openai_service import OpenAIService
-from aipolabs.common.processor import filter_visible_properties
 from aipolabs.common.schemas.function import (
     AnthropicFunctionDefinition,
     FunctionExecution,
@@ -138,9 +138,9 @@ async def get_function_definition(
         if not function:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Function not found.")
 
-        filtered_parameters = filter_visible_properties(function.parameters)
+        visible_parameters = processor.filter_visible_properties(function.parameters)
         logger.debug(
-            f"========== Filtered parameters ========== \n\n {json.dumps(filtered_parameters, indent=2)}"
+            f"========== Filtered parameters ========== \n\n {json.dumps(visible_parameters, indent=2)}"
         )
 
         if inference_provider == InferenceProvider.OPENAI:
@@ -148,14 +148,14 @@ async def get_function_definition(
                 function={
                     "name": function.name,
                     "description": function.description,
-                    "parameters": filtered_parameters,
+                    "parameters": visible_parameters,
                 }
             )
         elif inference_provider == InferenceProvider.ANTHROPIC:
             function_definition = AnthropicFunctionDefinition(
                 name=function.name,
                 description=function.description,
-                input_schema=filtered_parameters,
+                input_schema=visible_parameters,
             )
         return function_definition
     except HTTPException as e:
@@ -209,16 +209,32 @@ async def execute(
 def _execute(
     db_app: sql_models.App, function_execution: FunctionExecution, function_input: dict
 ) -> FunctionExecutionResult:
+    # validate user input against the visible parameters
     try:
         logger.info(f"validating function input for {function_execution.name}")
-        jsonschema.validate(instance=function_input, schema=function_execution.parameters)
+        jsonschema.validate(
+            instance=function_input,
+            schema=processor.filter_visible_properties(function_execution.parameters),
+        )
     except jsonschema.ValidationError as e:
         logger.error(f"Invalid input: {e.message}")
         raise ValueError(f"Invalid input: {e.message}") from e
+
+    logger.info(
+        f"======= function_input before injecting non-visible defaults =======\n\n {json.dumps(function_input, indent=2)}"
+    )
+    # inject non-visible defaults, note that should pass the original parameters schema not just visible ones
+    function_input = processor.inject_non_visible_defaults(
+        function_execution.parameters, function_input
+    )
+    logger.info(
+        f"======= function_input after injecting non-visible defaults =======\n\n {json.dumps(function_input, indent=2)}"
+    )
+
     if function_execution.protocol == Protocol.REST:
         # remove None values from the input
         # TODO: better way to remove None values? and if it's ok to remove all of them?
-        function_input = _remove_none_values(function_input)
+        function_input = processor.remove_none_values(function_input)
         # Extract parameters by location
         path_params = function_input.get("path", {})
         query_params = function_input.get("query", {})
@@ -226,7 +242,6 @@ def _execute(
         cookies = function_input.get("cookie", {})
         body = function_input.get("body", {})
 
-        # TODO: validate protocol_data is of type HttpMetadata?
         protocol_data: HttpMetadata = function_execution.protocol_data
         # Construct URL with path parameters
         url = f"{protocol_data.server_url}{protocol_data.path}"
@@ -256,7 +271,10 @@ def _execute(
             "======================== FUNCTION EXECUTION HTTP REQUEST ========================"
         )
         logger.info(
-            f"method: {prepared_request.method}, url: {prepared_request.url}, headers: {prepared_request.headers}, body: {prepared_request.body}"
+            f"Method: {prepared_request.method}\n"
+            f"URL: {prepared_request.url}\n"
+            f"Headers: {json.dumps(dict(prepared_request.headers), indent=2)}\n"
+            f"Body: {json.dumps(json.loads(prepared_request.body), indent=2) if prepared_request.body else None}\n"
         )
         # execute request
         response = requests.Session().send(prepared_request)
@@ -301,15 +319,6 @@ def _get_default_api_key_and_header_name(db_app: sql_models.App) -> tuple[str, s
             db_app.security_schemes["api_key"]["name"],
         )
     return None
-
-
-def _remove_none_values(data: Any) -> Any:
-    if isinstance(data, dict):
-        return {k: _remove_none_values(v) for k, v in data.items() if v is not None}
-    elif isinstance(data, list):
-        return [_remove_none_values(item) for item in data if item is not None]
-    else:
-        return data
 
 
 def _get_response_data(response: requests.Response) -> Any:

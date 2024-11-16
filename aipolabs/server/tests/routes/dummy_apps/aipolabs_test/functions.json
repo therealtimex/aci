@@ -63,7 +63,7 @@
                         "greeting": {
                             "type": "string",
                             "description": "The greeting message",
-                            "default": "Hello"
+                            "default": "default-greeting"
                         }
                     },
                     "visible": ["name"],
@@ -75,11 +75,10 @@
                     "properties": {
                         "X-CUSTOM-HEADER": {
                             "type": "string",
-                            "description": "The custom header",
-                            "default": "default-header"
+                            "description": "The custom header"
                         }
                     },
-                    "visible": [],
+                    "visible": ["X-CUSTOM-HEADER"],
                     "required": ["X-CUSTOM-HEADER"],
                     "additionalProperties": false
                 },
@@ -87,9 +86,9 @@
                     "type": "object",
                     "properties": {
                         "sessionId": {
-                            "type": "string",
+                            "type": ["string", "null"],
                             "description": "The session ID cookie",
-                            "default": "default-session"
+                            "default": null
                         }
                     },
                     "visible": [],
@@ -97,7 +96,7 @@
                     "additionalProperties": false
                 }
             },
-            "visible": ["path", "body"],
+            "visible": ["path", "body", "header", "query"],
             "required": ["path", "query", "body", "header", "cookie"],
             "additionalProperties": false
         },
@@ -157,7 +156,7 @@
                                 "title": {
                                     "type": "string",
                                     "description": "The title of the person",
-                                    "default": "Mr/Ms"
+                                    "default": "default-title"
                                 }
                             },
                             "visible": ["name"],
@@ -167,7 +166,7 @@
                         "greeting": {
                             "type": "string",
                             "description": "The greeting message",
-                            "default": "Hello"
+                            "default": "default-greeting"
                         },
                         "location": {
                             "type": "object",
@@ -179,11 +178,10 @@
                                 },
                                 "country": {
                                     "type": "string",
-                                    "description": "The country of the location",
-                                    "default": "USA"
+                                    "description": "The country of the location"
                                 }
                             },
-                            "visible": ["city"],
+                            "visible": ["city", "country"],
                             "required": ["city", "country"],
                             "additionalProperties": false
                         }

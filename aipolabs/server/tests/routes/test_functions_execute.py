@@ -63,16 +63,16 @@ def test_execute_function_with_args(test_client: TestClient, dummy_api_key: str)
         # Verify query parameters
         assert query_params == {"lang": ["en"]}
 
-        # Verify body
-        assert request.body == b'{"name": "John", "greeting": "Hello"}'
+        # Verify body, default greeting should be injected
+        assert request.body == b'{"name": "John", "greeting": "default-greeting"}'
 
         # Verify headers
         assert request.headers["X-CUSTOM-HEADER"] == "header123"
         # verify default api key is injected
         assert request.headers["X-Test-API-Key"] == "test-api-key"
 
-        # Verify cookies
-        assert request.headers["Cookie"] == "sessionId=session123"
+        # Verify cookie should not exist because default is null
+        assert "Cookie" not in request.headers
 
         return (200, {}, json.dumps(mock_response_data))
 
@@ -87,9 +87,9 @@ def test_execute_function_with_args(test_client: TestClient, dummy_api_key: str)
         "function_input": {
             "path": {"userId": "John"},
             "query": {"lang": "en"},
-            "body": {"name": "John", "greeting": "Hello"},
+            "body": {"name": "John"},  # greeting is not visible so no input here
             "header": {"X-CUSTOM-HEADER": "header123"},
-            "cookie": {"sessionId": "session123"},
+            # "cookie" property is not visible in our test schema so no input here
         }
     }
     response = test_client.post(
@@ -124,13 +124,13 @@ def test_execute_function_with_nested_args(test_client: TestClient, dummy_api_ke
         # verify default api key is injected
         assert request.headers["X-Test-API-Key"] == "test-api-key"
 
-        # Verify query parameters
-        assert query_params == {"lang": ["cn"]}
+        # Verify default query parameters is injected
+        assert query_params == {"lang": ["en"]}
 
-        # Verify body
+        # Verify body have correct user input and default values are injected for non-visible properties
         assert (
             request.body
-            == b'{"person": {"name": "John", "title": "Mr"}, "greeting": "Hello", "location": {"city": "New York", "country": "USA"}}'
+            == b'{"person": {"name": "John", "title": "default-title"}, "location": {"city": "New York", "country": "USA"}, "greeting": "default-greeting"}'
         )
 
         return (200, {}, json.dumps(mock_response_data))
@@ -145,10 +145,10 @@ def test_execute_function_with_nested_args(test_client: TestClient, dummy_api_ke
     function_execution_request_body = {
         "function_input": {
             "path": {"userId": "John"},
-            "query": {"lang": "cn"},
+            # "query": {"lang": "en"}, query is not visible so no input here
             "body": {
-                "person": {"name": "John", "title": "Mr"},
-                "greeting": "Hello",
+                "person": {"name": "John"},  # "title" is not visible so no input here
+                # "greeting": "Hello", greeting is not visible so no input here
                 "location": {"city": "New York", "country": "USA"},
             },
         }
