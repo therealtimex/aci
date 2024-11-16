@@ -29,7 +29,7 @@ class HttpMethod(str, Enum):
     OPTIONS = "OPTIONS"
 
 
-class HttpMetadata(BaseModel):
+class RestMetadata(BaseModel):
     method: HttpMethod
     path: str
     server_url: str
@@ -46,7 +46,7 @@ class FunctionCreate(BaseModel):
     visibility: Visibility
     enabled: bool
     protocol: Protocol
-    protocol_data: HttpMetadata | GraphQLMetadata = Field(default_factory=dict)
+    protocol_data: RestMetadata | GraphQLMetadata = Field(default_factory=dict)
     parameters: dict = Field(default_factory=dict)
     response: dict = Field(default_factory=dict)
 
@@ -75,7 +75,7 @@ class FunctionCreate(BaseModel):
     # validate protocol_data against protocol type
     @model_validator(mode="after")
     def validate_metadata_by_protocol(self) -> "FunctionCreate":
-        protocol_to_class = {Protocol.REST: HttpMetadata}
+        protocol_to_class = {Protocol.REST: RestMetadata}
 
         expected_class = protocol_to_class[self.protocol]
         if not isinstance(self.protocol_data, expected_class):
@@ -116,7 +116,7 @@ class FunctionExecution(BaseModel):
 
     name: str
     protocol: Protocol
-    protocol_data: HttpMetadata | GraphQLMetadata = Field(default_factory=dict)
+    protocol_data: RestMetadata | GraphQLMetadata = Field(default_factory=dict)
     parameters: dict = Field(default_factory=dict)
     response: dict = Field(default_factory=dict)
 

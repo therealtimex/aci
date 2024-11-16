@@ -18,9 +18,9 @@ from aipolabs.common.schemas.function import (
     FunctionExecution,
     FunctionExecutionResult,
     FunctionPublic,
-    HttpMetadata,
     OpenAIFunctionDefinition,
     Protocol,
+    RestMetadata,
 )
 from aipolabs.server import config
 from aipolabs.server.dependencies import validate_api_key, yield_db_session
@@ -242,7 +242,7 @@ def _execute(
         cookies = function_input.get("cookie", {})
         body = function_input.get("body", {})
 
-        protocol_data: HttpMetadata = function_execution.protocol_data
+        protocol_data: RestMetadata = function_execution.protocol_data
         # Construct URL with path parameters
         url = f"{protocol_data.server_url}{protocol_data.path}"
         if path_params:
