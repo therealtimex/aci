@@ -3,12 +3,9 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from aipolabs.common.db import sql_models
+from aipolabs.common.enums import ProjectOwnerType
 from aipolabs.common.schemas.agent import AgentCreate, AgentPublic
-from aipolabs.common.schemas.project import (
-    ProjectCreate,
-    ProjectOwnerType,
-    ProjectPublic,
-)
+from aipolabs.common.schemas.project import ProjectCreate, ProjectPublic
 
 
 def test_create_project_under_user(

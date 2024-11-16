@@ -2,6 +2,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
 from aipolabs.common.db import crud, sql_models
+from aipolabs.common.enums import Visibility
 from aipolabs.common.schemas.function import (
     AnthropicFunctionDefinition,
     OpenAIFunctionDefinition,
@@ -62,7 +63,7 @@ def test_get_function_that_is_private(
     dummy_project: sql_models.Project,
 ) -> None:
     # private function should not be reachable for project with only public access
-    crud.set_function_visibility(db_session, dummy_functions[0].id, sql_models.Visibility.PRIVATE)
+    crud.set_function_visibility(db_session, dummy_functions[0].id, Visibility.PRIVATE)
     db_session.commit()
 
     response = test_client.get(
@@ -72,7 +73,7 @@ def test_get_function_that_is_private(
     assert response.status_code == 404, response.json()
 
     # should be reachable for project with private access
-    crud.set_project_visibility_access(db_session, dummy_project.id, sql_models.Visibility.PRIVATE)
+    crud.set_project_visibility_access(db_session, dummy_project.id, Visibility.PRIVATE)
     db_session.commit()
 
     response = test_client.get(
@@ -81,8 +82,8 @@ def test_get_function_that_is_private(
     assert response.status_code == 200, response.json()
 
     # revert changes
-    crud.set_project_visibility_access(db_session, dummy_project.id, sql_models.Visibility.PUBLIC)
-    crud.set_function_visibility(db_session, dummy_functions[0].id, sql_models.Visibility.PUBLIC)
+    crud.set_project_visibility_access(db_session, dummy_project.id, Visibility.PUBLIC)
+    crud.set_function_visibility(db_session, dummy_functions[0].id, Visibility.PUBLIC)
     db_session.commit()
 
 
@@ -94,7 +95,7 @@ def test_get_function_that_is_under_private_app(
     dummy_project: sql_models.Project,
 ) -> None:
     # public function under private app should not be reachable for project with only public access
-    crud.set_app_visibility(db_session, dummy_functions[0].app_id, sql_models.Visibility.PRIVATE)
+    crud.set_app_visibility(db_session, dummy_functions[0].app_id, Visibility.PRIVATE)
     db_session.commit()
 
     response = test_client.get(
@@ -103,7 +104,7 @@ def test_get_function_that_is_under_private_app(
     assert response.status_code == 404, response.json()
 
     # should be reachable for project with private access
-    crud.set_project_visibility_access(db_session, dummy_project.id, sql_models.Visibility.PRIVATE)
+    crud.set_project_visibility_access(db_session, dummy_project.id, Visibility.PRIVATE)
     db_session.commit()
 
     response = test_client.get(
@@ -112,8 +113,8 @@ def test_get_function_that_is_under_private_app(
     assert response.status_code == 200, response.json()
 
     # revert changes
-    crud.set_app_visibility(db_session, dummy_functions[0].app_id, sql_models.Visibility.PUBLIC)
-    crud.set_project_visibility_access(db_session, dummy_project.id, sql_models.Visibility.PUBLIC)
+    crud.set_app_visibility(db_session, dummy_functions[0].app_id, Visibility.PUBLIC)
+    crud.set_project_visibility_access(db_session, dummy_project.id, Visibility.PUBLIC)
     db_session.commit()
 
 

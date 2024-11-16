@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session
 
 from aipolabs.common import processor
 from aipolabs.common.db import crud, sql_models
+from aipolabs.common.enums import Protocol
 from aipolabs.common.logging import get_logger
 from aipolabs.common.openai_service import OpenAIService
 from aipolabs.common.schemas.function import (
@@ -19,7 +20,6 @@ from aipolabs.common.schemas.function import (
     FunctionExecutionResult,
     FunctionPublic,
     OpenAIFunctionDefinition,
-    Protocol,
     RestMetadata,
 )
 from aipolabs.server import config

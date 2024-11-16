@@ -5,9 +5,9 @@ import click
 from aipolabs.cli import config
 from aipolabs.common import utils
 from aipolabs.common.db import crud
-from aipolabs.common.db.sql_models import Visibility
+from aipolabs.common.enums import ProjectOwnerType, Visibility
 from aipolabs.common.openai_service import OpenAIService
-from aipolabs.common.schemas.project import ProjectCreate, ProjectOwnerType
+from aipolabs.common.schemas.project import ProjectCreate
 
 openai_service = OpenAIService(
     config.OPENAI_API_KEY, config.OPENAI_EMBEDDING_MODEL, config.OPENAI_EMBEDDING_DIMENSION

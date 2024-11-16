@@ -1,32 +1,13 @@
-from enum import Enum
 from typing import Any, Literal
 
 import jsonschema
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-from aipolabs.common.db.sql_models import Protocol, Visibility
+from aipolabs.common.enums import HttpLocation, HttpMethod, Protocol, Visibility
 from aipolabs.common.validator import (
     validate_function_parameters_schema_common,
     validate_function_parameters_schema_rest_protocol,
 )
-
-
-class HttpLocation(str, Enum):
-    PATH = "path"
-    QUERY = "query"
-    HEADER = "header"
-    COOKIE = "cookie"
-    BODY = "body"
-
-
-class HttpMethod(str, Enum):
-    GET = "GET"
-    POST = "POST"
-    PUT = "PUT"
-    DELETE = "DELETE"
-    PATCH = "PATCH"
-    HEAD = "HEAD"
-    OPTIONS = "OPTIONS"
 
 
 class RestMetadata(BaseModel):
@@ -36,6 +17,8 @@ class RestMetadata(BaseModel):
 
 
 class GraphQLMetadata(BaseModel):
+    """placeholder, not used yet"""
+
     pass
 
 

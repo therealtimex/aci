@@ -2,7 +2,7 @@ import re
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-from aipolabs.common.db.sql_models import SecuritySchemeType, Visibility
+from aipolabs.common.enums import SecuritySchemeType, Visibility
 
 
 class AppCreate(BaseModel):

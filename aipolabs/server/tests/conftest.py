@@ -11,8 +11,9 @@ from sqlalchemy.orm import Session
 
 from aipolabs.common import utils
 from aipolabs.common.db import crud, sql_models
+from aipolabs.common.enums import ProjectOwnerType, Visibility
 from aipolabs.common.schemas.agent import AgentCreate
-from aipolabs.common.schemas.project import ProjectCreate, ProjectOwnerType
+from aipolabs.common.schemas.project import ProjectCreate
 from aipolabs.common.schemas.user import UserCreate
 from aipolabs.server import config
 from aipolabs.server.main import app as fastapi_app
@@ -91,7 +92,7 @@ def dummy_project(dummy_user: sql_models.User) -> Generator[sql_models.Project, 
                 owner_id=dummy_user.id,
                 created_by=dummy_user.id,
             ),
-            visibility_access=sql_models.Visibility.PUBLIC,
+            visibility_access=Visibility.PUBLIC,
         )
         fixture_db_session.commit()
         yield dummy_project

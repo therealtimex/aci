@@ -5,13 +5,10 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from aipolabs.common.db import crud
+from aipolabs.common.enums import ProjectOwnerType
 from aipolabs.common.logging import get_logger
 from aipolabs.common.schemas.agent import AgentCreate, AgentPublic
-from aipolabs.common.schemas.project import (
-    ProjectCreate,
-    ProjectOwnerType,
-    ProjectPublic,
-)
+from aipolabs.common.schemas.project import ProjectCreate, ProjectPublic
 from aipolabs.server import dependencies as deps
 
 # Create router instance

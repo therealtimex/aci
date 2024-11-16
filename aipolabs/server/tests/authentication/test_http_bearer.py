@@ -2,7 +2,8 @@ from fastapi import status
 from fastapi.testclient import TestClient
 
 from aipolabs.common.db import sql_models
-from aipolabs.common.schemas.project import ProjectCreate, ProjectOwnerType
+from aipolabs.common.enums import ProjectOwnerType
+from aipolabs.common.schemas.project import ProjectCreate
 
 
 # sending a request without a valid jwt token in Authorization header to /projects route should fail

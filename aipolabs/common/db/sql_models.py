@@ -13,7 +13,6 @@ for example,
 from __future__ import annotations
 
 import datetime
-from enum import Enum
 from uuid import UUID, uuid4
 
 from pgvector.sqlalchemy import Vector
@@ -32,40 +31,19 @@ from sqlalchemy.orm import (
     relationship,
 )
 
+from aipolabs.common.enums import (
+    APIKeyStatus,
+    Plan,
+    Protocol,
+    SecuritySchemeType,
+    Visibility,
+)
+
 EMBEDDING_DIMENTION = 1024
 APP_DEFAULT_VERSION = "1.0.0"
 # need app to be shorter because it's used as prefix for function name
 APP_NAME_MAX_LENGTH = 100
 MAX_STRING_LENGTH = 255
-
-
-class Visibility(str, Enum):
-    PUBLIC = "public"
-    PRIVATE = "private"
-
-
-class Protocol(str, Enum):
-    REST = "rest"
-    # GRAPHQL = "graphql"
-    # WEBSOCKET = "websocket"
-    # GRPC = "grpc"
-
-
-class SecuritySchemeType(str, Enum):
-    API_KEY = "api_key"
-    HTTP_BASIC = "http_basic"
-    HTTP_BEARER = "http_bearer"
-    OAUTH2_PASSWORD = "oauth2_password"
-    OAUTH2_AUTH_CODE = "oauth2_auth_code"
-    OAUTH2_AUTH_IMPLICIT = "oauth2_auth_implicit"
-    OPEN_ID_CONNECT = "open_id_connect"
-
-
-class Plan(str, Enum):
-    CUSTOM = "custom"
-    FREE = "free"
-    PRO = "pro"
-    ENTERPRISE = "enterprise"
 
 
 class Base(MappedAsDataclass, DeclarativeBase):
@@ -227,13 +205,6 @@ class Agent(Base):
 class APIKey(Base):
     __tablename__ = "api_keys"
 
-    class Status(str, Enum):
-        ACTIVE = "active"
-        # can only be disabled by aipolabs
-        DISABLED = "disabled"
-        # TODO: this is soft delete (requested by user), in the future might consider hard delete and keep audit logs somewhere else
-        DELETED = "deleted"
-
     # id is not the actual API key, it's just a unique identifier to easily reference each API key entry without depending
     # on the API key string itself.
     id: Mapped[UUID] = mapped_column(
@@ -244,7 +215,7 @@ class APIKey(Base):
     agent_id: Mapped[UUID] = mapped_column(
         PGUUID(as_uuid=True), ForeignKey("agents.id"), unique=True, nullable=False
     )
-    status: Mapped[Status] = mapped_column(SqlEnum(Status), nullable=False)
+    status: Mapped[APIKeyStatus] = mapped_column(SqlEnum(APIKeyStatus), nullable=False)
 
     created_at: Mapped[datetime.datetime] = mapped_column(
         DateTime(timezone=False), server_default=func.now(), nullable=False, init=False

@@ -13,11 +13,12 @@ from sqlalchemy.orm import Session
 
 from aipolabs.common import utils
 from aipolabs.common.db import sql_models
+from aipolabs.common.enums import APIKeyStatus, ProjectOwnerType, Visibility
 from aipolabs.common.logging import get_logger
 from aipolabs.common.schemas.agent import AgentCreate
 from aipolabs.common.schemas.app import AppCreate
 from aipolabs.common.schemas.function import FunctionCreate
-from aipolabs.common.schemas.project import ProjectCreate, ProjectOwnerType
+from aipolabs.common.schemas.project import ProjectCreate
 from aipolabs.common.schemas.user import UserCreate
 
 logger = get_logger(__name__)
@@ -76,7 +77,7 @@ def create_project(
     db_session: Session,
     project: ProjectCreate,
     # visibility_access can not be part of ProjectCreate otherwise users can create projects with private visibility
-    visibility_access: sql_models.Visibility = sql_models.Visibility.PUBLIC,
+    visibility_access: Visibility = Visibility.PUBLIC,
 ) -> sql_models.Project:
     """
     Create a new project.
@@ -114,7 +115,7 @@ def create_agent(db_session: Session, agent: AgentCreate) -> sql_models.Agent:
 
     # Create the API key for the agent
     api_key = sql_models.APIKey(
-        key=secrets.token_hex(32), agent_id=db_agent.id, status=sql_models.APIKey.Status.ACTIVE
+        key=secrets.token_hex(32), agent_id=db_agent.id, status=APIKeyStatus.ACTIVE
     )
     db_session.add(api_key)
     db_session.flush()
@@ -181,8 +182,8 @@ def search_apps(
     # filter out disabled apps
     statement = statement.filter(sql_models.App.enabled)
     # if the corresponding project (api key belongs to) can only access public apps, filter out private apps
-    if db_project.visibility_access == sql_models.Visibility.PUBLIC:
-        statement = statement.filter(sql_models.App.visibility == sql_models.Visibility.PUBLIC)
+    if db_project.visibility_access == Visibility.PUBLIC:
+        statement = statement.filter(sql_models.App.visibility == Visibility.PUBLIC)
     # TODO: Is there any way to get typing for cosine_distance, label, overlap?
     if categories and len(categories) > 0:
         statement = statement.filter(sql_models.App.categories.overlap(categories))
@@ -223,10 +224,10 @@ def search_functions(
     )
     # if the corresponding project (api key belongs to) can only access public apps and functions, filter out all functions of private apps
     # and all private functions (where app is public but specific function is private)
-    if db_project.visibility_access == sql_models.Visibility.PUBLIC:
-        statement = statement.filter(
-            sql_models.App.visibility == sql_models.Visibility.PUBLIC
-        ).filter(sql_models.Function.visibility == sql_models.Visibility.PUBLIC)
+    if db_project.visibility_access == Visibility.PUBLIC:
+        statement = statement.filter(sql_models.App.visibility == Visibility.PUBLIC).filter(
+            sql_models.Function.visibility == Visibility.PUBLIC
+        )
     # filter out functions that are not in the specified apps
     if app_names and len(app_names) > 0:
         statement = statement.filter(sql_models.App.name.in_(app_names))
@@ -263,10 +264,10 @@ def get_function(
     )
     # if the corresponding project (api key belongs to) can only access public apps and functions, filter out all functions of private apps
     # and all private functions (where app is public but specific function is private)
-    if db_project.visibility_access == sql_models.Visibility.PUBLIC:
-        statement = statement.filter(
-            sql_models.App.visibility == sql_models.Visibility.PUBLIC
-        ).filter(sql_models.Function.visibility == sql_models.Visibility.PUBLIC)
+    if db_project.visibility_access == Visibility.PUBLIC:
+        statement = statement.filter(sql_models.App.visibility == Visibility.PUBLIC).filter(
+            sql_models.Function.visibility == Visibility.PUBLIC
+        )
 
     function: sql_models.Function | None = db_session.execute(statement).scalar_one_or_none()
 
@@ -357,9 +358,7 @@ def set_app_enabled_status(db_session: Session, app_id: UUID, enabled: bool) -> 
     db_session.execute(statement)
 
 
-def set_app_visibility(
-    db_session: Session, app_id: UUID, visibility: sql_models.Visibility
-) -> None:
+def set_app_visibility(db_session: Session, app_id: UUID, visibility: Visibility) -> None:
     statement = update(sql_models.App).filter_by(id=app_id).values(visibility=visibility)
     db_session.execute(statement)
 
@@ -390,15 +389,13 @@ def set_function_enabled_status(db_session: Session, function_id: UUID, enabled:
     db_session.execute(statement)
 
 
-def set_function_visibility(
-    db_session: Session, function_id: UUID, visibility: sql_models.Visibility
-) -> None:
+def set_function_visibility(db_session: Session, function_id: UUID, visibility: Visibility) -> None:
     statement = update(sql_models.Function).filter_by(id=function_id).values(visibility=visibility)
     db_session.execute(statement)
 
 
 def set_project_visibility_access(
-    db_session: Session, project_id: UUID, visibility_access: sql_models.Visibility
+    db_session: Session, project_id: UUID, visibility_access: Visibility
 ) -> None:
     statement = (
         update(sql_models.Project)

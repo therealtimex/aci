@@ -5,7 +5,7 @@ import click
 from aipolabs.cli import config
 from aipolabs.common import utils
 from aipolabs.common.db import crud
-from aipolabs.common.db.sql_models import Plan
+from aipolabs.common.enums import Plan
 from aipolabs.common.openai_service import OpenAIService
 from aipolabs.common.schemas.user import UserCreate
 

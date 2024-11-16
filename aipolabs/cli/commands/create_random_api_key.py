@@ -14,8 +14,7 @@ from aipolabs.cli import config
 from aipolabs.cli.commands import create_agent, create_project, create_user
 from aipolabs.common import utils
 from aipolabs.common.db import crud, sql_models
-from aipolabs.common.db.sql_models import Plan
-from aipolabs.common.schemas.project import ProjectOwnerType
+from aipolabs.common.enums import Plan, ProjectOwnerType, Visibility
 
 
 @click.command()
@@ -40,7 +39,7 @@ def create_random_api_key() -> str:
         owner_type=ProjectOwnerType.USER,
         owner_id=user_id,
         created_by=user_id,
-        visibility_access=sql_models.Visibility.PUBLIC,
+        visibility_access=Visibility.PUBLIC,
         skip_dry_run=skip_dry_run,
     )
     agent_id = create_agent.create_agent_helper(

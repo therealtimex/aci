@@ -2,7 +2,7 @@ from uuid import UUID
 
 from pydantic import BaseModel
 
-from aipolabs.common.db.sql_models import Plan
+from aipolabs.common.enums import Plan
 
 
 class AuthResponse(BaseModel):
