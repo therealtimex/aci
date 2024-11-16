@@ -17,6 +17,12 @@ def filter_visible_properties(parameters: dict) -> dict:
     properties = filtered_parameters.get("properties", {})
     filtered_properties = {key: value for key, value in properties.items() if key in visible}
 
+    # Update the required list to include only visible properties
+    # (because the ones that are not in the visible list are removed already)
+    required = filtered_parameters.get("required", [])
+    filtered_required = [key for key in required if key in visible]
+    filtered_parameters["required"] = filtered_required
+
     # Recursively filter nested properties
     for key, value in filtered_properties.items():
         if value.get("type") == "object":
