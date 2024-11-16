@@ -77,4 +77,4 @@ Follow all guidelines below for setting up the development environment, running 
 
 
 ## CLI
-Follow the [CLI instructions](cli/README.md) for the cli module.
+Follow the [CLI instructions](aipolabs/cli/README.md) for the cli module.
