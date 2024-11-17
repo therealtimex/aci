@@ -10,9 +10,7 @@ from aipolabs.common.db import crud
 from aipolabs.common.openai_service import OpenAIService
 from aipolabs.common.schemas.app import AppCreate
 
-openai_service = OpenAIService(
-    config.OPENAI_API_KEY, config.OPENAI_EMBEDDING_MODEL, config.OPENAI_EMBEDDING_DIMENSION
-)
+openai_service = OpenAIService(config.OPENAI_API_KEY)
 
 
 @click.command()
@@ -37,7 +35,12 @@ def create_app_helper(app_file: Path, skip_dry_run: bool) -> UUID:
     with utils.create_db_session(config.DB_FULL_URL) as db_session:
         with open(app_file, "r") as f:
             app: AppCreate = AppCreate.model_validate(json.load(f))
-            app_embedding = embeddings.generate_app_embedding(app, openai_service)
+            app_embedding = embeddings.generate_app_embedding(
+                app,
+                openai_service,
+                config.OPENAI_EMBEDDING_MODEL,
+                config.OPENAI_EMBEDDING_DIMENSION,
+            )
 
         db_app = crud.create_app(db_session, app, app_embedding)
         if not skip_dry_run:

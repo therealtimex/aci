@@ -8,9 +8,7 @@ from aipolabs.common.db import crud
 from aipolabs.common.openai_service import OpenAIService
 from aipolabs.common.schemas.agent import AgentCreate
 
-openai_service = OpenAIService(
-    config.OPENAI_API_KEY, config.OPENAI_EMBEDDING_MODEL, config.OPENAI_EMBEDDING_DIMENSION
-)
+openai_service = OpenAIService(config.OPENAI_API_KEY)
 
 
 @click.command()

@@ -27,9 +27,7 @@ from aipolabs.server.dependencies import validate_api_key, yield_db_session
 
 router = APIRouter()
 logger = get_logger(__name__)
-openai_service = OpenAIService(
-    config.OPENAI_API_KEY, config.OPENAI_EMBEDDING_MODEL, config.OPENAI_EMBEDDING_DIMENSION
-)
+openai_service = OpenAIService(config.OPENAI_API_KEY)
 
 
 # TODO: convert app names to lowercase/uppercase (in crud or here) to avoid case sensitivity issues?
@@ -85,7 +83,11 @@ async def search_functions(
     try:
         logger.debug(f"Getting functions with params: {search_params}")
         intent_embedding = (
-            openai_service.generate_embedding(search_params.intent)
+            openai_service.generate_embedding(
+                search_params.intent,
+                config.OPENAI_EMBEDDING_MODEL,
+                config.OPENAI_EMBEDDING_DIMENSION,
+            )
             if search_params.intent
             else None
         )
@@ -224,7 +226,7 @@ def _execute(
         f"======= function_input before injecting non-visible defaults =======\n\n {json.dumps(function_input, indent=2)}"
     )
     # inject non-visible defaults, note that should pass the original parameters schema not just visible ones
-    function_input = processor.inject_non_visible_defaults(
+    function_input = processor.inject_required_but_invisible_defaults(
         function_execution.parameters, function_input
     )
     logger.info(

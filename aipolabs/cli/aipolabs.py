@@ -7,6 +7,7 @@ from aipolabs.cli.commands import (
     create_project,
     create_random_api_key,
     create_user,
+    fuzzy_test_function_execution,
 )
 from aipolabs.common.logging import setup_logging
 
@@ -24,7 +25,7 @@ cli.add_command(create_agent.create_agent)
 cli.add_command(create_app.create_app)
 cli.add_command(create_functions.create_functions)
 cli.add_command(create_random_api_key.create_random_api_key)
-
+cli.add_command(fuzzy_test_function_execution.fuzzy_test_function_execution)
 if __name__ == "__main__":
     setup_logging()
     cli()

@@ -10,9 +10,7 @@ from aipolabs.common.db import crud
 from aipolabs.common.openai_service import OpenAIService
 from aipolabs.common.schemas.function import FunctionCreate
 
-openai_service = OpenAIService(
-    config.OPENAI_API_KEY, config.OPENAI_EMBEDDING_MODEL, config.OPENAI_EMBEDDING_DIMENSION
-)
+openai_service = OpenAIService(config.OPENAI_API_KEY)
 
 
 @click.command()
@@ -40,7 +38,12 @@ def create_functions_helper(functions_file: Path, skip_dry_run: bool) -> list[UU
                 FunctionCreate.model_validate(function) for function in json.load(f)
             ]
 
-        function_embeddings = embeddings.generate_function_embeddings(functions, openai_service)
+        function_embeddings = embeddings.generate_function_embeddings(
+            functions,
+            openai_service,
+            embedding_model=config.OPENAI_EMBEDDING_MODEL,
+            embedding_dimension=config.OPENAI_EMBEDDING_DIMENSION,
+        )
 
         db_functions = crud.create_functions(db_session, functions, function_embeddings)
         if not skip_dry_run:

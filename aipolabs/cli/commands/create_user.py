@@ -9,9 +9,7 @@ from aipolabs.common.enums import Plan
 from aipolabs.common.openai_service import OpenAIService
 from aipolabs.common.schemas.user import UserCreate
 
-openai_service = OpenAIService(
-    config.OPENAI_API_KEY, config.OPENAI_EMBEDDING_MODEL, config.OPENAI_EMBEDDING_DIMENSION
-)
+openai_service = OpenAIService(config.OPENAI_API_KEY)
 
 
 @click.command()

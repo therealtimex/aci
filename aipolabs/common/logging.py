@@ -1,4 +1,5 @@
 import logging
+import shutil
 from logging.handlers import RotatingFileHandler
 
 # from logging.handlers import RotatingFileHandler
@@ -42,3 +43,25 @@ def get_logger(name: str, level: int = logging.INFO) -> logging.Logger:
     logger = logging.getLogger(name)
     logger.setLevel(level)
     return logger
+
+
+def create_headline(title: str, fill_char: str = "=") -> str:
+    """Create a header that fills the terminal width with the given title centered.
+
+    Args:
+        title: The text to center in the header
+        fill_char: The character to use for filling (default: "=")
+
+    Returns:
+        A string containing the formatted header
+    """
+    terminal_width = shutil.get_terminal_size().columns or 80
+    padded_title = f" {title} "  # Add spaces around the title
+    padding = fill_char * ((terminal_width - len(padded_title)) // 2)
+    header = f"{padding}{padded_title}{padding}\n"
+
+    # Add extra fill_char if the total length is off by one due to integer division
+    if len(header) < terminal_width:
+        header += fill_char
+
+    return header

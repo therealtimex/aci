@@ -14,9 +14,7 @@ from aipolabs.server.dependencies import validate_api_key, yield_db_session
 
 logger = get_logger(__name__)
 router = APIRouter()
-openai_service = OpenAIService(
-    config.OPENAI_API_KEY, config.OPENAI_EMBEDDING_MODEL, config.OPENAI_EMBEDDING_DIMENSION
-)
+openai_service = OpenAIService(config.OPENAI_API_KEY)
 
 
 class AppFilterParams(BaseModel):
@@ -71,7 +69,11 @@ async def search_apps(
     try:
         logger.info(f"Getting apps with filter params: {filter_params}")
         intent_embedding = (
-            openai_service.generate_embedding(filter_params.intent)
+            openai_service.generate_embedding(
+                filter_params.intent,
+                config.OPENAI_EMBEDDING_MODEL,
+                config.OPENAI_EMBEDDING_DIMENSION,
+            )
             if filter_params.intent
             else None
         )

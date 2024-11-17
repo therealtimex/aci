@@ -12,9 +12,7 @@ from aipolabs.common.schemas.function import FunctionCreate
 from aipolabs.server import config
 
 logger = logging.getLogger(__name__)
-openai_service = OpenAIService(
-    config.OPENAI_API_KEY, config.OPENAI_EMBEDDING_MODEL, config.OPENAI_EMBEDDING_DIMENSION
-)
+openai_service = OpenAIService(config.OPENAI_API_KEY)
 
 
 def create_dummy_apps_and_functions(db_session: Session) -> list[sql_models.App]:
@@ -39,8 +37,12 @@ def _upsert_app_and_functions(
             FunctionCreate.model_validate(function) for function in json.load(f)
         ]
 
-    app_embedding = embeddings.generate_app_embedding(app, openai_service)
-    function_embeddings = embeddings.generate_function_embeddings(functions, openai_service)
+    app_embedding = embeddings.generate_app_embedding(
+        app, openai_service, config.OPENAI_EMBEDDING_MODEL, config.OPENAI_EMBEDDING_DIMENSION
+    )
+    function_embeddings = embeddings.generate_function_embeddings(
+        functions, openai_service, config.OPENAI_EMBEDDING_MODEL, config.OPENAI_EMBEDDING_DIMENSION
+    )
 
     # TODO: check app name and functio name match?
     logger.info(f"Upserting app and functions for app: {app.name}...")

@@ -56,5 +56,15 @@ For commands that require database connection, make sure the database you are co
   ```
 </details>
 
+<details>
+  <summary>Fuzzy Test Function Execution</summary>
+  This command will test function execution with GPT-generated inputs.
+  <li>You need to first create a test API key with `create-random-api-key` command.</li>
+  <li>Make sure you have a server running (locally or on the cloud). And set the `CLI_SERVER_URL` in `.env` file.</li>
+  ```bash
+  python -m aipolabs.cli.aipolabs fuzzy-test-function-execution --function-name "my_function" --aipolabs-api-key "your_api_key_here"
+  ```
+</details>
+
 ## Testing
 Follow all guidelines below for setting up the development environment, running services and testing locally

@@ -139,7 +139,7 @@
                         }
                     },
                     "required": ["q"],
-                    "visible": ["q", "count", "offset", "safesearch", "freshness", "extra_snippets"],
+                    "visible": ["q", "count", "offset", "safesearch", "extra_snippets"],
                     "additionalProperties": false
                 },
                 "header": {
@@ -152,9 +152,10 @@
                             "default": "application/json"
                         },
                         "Accept-Encoding": {
-                            "type": ["string"],
+                            "type": ["string", "null"],
                             "description": "The supported compression type",
-                            "default": "gzip"
+                            "default": null,
+                            "enum": [null, "gzip"]
                         },
                         "Api-Version": {
                             "type": ["string", "null"],
