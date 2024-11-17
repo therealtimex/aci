@@ -47,5 +47,14 @@ For commands that require database connection, make sure the database you are co
   ```
 </details>
 
+<details>
+  <summary>Create Random API Key</summary>
+  This command will create an api key for random user and project and agent.
+  Set the --visibility-access to private if you want to test with private apps and functions.
+  ```bash
+  python -m aipolabs.cli.aipolabs create-random-api-key --visibility-access public
+  ```
+</details>
+
 ## Testing
 Follow all guidelines below for setting up the development environment, running services and testing locally

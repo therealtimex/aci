@@ -17,9 +17,20 @@ from aipolabs.common.db import crud, sql_models
 from aipolabs.common.enums import Plan, ProjectOwnerType, Visibility
 
 
+@click.option(
+    "--visibility-access",
+    "visibility_access",
+    required=True,
+    type=Visibility,
+    help="visibility access of the project that the api key belongs to, either 'public' or 'private'",
+)
 @click.command()
-def create_random_api_key() -> str:
+def create_random_api_key(visibility_access: Visibility) -> str:
     """Create a random test api key for local development."""
+    return create_random_api_key_helper(visibility_access)
+
+
+def create_random_api_key_helper(visibility_access: Visibility) -> str:
     # can not do dry run because of the dependencies
     skip_dry_run = True
 
@@ -39,7 +50,7 @@ def create_random_api_key() -> str:
         owner_type=ProjectOwnerType.USER,
         owner_id=user_id,
         created_by=user_id,
-        visibility_access=Visibility.PUBLIC,
+        visibility_access=visibility_access,
         skip_dry_run=skip_dry_run,
     )
     agent_id = create_agent.create_agent_helper(
@@ -58,6 +69,11 @@ def create_random_api_key() -> str:
         if not db_api_key:
             raise ValueError(f"API key with agent ID {agent_id} not found")
         api_key: str = db_api_key.key
-        click.echo(f"\n\n============ Created Test API key: {api_key} ============\n\n")
+        click.echo("\n============ Created Test API key ============\n")
+        # print user, project, agent, api key
+        click.echo(f"User id: {user_id}")
+        click.echo(f"Project id: {project_id}")
+        click.echo(f"Agent id: {agent_id}")
+        click.echo(f"API Key: {api_key}")
 
     return api_key
