@@ -42,14 +42,14 @@ def fuzzy_test_function_execution_helper(function_name: str, aipolabs_api_key: s
         raise click.ClickException(f"Failed to get function definition: {response.json()}")
 
     function_definition = response.json()
-    click.echo(create_headline("Function definition"))
-    click.echo(f"{json.dumps(function_definition)}\n")
+    click.echo(create_headline("Function definition fetched"))
+    click.echo(f"{json.dumps(function_definition)}")
 
     # Use OpenAI function calling to generate a random input
     openai_service = OpenAIService(config.OPENAI_API_KEY)
     function_args = openai_service.generate_fuzzy_function_call_arguments(function_definition)
     click.echo(create_headline("Generated function call arguments"))
-    click.echo(f"{json.dumps(function_args)}\n")
+    click.echo(f"{json.dumps(function_args)}")
 
     # Execute function with generated input
     response = requests.post(
@@ -63,4 +63,4 @@ def fuzzy_test_function_execution_helper(function_name: str, aipolabs_api_key: s
 
     result = response.json()
     click.echo(create_headline(f"Execution result for {function_name}"))
-    click.echo(f"{json.dumps(result)}\n")
+    click.echo(f"{json.dumps(result)}")

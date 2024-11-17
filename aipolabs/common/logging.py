@@ -45,23 +45,27 @@ def get_logger(name: str, level: int = logging.INFO) -> logging.Logger:
     return logger
 
 
-def create_headline(title: str, fill_char: str = "=") -> str:
+def create_headline(title: str, fill_char: str = "-") -> str:
     """Create a header that fills the terminal width with the given title centered.
 
     Args:
         title: The text to center in the header
-        fill_char: The character to use for filling (default: "=")
+        fill_char: The character to use for filling (default: "-")
 
     Returns:
-        A string containing the formatted header
+        A string containing the formatted header with green title text
     """
+    # ANSI escape codes for green text and reset
+    GREEN = "\033[32m"
+    RESET = "\033[0m"
+
     terminal_width = shutil.get_terminal_size().columns or 80
-    padded_title = f" {title} "  # Add spaces around the title
-    padding = fill_char * ((terminal_width - len(padded_title)) // 2)
-    header = f"{padding}{padded_title}{padding}\n"
+    padded_title = f" {GREEN}{title}{RESET} "  # Add green color to title
+    padding = fill_char * ((terminal_width - len(title) - 2) // 2)  # -2 for the spaces
+    header = f"{padding}{padded_title}{padding}"
 
     # Add extra fill_char if the total length is off by one due to integer division
-    if len(header) < terminal_width:
+    if len(header) - len(GREEN) - len(RESET) < terminal_width:
         header += fill_char
 
     return header

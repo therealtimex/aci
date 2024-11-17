@@ -7,6 +7,7 @@ import click
 from aipolabs.cli import config
 from aipolabs.common import embeddings, utils
 from aipolabs.common.db import crud
+from aipolabs.common.logging import create_headline
 from aipolabs.common.openai_service import OpenAIService
 from aipolabs.common.schemas.app import AppCreate
 
@@ -44,18 +45,13 @@ def create_app_helper(app_file: Path, skip_dry_run: bool) -> UUID:
 
         db_app = crud.create_app(db_session, app, app_embedding)
         if not skip_dry_run:
-            click.echo(
-                f"\n\n============ will create new app {db_app.name} ============\n\n"
-                f"{db_app}\n\n"
-                "============ provide --skip-dry-run to commit changes ============="
-            )
+            click.echo(create_headline(f"will create new app {db_app.name}"))
+            click.echo(db_app)
+            click.echo(create_headline("provide --skip-dry-run to commit changes"))
             db_session.rollback()
         else:
-            click.echo(
-                f"\n\n============ committing creation of app {db_app.name} ============\n\n"
-                f"{db_app}\n\n"
-            )
+            click.echo(create_headline(f"committing creation of app {db_app.name}"))
+            click.echo(db_app)
             db_session.commit()
-            click.echo("============ success! =============")
 
         return db_app.id  # type: ignore

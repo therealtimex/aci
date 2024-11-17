@@ -6,6 +6,7 @@ from aipolabs.cli import config
 from aipolabs.common import utils
 from aipolabs.common.db import crud
 from aipolabs.common.enums import Plan
+from aipolabs.common.logging import create_headline
 from aipolabs.common.openai_service import OpenAIService
 from aipolabs.common.schemas.user import UserCreate
 
@@ -93,18 +94,13 @@ def create_user_helper(
         db_user = crud.create_user(db_session, user_create)
 
         if not skip_dry_run:
-            click.echo(
-                f"\n\n============ will create new user {db_user.name} ============\n\n"
-                f"{db_user}\n\n"
-                "============ provide --skip-dry-run to commit changes ============="
-            )
+            click.echo(create_headline(f"will create new user {db_user.name}"))
+            click.echo(db_user)
+            click.echo(create_headline("provide --skip-dry-run to commit changes"))
             db_session.rollback()
         else:
-            click.echo(
-                f"\n\n============ committing creation of user {db_user.name} ============\n\n"
-                f"{db_user}\n\n"
-            )
+            click.echo(create_headline(f"committing creation of user {db_user.name}"))
+            click.echo(db_user)
             db_session.commit()
-            click.echo("============ success! =============")
 
         return db_user.id  # type: ignore

@@ -6,6 +6,7 @@ from aipolabs.cli import config
 from aipolabs.common import utils
 from aipolabs.common.db import crud
 from aipolabs.common.enums import ProjectOwnerType, Visibility
+from aipolabs.common.logging import create_headline
 from aipolabs.common.openai_service import OpenAIService
 from aipolabs.common.schemas.project import ProjectCreate
 
@@ -84,17 +85,12 @@ def create_project_helper(
 
         db_project = crud.create_project(db_session, project_create, visibility_access)
         if not skip_dry_run:
-            click.echo(
-                f"\n\n============ will create new project {db_project.name} ============\n\n"
-                f"{db_project}\n\n"
-                "============ provide --skip-dry-run to commit changes ============="
-            )
+            click.echo(create_headline(f"will create new project {db_project.name}"))
+            click.echo(db_project)
+            click.echo(create_headline("provide --skip-dry-run to commit changes"))
             db_session.rollback()
         else:
-            click.echo(
-                f"\n\n============ committing creation of project {db_project.name} ============\n\n"
-                f"{db_project}\n\n"
-            )
+            click.echo(create_headline(f"committing creation of project {db_project.name}"))
+            click.echo(db_project)
             db_session.commit()
-            click.echo("============ success! =============")
         return db_project.id  # type: ignore

@@ -7,6 +7,7 @@ import click
 from aipolabs.cli import config
 from aipolabs.common import embeddings, utils
 from aipolabs.common.db import crud
+from aipolabs.common.logging import create_headline
 from aipolabs.common.openai_service import OpenAIService
 from aipolabs.common.schemas.function import FunctionCreate
 
@@ -47,16 +48,13 @@ def create_functions_helper(functions_file: Path, skip_dry_run: bool) -> list[UU
 
         db_functions = crud.create_functions(db_session, functions, function_embeddings)
         if not skip_dry_run:
-            click.echo(
-                f"\n\n============ will create {len(functions)} functions ============\n\n"
-                "============ provide --skip-dry-run to commit changes ============="
-            )
+            click.echo(create_headline(f"will create {len(functions)} functions"))
+            for db_function in db_functions:
+                click.echo(db_function.name)
+            click.echo(create_headline("provide --skip-dry-run to commit changes"))
             db_session.rollback()
         else:
-            click.echo(
-                f"\n\n============ committing creation of {len(functions)} functions ============\n\n"
-            )
+            click.echo(create_headline(f"committing creation of {len(functions)} functions"))
             db_session.commit()
-            click.echo("============ success! =============")
 
         return [db_function.id for db_function in db_functions]

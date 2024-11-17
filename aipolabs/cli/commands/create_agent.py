@@ -5,6 +5,7 @@ import click
 from aipolabs.cli import config
 from aipolabs.common import utils
 from aipolabs.common.db import crud
+from aipolabs.common.logging import create_headline
 from aipolabs.common.openai_service import OpenAIService
 from aipolabs.common.schemas.agent import AgentCreate
 
@@ -104,18 +105,13 @@ def create_agent_helper(
         db_agent = crud.create_agent(db_session, agent_create)
 
         if not skip_dry_run:
-            click.echo(
-                f"\n\n============ will create new agent {db_agent.name} ============\n\n"
-                f"{db_agent}\n\n"
-                "============ provide --skip-dry-run to commit changes ============="
-            )
+            click.echo(create_headline(f"will create new agent {db_agent.name}"))
+            click.echo(db_agent)
+            click.echo(create_headline("provide --skip-dry-run to commit changes"))
             db_session.rollback()
         else:
-            click.echo(
-                f"\n\n============ committing creation of agent {db_agent.name} ============\n\n"
-                f"{db_agent}\n\n"
-            )
+            click.echo(create_headline(f"committing creation of agent {db_agent.name}"))
+            click.echo(db_agent)
             db_session.commit()
-            click.echo("============ success! =============")
 
         return db_agent.id  # type: ignore

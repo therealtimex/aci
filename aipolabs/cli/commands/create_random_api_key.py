@@ -15,6 +15,7 @@ from aipolabs.cli.commands import create_agent, create_project, create_user
 from aipolabs.common import utils
 from aipolabs.common.db import crud, sql_models
 from aipolabs.common.enums import Plan, ProjectOwnerType, Visibility
+from aipolabs.common.logging import create_headline
 
 
 @click.option(
@@ -69,7 +70,7 @@ def create_random_api_key_helper(visibility_access: Visibility) -> str:
         if not db_api_key:
             raise ValueError(f"API key with agent ID {agent_id} not found")
         api_key: str = db_api_key.key
-        click.echo("\n============ Created Test API key ============\n")
+        click.echo(create_headline("created test API key"))
         # print user, project, agent, api key
         click.echo(f"User id: {user_id}")
         click.echo(f"Project id: {project_id}")
