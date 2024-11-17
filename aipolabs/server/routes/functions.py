@@ -12,7 +12,7 @@ from sqlalchemy.orm import Session
 from aipolabs.common import processor
 from aipolabs.common.db import crud, sql_models
 from aipolabs.common.enums import Protocol
-from aipolabs.common.logging import get_logger
+from aipolabs.common.logging import create_headline, get_logger
 from aipolabs.common.openai_service import OpenAIService
 from aipolabs.common.schemas.function import (
     AnthropicFunctionDefinition,
@@ -141,9 +141,7 @@ async def get_function_definition(
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Function not found.")
 
         visible_parameters = processor.filter_visible_properties(function.parameters)
-        logger.debug(
-            f"========== Filtered parameters ========== \n\n {json.dumps(visible_parameters, indent=2)}"
-        )
+        logger.debug(f"Filtered parameters: {json.dumps(visible_parameters)}")
 
         if inference_provider == InferenceProvider.OPENAI:
             function_definition = OpenAIFunctionDefinition(
@@ -222,16 +220,13 @@ def _execute(
         logger.error(f"Invalid input: {e.message}")
         raise ValueError(f"Invalid input: {e.message}") from e
 
-    logger.info(
-        f"======= function_input before injecting non-visible defaults =======\n\n {json.dumps(function_input, indent=2)}"
-    )
+    logger.info(f"function_input before injecting defaults: {json.dumps(function_input)}")
+
     # inject non-visible defaults, note that should pass the original parameters schema not just visible ones
     function_input = processor.inject_required_but_invisible_defaults(
         function_execution.parameters, function_input
     )
-    logger.info(
-        f"======= function_input after injecting non-visible defaults =======\n\n {json.dumps(function_input, indent=2)}"
-    )
+    logger.info(f"function_input after injecting defaults: {json.dumps(function_input)}")
 
     if function_execution.protocol == Protocol.REST:
         # remove None values from the input
@@ -268,15 +263,14 @@ def _execute(
 
         # Prepare the request to access its components
         prepared_request = request.prepare()
-        # TODO: remove logging
-        logger.info(
-            "======================== FUNCTION EXECUTION HTTP REQUEST ========================"
-        )
+        # TODO: remove all print ?
+        print(create_headline("FUNCTION EXECUTION HTTP REQUEST"))
+
         logger.info(
             f"Method: {prepared_request.method}\n"
             f"URL: {prepared_request.url}\n"
-            f"Headers: {json.dumps(dict(prepared_request.headers), indent=2)}\n"
-            f"Body: {json.dumps(json.loads(prepared_request.body), indent=2) if prepared_request.body else None}\n"
+            f"Headers: {json.dumps(dict(prepared_request.headers))}\n"
+            f"Body: {json.dumps(json.loads(prepared_request.body)) if prepared_request.body else None}\n"
         )
         # execute request
         response = requests.Session().send(prepared_request)
