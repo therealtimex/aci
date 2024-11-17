@@ -9,9 +9,9 @@ For commands that require database connection, make sure the database you are co
 
 <details>
   <summary>Upsert App and Functions</summary>
-  This command will create or update an app and its functions in the database, based on the app json file provided.
-
-  Example files: [`aipolabs_test`](../../apps/aipolabs_test).
+  
+  - Create or update an app and its functions in the database, based on the app json file provided.
+  - Example files: [`aipolabs_test`](../../apps/aipolabs_test).
 
   ```bash
   python -m aipolabs.cli.aipolabs upsert-app-and-functions --app-file ./apps/aipolabs_test/app.json --functions-file ./apps/aipolabs_test/functions.json
@@ -20,7 +20,8 @@ For commands that require database connection, make sure the database you are co
 
 <details>
   <summary>Create User</summary>
-  This command will create a user in the database.
+  
+  - Create a user in the database.
 
   ```bash
   python -m aipolabs.cli.aipolabs create-user --auth-provider google --auth-user-id 1234567890 --name "John Doe" --email "john.doe@example.com" --profile-picture "https://example.com/profile.jpg" --plan free
@@ -29,8 +30,9 @@ For commands that require database connection, make sure the database you are co
 
 <details>
   <summary>Create Project</summary>
-  This command will create a project in the database.
-  You need to create the user first before creating a project for the user.
+  
+  - Create a project in the database.
+  - You need to create the user first before creating a project for the user.
 
   ```bash
   python -m aipolabs.cli.aipolabs create-project --project-name "My Project" --owner-type user --owner-id "8341edc4-eeb6-4e90-abe3-0051a9a7b9a5" --created-by "8341edc4-eeb6-4e90-abe3-0051a9a7b9a5" --visibility-access public
@@ -39,8 +41,9 @@ For commands that require database connection, make sure the database you are co
 
 <details>
   <summary>Create Agent</summary>
-  This command will create an agent in the database.
-  You need to create the project first before creating an agent for the project.
+  
+  - Create an agent in the database.
+  - You need to create the project first before creating an agent for the project.
 
   ```bash
   python -m aipolabs.cli.aipolabs create-agent --agent-name "My Agent" --description "My Agent Description" --project-id "51711368-ef40-4efc-a9ab-5d44dbe0d671" --created-by "8341edc4-eeb6-4e90-abe3-0051a9a7b9a5"
@@ -49,8 +52,10 @@ For commands that require database connection, make sure the database you are co
 
 <details>
   <summary>Create Random API Key</summary>
-  This command will create an api key for random user and project and agent.
+  
+  - Create an api key for random user and project and agent.
   Set the --visibility-access to private if you want to test with private apps and functions.
+
   ```bash
   python -m aipolabs.cli.aipolabs create-random-api-key --visibility-access public
   ```
@@ -58,9 +63,11 @@ For commands that require database connection, make sure the database you are co
 
 <details>
   <summary>Fuzzy Test Function Execution</summary>
-  This command will test function execution with GPT-generated inputs.
-  <li>You need to first create a test API key with `create-random-api-key` command.</li>
-  <li>Make sure you have a server running (locally or on the cloud). And set the `CLI_SERVER_URL` in `.env` file.</li>
+
+  - This command will test function execution with GPT-generated inputs.
+  - You need to first create a test API key with `create-random-api-key` command.
+  - Make sure you have a server running (locally or on the cloud). And set the `CLI_SERVER_URL` in `.env` file.
+
   ```bash
   python -m aipolabs.cli.aipolabs fuzzy-test-function-execution --function-name "my_function" --aipolabs-api-key "your_api_key_here"
   ```
