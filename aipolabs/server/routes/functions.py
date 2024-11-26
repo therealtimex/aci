@@ -6,6 +6,7 @@ from uuid import UUID
 import httpx
 import jsonschema
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from httpx import HTTPStatusError
 from pydantic import BaseModel, Field, field_validator
 from sqlalchemy.orm import Session
 
@@ -269,25 +270,22 @@ def _execute(
             f"Body: {json.dumps(json.loads(request.content)) if request.content else None}\n"
         )
 
+        # TODO: one client for all requests?
         with httpx.Client() as client:
             try:
                 response = client.send(request)
-                response.raise_for_status()  # Raise an error for bad responses
-                response_data = response.json()
-            except httpx.HTTPStatusError as e:
-                logger.error(f"HTTP error occurred: {str(e)}")
-                response_data = _get_response_data(response)
-                return FunctionExecutionResult(success=False, error=response_data)
             except Exception as e:
-                logger.error(f"Failed to parse JSON response: {str(e)}")
-                response_data = _get_response_data(response)
-                logger.error(f"Raw response content: {response_data}")
-                return FunctionExecutionResult(success=False, error=response_data)
+                logger.error(f"Failed to send request: {str(e)}")
+                return FunctionExecutionResult(success=False, error=str(e))
 
-        logger.info(
-            f"Function execution succeeded for {function_execution.name}, response: {response_data}"
-        )
-        return FunctionExecutionResult(success=True, data=response_data)
+            # Raise an error for bad responses
+            try:
+                response.raise_for_status()
+            except HTTPStatusError as e:
+                logger.error(f"HTTP error occurred: {str(e)}")
+                return FunctionExecutionResult(success=False, error=_get_error_message(response, e))
+
+            return FunctionExecutionResult(success=True, data=_get_response_data(response))
 
 
 def _inject_auth_token(
@@ -363,12 +361,23 @@ def _inject_auth_token(
 
 
 def _get_response_data(response: httpx.Response) -> Any:
-    response_data: Any = None
+    """Get the response data from the response.
+    If the response is json, return the json data, otherwise fallback to the text.
+    """
     try:
-        if response.content:
-            response_data = response.content.decode("utf-8", errors="replace")
+        response_data = response.json() if response.content else {}
     except Exception as e:
-        logger.error(f"Failed to decode response content: {str(e)}")
-        response_data = "Invalid response content"
+        logger.error(f"error parsing json response: {str(e)}")
+        response_data = response.text
 
     return response_data
+
+
+def _get_error_message(response: httpx.Response, error: HTTPStatusError) -> str:
+    """Get the error message from the response or fallback to the error message from the HTTPStatusError.
+    Usually the response json contains more details about the error.
+    """
+    try:
+        return str(response.json())
+    except Exception:
+        return str(error)
