@@ -32,7 +32,7 @@ openai_service = OpenAIService(config.OPENAI_API_KEY)
 
 # TODO: convert app names to lowercase/uppercase (in crud or here) to avoid case sensitivity issues?
 # TODO: add flag (e.g., verbose=true) to include detailed function info? (e.g., dev portal will need this)
-class FunctionSearchParams(BaseModel):
+class SearchFunctionsParams(BaseModel):
     app_names: list[str] | None = Field(
         default=None, description="List of app names for filtering functions."
     )
@@ -73,7 +73,7 @@ class FunctionExecutionParams(BaseModel):
 
 @router.get("/search", response_model=list[FunctionPublic])
 async def search_functions(
-    search_params: Annotated[FunctionSearchParams, Query()],
+    search_params: Annotated[SearchFunctionsParams, Query()],
     db_session: Annotated[Session, Depends(yield_db_session)],
     api_key_id: Annotated[UUID, Depends(validate_api_key)],
 ) -> list[sql_models.Function]:

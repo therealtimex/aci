@@ -15,7 +15,7 @@ def test_search_apps_with_intent(
     test_client: TestClient, dummy_apps: list[sql_models.App], dummy_api_key: str
 ) -> None:
     # try with intent to find GITHUB app
-    filter_params = {
+    search_params = {
         "intent": "i want to create a new code repo for my project",
         "categories": [],
         "limit": 100,
@@ -23,7 +23,7 @@ def test_search_apps_with_intent(
     }
     response = test_client.get(
         "/v1/apps/search",
-        params=filter_params,
+        params=search_params,
         headers={"x-api-key": dummy_api_key},
     )
 
@@ -33,10 +33,10 @@ def test_search_apps_with_intent(
     assert apps[0].name == GITHUB
 
     # try with intent to find GOOGLE app
-    filter_params["intent"] = "i want to search the web"
+    search_params["intent"] = "i want to search the web"
     response = test_client.get(
         "/v1/apps/search",
-        params=filter_params,
+        params=search_params,
         headers={"x-api-key": dummy_api_key},
     )
 
@@ -61,14 +61,14 @@ def test_search_apps_without_intent(
 
 
 def test_search_apps_with_categories(test_client: TestClient, dummy_api_key: str) -> None:
-    filter_params = {
+    search_params = {
         "intent": None,
         "categories": ["testcategory"],
         "limit": 100,
         "offset": 0,
     }
     response = test_client.get(
-        "/v1/apps/search", params=filter_params, headers={"x-api-key": dummy_api_key}
+        "/v1/apps/search", params=search_params, headers={"x-api-key": dummy_api_key}
     )
 
     assert response.status_code == 200, response.json()
@@ -80,14 +80,14 @@ def test_search_apps_with_categories(test_client: TestClient, dummy_api_key: str
 def test_search_apps_with_categories_and_intent(
     test_client: TestClient, dummy_api_key: str
 ) -> None:
-    filter_params = {
+    search_params = {
         "intent": "i want to create a new code repo for my project",
         "categories": ["testcategory-2"],
         "limit": 100,
         "offset": 0,
     }
     response = test_client.get(
-        "/v1/apps/search", params=filter_params, headers={"x-api-key": dummy_api_key}
+        "/v1/apps/search", params=search_params, headers={"x-api-key": dummy_api_key}
     )
 
     assert response.status_code == 200, response.json()
@@ -102,7 +102,7 @@ def test_search_apps_pagination(
 ) -> None:
     assert len(dummy_apps) > 2
 
-    filter_params: dict[str, Any] = {
+    search_params: dict[str, Any] = {
         "intent": None,
         "categories": [],
         "limit": len(dummy_apps) - 1,
@@ -110,16 +110,16 @@ def test_search_apps_pagination(
     }
 
     response = test_client.get(
-        "/v1/apps/search", params=filter_params, headers={"x-api-key": dummy_api_key}
+        "/v1/apps/search", params=search_params, headers={"x-api-key": dummy_api_key}
     )
 
     assert response.status_code == 200, response.json()
     apps = [AppPublic.model_validate(response_app) for response_app in response.json()]
     assert len(apps) == len(dummy_apps) - 1
 
-    filter_params["offset"] = len(dummy_apps) - 1
+    search_params["offset"] = len(dummy_apps) - 1
     response = test_client.get(
-        "/v1/apps/search", params=filter_params, headers={"x-api-key": dummy_api_key}
+        "/v1/apps/search", params=search_params, headers={"x-api-key": dummy_api_key}
     )
 
     assert response.status_code == 200, response.json()

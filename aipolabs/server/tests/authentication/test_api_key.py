@@ -4,7 +4,7 @@ from fastapi.testclient import TestClient
 
 # sending a request without a valid api key in x-api-key header to /apps route should fail
 def test_without_api_key(test_client: TestClient) -> None:
-    filter_params = {
+    search_params = {
         "intent": "i want to create a new code repo for my project",
         "categories": [],
         "limit": 100,
@@ -12,14 +12,14 @@ def test_without_api_key(test_client: TestClient) -> None:
     }
     response = test_client.get(
         "/v1/apps/search",
-        params=filter_params,
+        params=search_params,
     )
     assert response.status_code == status.HTTP_403_FORBIDDEN
 
 
 # sending a request with a invalid api key should fail
 def test_with_invalid_api_key(test_client: TestClient, dummy_api_key: str) -> None:
-    filter_params = {
+    search_params = {
         "intent": "i want to create a new code repo for my project",
         "categories": [],
         "limit": 100,
@@ -27,7 +27,7 @@ def test_with_invalid_api_key(test_client: TestClient, dummy_api_key: str) -> No
     }
     response = test_client.get(
         "/v1/apps/search",
-        params=filter_params,
+        params=search_params,
         headers={"x-api-key": "invalid_api_key"},
     )
     assert response.status_code == status.HTTP_401_UNAUTHORIZED

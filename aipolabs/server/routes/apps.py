@@ -17,7 +17,7 @@ router = APIRouter()
 openai_service = OpenAIService(config.OPENAI_API_KEY)
 
 
-class AppFilterParams(BaseModel):
+class SearchAppsParams(BaseModel):
     """
     Parameters for filtering applications.
     TODO: add flag to include detailed app info? (e.g., dev portal will need this)
@@ -59,7 +59,7 @@ class AppFilterParams(BaseModel):
 
 @router.get("/search", response_model=list[AppPublic], response_model_exclude_unset=True)
 async def search_apps(
-    filter_params: Annotated[AppFilterParams, Query()],
+    search_params: Annotated[SearchAppsParams, Query()],
     db_session: Annotated[Session, Depends(yield_db_session)],
     api_key_id: Annotated[UUID, Depends(validate_api_key)],
 ) -> list[AppPublic]:
@@ -67,24 +67,24 @@ async def search_apps(
     Returns a list of applications (name and description).
     """
     try:
-        logger.info(f"Getting apps with filter params: {filter_params}")
+        logger.info(f"Getting apps with filter params: {search_params}")
         intent_embedding = (
             openai_service.generate_embedding(
-                filter_params.intent,
+                search_params.intent,
                 config.OPENAI_EMBEDDING_MODEL,
                 config.OPENAI_EMBEDDING_DIMENSION,
             )
-            if filter_params.intent
+            if search_params.intent
             else None
         )
         logger.debug(f"Generated intent embedding: {intent_embedding}")
         apps_with_scores = crud.search_apps(
             db_session,
             api_key_id,
-            filter_params.categories,
+            search_params.categories,
             intent_embedding,
-            filter_params.limit,
-            filter_params.offset,
+            search_params.limit,
+            search_params.offset,
         )
         # build apps list with similarity scores if they exist
         apps: list[AppPublic] = []
@@ -97,5 +97,5 @@ async def search_apps(
         return apps
 
     except Exception as e:
-        logger.exception(f"Error getting apps with filter params: {filter_params}")
+        logger.exception(f"Error getting apps with filter params: {search_params}")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
