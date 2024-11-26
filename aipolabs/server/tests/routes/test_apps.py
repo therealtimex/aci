@@ -52,9 +52,6 @@ def test_search_apps_without_intent(
     response = test_client.get("/v1/apps/search", headers={"x-api-key": dummy_api_key})
 
     assert response.status_code == 200, response.json()
-    # similarity scores should not exist
-    for app in response.json():
-        assert "similarity_score" not in app
 
     apps = [AppPublic.model_validate(response_app) for response_app in response.json()]
     assert len(apps) == len(dummy_apps)

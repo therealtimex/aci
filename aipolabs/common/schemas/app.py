@@ -30,6 +30,5 @@ class AppCreate(BaseModel):
 class AppPublic(BaseModel):
     name: str
     description: str
-    similarity_score: float | None = None
 
     model_config = ConfigDict(from_attributes=True)

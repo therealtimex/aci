@@ -88,10 +88,8 @@ async def search_apps(
         )
         # build apps list with similarity scores if they exist
         apps: list[AppPublic] = []
-        for app, score in apps_with_scores:
+        for app, _ in apps_with_scores:
             app = AppPublic.model_validate(app)
-            if score is not None:
-                app.similarity_score = score
             apps.append(app)
 
         return apps
