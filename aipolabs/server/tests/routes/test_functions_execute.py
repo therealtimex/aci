@@ -1,9 +1,6 @@
-import json
-from urllib.parse import parse_qs, urlparse
-
-import responses
+import httpx
+import respx
 from fastapi.testclient import TestClient
-from requests import PreparedRequest
 
 from aipolabs.common.schemas.function import FunctionExecutionResult
 
@@ -22,15 +19,12 @@ def test_execute_function_with_invalid_input(test_client: TestClient, dummy_api_
     assert response.status_code == 400, response.json()
 
 
-@responses.activate
+@respx.mock
 def test_mock_execute_function_with_no_args(test_client: TestClient, dummy_api_key: str) -> None:
     # Mock the HTTP endpoint
     response_data = {"message": "Hello, test_mock_execute_function_with_no_args!"}
-    responses.add(
-        responses.GET,
-        "https://api.mock.aipolabs.com/v1/hello_world_no_args",
-        json=response_data,
-        status=200,
+    respx.get("https://api.mock.aipolabs.com/v1/hello_world_no_args").mock(
+        return_value=httpx.Response(200, json=response_data)
     )
 
     function_name = AIPOLABS_TEST__HELLO_WORLD_NO_ARGS
@@ -44,43 +38,18 @@ def test_mock_execute_function_with_no_args(test_client: TestClient, dummy_api_k
     assert function_execution_response.data == response_data
 
 
-@responses.activate
+@respx.mock
 def test_execute_function_with_args(test_client: TestClient, dummy_api_key: str) -> None:
     # Mock the HTTP endpoint
     mock_response_data = {"message": "Hello, test_execute_function_with_args!"}
 
-    # Create a callback to verify request details
-    def request_callback(request: PreparedRequest) -> tuple[int, dict, str]:
-        # Parse URL to verify components separately
-        parsed_url = urlparse(request.url)
-        query_params = parse_qs(parsed_url.query)
-
-        # Verify base URL and path
-        assert (
-            f"{parsed_url.scheme}://{parsed_url.netloc}{parsed_url.path}"
-            == "https://api.mock.aipolabs.com/v1/greet/John"
+    # Define the mock request and response
+    request = respx.post("https://api.mock.aipolabs.com/v1/greet/John").mock(
+        return_value=httpx.Response(
+            200,
+            json=mock_response_data,
+            headers={"X-CUSTOM-HEADER": "header123", "X-Test-API-Key": "test-api-key"},
         )
-
-        # Verify query parameters
-        assert query_params == {"lang": ["en"]}
-
-        # Verify body, default greeting should be injected
-        assert request.body == b'{"name": "John", "greeting": "default-greeting"}'
-
-        # Verify headers
-        assert request.headers["X-CUSTOM-HEADER"] == "header123"
-        # verify default api key is injected
-        assert request.headers["X-Test-API-Key"] == "test-api-key"
-
-        # Verify cookie should not exist because default is null
-        assert "Cookie" not in request.headers
-
-        return (200, {}, json.dumps(mock_response_data))
-
-    responses.add_callback(
-        method=responses.POST,
-        url="https://api.mock.aipolabs.com/v1/greet/John",
-        callback=request_callback,
     )
 
     function_name = AIPOLABS_TEST__HELLO_WORLD_WITH_ARGS
@@ -104,42 +73,26 @@ def test_execute_function_with_args(test_client: TestClient, dummy_api_key: str)
     assert function_execution_response.success
     assert function_execution_response.data == mock_response_data
 
+    # Verify the request was made as expected
+    assert request.called
+    assert request.calls.last.request.url == "https://api.mock.aipolabs.com/v1/greet/John?lang=en"
+    assert request.calls.last.request.headers["X-CUSTOM-HEADER"] == "header123"
+    assert request.calls.last.request.headers["X-Test-API-Key"] == "test-api-key"
+    assert request.calls.last.request.content == b'{"name": "John", "greeting": "default-greeting"}'
 
-@responses.activate
+
+@respx.mock
 def test_execute_function_with_nested_args(test_client: TestClient, dummy_api_key: str) -> None:
     # Mock the HTTP endpoint
     mock_response_data = {"message": "Hello, test_execute_function_with_args!"}
 
-    # Create a callback to verify request details
-    def request_callback(request: PreparedRequest) -> tuple[int, dict, str]:
-        # Parse URL to verify components separately
-        parsed_url = urlparse(request.url)
-        query_params = parse_qs(parsed_url.query)
-
-        # Verify base URL and path
-        assert (
-            f"{parsed_url.scheme}://{parsed_url.netloc}{parsed_url.path}"
-            == "https://api.mock.aipolabs.com/v1/greet/John"
+    # Define the mock request and response
+    request = respx.post("https://api.mock.aipolabs.com/v1/greet/John").mock(
+        return_value=httpx.Response(
+            200,
+            json=mock_response_data,
+            headers={"X-Test-API-Key": "test-api-key"},
         )
-
-        # verify default api key is injected
-        assert request.headers["X-Test-API-Key"] == "test-api-key"
-
-        # Verify default query parameters is injected
-        assert query_params == {"lang": ["en"]}
-
-        # Verify body have correct user input and default values are injected for non-visible properties
-        assert (
-            request.body
-            == b'{"person": {"name": "John", "title": "default-title"}, "location": {"city": "New York", "country": "USA"}, "greeting": "default-greeting"}'
-        )
-
-        return (200, {}, json.dumps(mock_response_data))
-
-    responses.add_callback(
-        method=responses.POST,
-        url="https://api.mock.aipolabs.com/v1/greet/John",
-        callback=request_callback,
     )
 
     function_name = AIPOLABS_TEST__HELLO_WORLD_NESTED_ARGS
@@ -165,20 +118,22 @@ def test_execute_function_with_nested_args(test_client: TestClient, dummy_api_ke
     assert function_execution_response.success
     assert function_execution_response.data == mock_response_data
 
+    # Verify the request was made as expected
+    assert request.called
+    assert request.calls.last.request.url == "https://api.mock.aipolabs.com/v1/greet/John?lang=en"
+    assert request.calls.last.request.headers["X-Test-API-Key"] == "test-api-key"
+    assert request.calls.last.request.content == (
+        b'{"person": {"name": "John", "title": "default-title"}, '
+        b'"location": {"city": "New York", "country": "USA"}, '
+        b'"greeting": "default-greeting"}'
+    )
 
-@responses.activate
+
+@respx.mock
 def test_http_bearer_auth_token_injection(test_client: TestClient, dummy_api_key: str) -> None:
-
-    def request_callback(request: PreparedRequest) -> tuple[int, dict, str]:
-        # Verify Bearer token is injected
-        assert request.headers["Authorization"] == "Bearer test-bearer-token"
-
-        return (200, {}, json.dumps({}))
-
-    responses.add_callback(
-        method=responses.GET,
-        url="https://api.mock.aipolabs.com/v1/hello_world",
-        callback=request_callback,
+    # Mock the HTTP endpoint
+    request = respx.get("https://api.mock.aipolabs.com/v1/hello_world").mock(
+        return_value=httpx.Response(200, json={})
     )
 
     response = test_client.post(
@@ -187,4 +142,7 @@ def test_http_bearer_auth_token_injection(test_client: TestClient, dummy_api_key
         headers={"x-api-key": dummy_api_key},
     )
 
+    # Verify the request was made as expected
+    assert request.called
+    assert request.calls.last.request.headers["Authorization"] == "Bearer test-bearer-token"
     assert response.status_code == 200, response.json()

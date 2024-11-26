@@ -3,8 +3,8 @@ from enum import Enum
 from typing import Annotated, Any
 from uuid import UUID
 
+import httpx
 import jsonschema
-import requests
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, Field, field_validator
 from sqlalchemy.orm import Session
@@ -250,7 +250,7 @@ def _execute(
         _inject_auth_token(db_app, headers, query, body, cookies)
 
         # Create request object
-        request = requests.Request(
+        request = httpx.Request(
             method=protocol_data.method,
             url=url,
             params=query if query else None,
@@ -259,37 +259,35 @@ def _execute(
             json=body if body else None,
         )
 
-        prepared_request = request.prepare()
         # TODO: remove all print ?
         print(create_headline("FUNCTION EXECUTION HTTP REQUEST"))
 
         logger.info(
-            f"Method: {prepared_request.method}\n"
-            f"URL: {prepared_request.url}\n"
-            f"Headers: {json.dumps(dict(prepared_request.headers))}\n"
-            f"Body: {json.dumps(json.loads(prepared_request.body)) if prepared_request.body else None}\n"
+            f"Method: {request.method}\n"
+            f"URL: {request.url}\n"
+            f"Headers: {json.dumps(dict(request.headers))}\n"
+            f"Body: {json.dumps(json.loads(request.content)) if request.content else None}\n"
         )
-        # execute request
-        response = requests.Session().send(prepared_request)
-        # try to parse response as json, if failed, use the raw response content
-        try:
-            response_data = response.json()
-        except Exception as e:
-            logger.error(f"Failed to parse JSON response: {str(e)}")
-            # TODO: can this fail?
-            response_data = _get_response_data(response)
-            logger.error(f"Raw response content: {response_data}")
 
-        if response.status_code >= 400:
-            logger.error(
-                f"Function execution failed for {function_execution.name}, response: {response_data}"
-            )
-            return FunctionExecutionResult(success=False, error=response_data)
-        else:
-            logger.info(
-                f"Function execution succeeded for {function_execution.name}, response: {response_data}"
-            )
-            return FunctionExecutionResult(success=True, data=response_data)
+        with httpx.Client() as client:
+            try:
+                response = client.send(request)
+                response.raise_for_status()  # Raise an error for bad responses
+                response_data = response.json()
+            except httpx.HTTPStatusError as e:
+                logger.error(f"HTTP error occurred: {str(e)}")
+                response_data = _get_response_data(response)
+                return FunctionExecutionResult(success=False, error=response_data)
+            except Exception as e:
+                logger.error(f"Failed to parse JSON response: {str(e)}")
+                response_data = _get_response_data(response)
+                logger.error(f"Raw response content: {response_data}")
+                return FunctionExecutionResult(success=False, error=response_data)
+
+        logger.info(
+            f"Function execution succeeded for {function_execution.name}, response: {response_data}"
+        )
+        return FunctionExecutionResult(success=True, data=response_data)
 
 
 def _inject_auth_token(
@@ -364,7 +362,7 @@ def _inject_auth_token(
                 continue
 
 
-def _get_response_data(response: requests.Response) -> Any:
+def _get_response_data(response: httpx.Response) -> Any:
     response_data: Any = None
     try:
         if response.content:

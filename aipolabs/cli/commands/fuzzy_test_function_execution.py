@@ -3,7 +3,7 @@
 import json
 
 import click
-import requests
+import httpx
 
 from aipolabs.cli import config
 from aipolabs.common.logging import create_headline
@@ -33,7 +33,7 @@ def fuzzy_test_function_execution(function_name: str, aipolabs_api_key: str) -> 
 def fuzzy_test_function_execution_helper(function_name: str, aipolabs_api_key: str) -> None:
     """Test function execution with GPT-generated inputs."""
     # Get function definition
-    response = requests.get(
+    response = httpx.get(
         f"{config.SERVER_URL}/v1/functions/{function_name}",
         params={"inference_provider": "openai"},
         headers={"x-api-key": aipolabs_api_key},
@@ -52,7 +52,7 @@ def fuzzy_test_function_execution_helper(function_name: str, aipolabs_api_key: s
     click.echo(f"{json.dumps(function_args)}")
 
     # Execute function with generated input
-    response = requests.post(
+    response = httpx.post(
         f"{config.SERVER_URL}/v1/functions/{function_name}/execute",
         json={"function_input": function_args},
         headers={"x-api-key": aipolabs_api_key},
