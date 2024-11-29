@@ -10,6 +10,7 @@ from aipolabs.common.enums import Visibility
 from aipolabs.common.logging import get_logger
 from aipolabs.common.openai_service import OpenAIService
 from aipolabs.common.schemas.app import AppDetails, AppPublic
+from aipolabs.common.schemas.function import FunctionPublic
 from aipolabs.server import config
 from aipolabs.server.dependencies import validate_api_key, yield_db_session
 
@@ -94,7 +95,8 @@ async def search_apps(
             apps.append(app)
 
         return apps
-
+    except HTTPException as e:
+        raise e
     except Exception as e:
         logger.exception(f"Error getting apps with filter params: {search_params}")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
@@ -129,8 +131,24 @@ async def get_app(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="You are not authorized to access this app.",
             )
+        # filter functions by project visibility and enabled status
+        # TODO: better way and place for this logic?
+        db_functions = [
+            function
+            for function in db_app.functions
+            if function.enabled
+            and not (
+                db_project.visibility_access == Visibility.PUBLIC
+                and function.visibility != Visibility.PUBLIC
+            )
+        ]
 
-        app_details: AppDetails = AppDetails.model_validate(db_app)
+        app_details: AppDetails = AppDetails(
+            name=db_app.name,
+            description=db_app.description,
+            functions=[FunctionPublic.model_validate(function) for function in db_functions],
+        )
+
         return app_details
     except HTTPException as e:
         raise e

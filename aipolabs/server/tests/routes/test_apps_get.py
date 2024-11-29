@@ -80,3 +80,6 @@ def test_get_private_app(
     crud.set_project_visibility_access(db_session, dummy_project.id, sql_models.Visibility.PUBLIC)
     crud.set_app_visibility(db_session, dummy_apps[0].id, sql_models.Visibility.PUBLIC)
     db_session.commit()
+
+
+# TODO: test app with private and disabled functions, see if functions are filtered correctly
