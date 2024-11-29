@@ -6,9 +6,10 @@ from pydantic import BaseModel, Field, field_validator
 from sqlalchemy.orm import Session
 
 from aipolabs.common.db import crud
+from aipolabs.common.enums import Visibility
 from aipolabs.common.logging import get_logger
 from aipolabs.common.openai_service import OpenAIService
-from aipolabs.common.schemas.app import AppPublic
+from aipolabs.common.schemas.app import AppDetails, AppPublic
 from aipolabs.server import config
 from aipolabs.server.dependencies import validate_api_key, yield_db_session
 
@@ -57,7 +58,7 @@ class SearchAppsParams(BaseModel):
         return v
 
 
-@router.get("/search", response_model=list[AppPublic], response_model_exclude_unset=True)
+@router.get("/search", response_model=list[AppPublic])
 async def search_apps(
     search_params: Annotated[SearchAppsParams, Query()],
     db_session: Annotated[Session, Depends(yield_db_session)],
@@ -96,4 +97,44 @@ async def search_apps(
 
     except Exception as e:
         logger.exception(f"Error getting apps with filter params: {search_params}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+
+
+@router.get("/{app_name}", response_model=AppDetails)
+async def get_app(
+    app_name: str,
+    db_session: Annotated[Session, Depends(yield_db_session)],
+    api_key_id: Annotated[UUID, Depends(validate_api_key)],
+) -> AppDetails:
+    """
+    Returns an application (name, description, and functions).
+    """
+    try:
+        db_app = crud.get_app_by_name(db_session, app_name)
+        if not db_app:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="App not found.")
+
+        if not db_app.enabled:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN, detail="App is currently disabled."
+            )
+
+        db_project = crud.get_project_by_api_key_id(db_session, api_key_id)
+        # TODO: unify access control logic
+        if (
+            db_project.visibility_access == Visibility.PUBLIC
+            and db_app.visibility != Visibility.PUBLIC
+        ):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You are not authorized to access this app.",
+            )
+
+        app_details: AppDetails = AppDetails.model_validate(db_app)
+        return app_details
+    except HTTPException as e:
+        raise e
+    # TODO: is catching Exception here necessary?
+    except Exception as e:
+        logger.exception(f"Error getting app: {app_name}")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))

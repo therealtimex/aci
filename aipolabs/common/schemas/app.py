@@ -3,6 +3,7 @@ import re
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from aipolabs.common.enums import SecuritySchemeType, Visibility
+from aipolabs.common.schemas.function import FunctionPublic
 
 
 class AppCreate(BaseModel):
@@ -32,3 +33,7 @@ class AppPublic(BaseModel):
     description: str
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class AppDetails(AppPublic):
+    functions: list[FunctionPublic]

@@ -167,6 +167,7 @@ def get_api_key(db_session: Session, key: str) -> sql_models.APIKey | None:
     return db_api_key
 
 
+# TODO: remove access control outside crud
 def search_apps(
     db_session: Session,
     api_key_id: UUID,
