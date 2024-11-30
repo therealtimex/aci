@@ -60,7 +60,7 @@ def create_access_token(user_id: str, expires_delta: timedelta) -> str:
 
 
 # login route for different auth providers
-@router.get("/login/{provider}")
+@router.get("/login/{provider}", include_in_schema=False)
 async def login(request: Request, provider: str) -> Any:
     if provider not in oauth._registry:
         logger.error(f"Unsupported provider: {provider}")
@@ -74,7 +74,12 @@ async def login(request: Request, provider: str) -> Any:
 
 # callback route for different auth providers
 # TODO: decision between long-lived JWT v.s session based v.s refresh token based auth
-@router.get("/callback/{provider}", name="auth_callback", response_model=AuthResponse)
+@router.get(
+    "/callback/{provider}",
+    name="auth_callback",
+    response_model=AuthResponse,
+    include_in_schema=False,
+)
 async def auth_callback(
     request: Request, provider: str, db_session: Annotated[Session, Depends(deps.yield_db_session)]
 ) -> Any:

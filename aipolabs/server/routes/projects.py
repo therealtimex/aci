@@ -16,7 +16,7 @@ router = APIRouter()
 logger = get_logger(__name__)
 
 
-@router.post("/", response_model=ProjectPublic)
+@router.post("/", response_model=ProjectPublic, include_in_schema=False)
 async def create_project(
     project: ProjectCreate,
     user_id: Annotated[UUID, Depends(deps.validate_http_bearer)],
@@ -57,7 +57,7 @@ async def create_project(
         )
 
 
-@router.post("/{project_id}/agents/", response_model=AgentPublic)
+@router.post("/{project_id}/agents/", response_model=AgentPublic, include_in_schema=False)
 async def create_agent(
     project_id: UUID,
     agent: AgentCreate,

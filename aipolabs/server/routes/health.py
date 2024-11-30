@@ -7,6 +7,6 @@ router = APIRouter()
 
 
 # TODO: add more checks?
-@router.get("/")
+@router.get("/", include_in_schema=False)
 async def health() -> bool:
     return True

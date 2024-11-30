@@ -103,7 +103,7 @@ async def search_apps(
 
 
 @router.get("/{app_name}", response_model=AppDetails)
-async def get_app(
+async def get_app_details(
     app_name: str,
     db_session: Annotated[Session, Depends(yield_db_session)],
     api_key_id: Annotated[UUID, Depends(validate_api_key)],
