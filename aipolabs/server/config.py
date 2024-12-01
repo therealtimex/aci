@@ -53,4 +53,3 @@ ENVIRONMENT = check_and_get_env_variable("SERVER_ENVIRONMENT")
 PROJECT_DAILY_QUOTA = int(check_and_get_env_variable("SERVER_PROJECT_DAILY_QUOTA"))
 
 APPLICATION_LOAD_BALANCER_DNS = check_and_get_env_variable("SERVER_APPLICATION_LOAD_BALANCER_DNS")
-AIPOLABS_DNS = check_and_get_env_variable("SERVER_AIPOLABS_DNS")

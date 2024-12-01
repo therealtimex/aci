@@ -1,6 +1,5 @@
 # import sentry_sdk
 from fastapi import Depends, FastAPI, Request
-from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.routing import APIRoute
 from pydantic import ValidationError
@@ -40,15 +39,21 @@ app = FastAPI(
 app.add_middleware(RateLimitMiddleware)
 app.add_middleware(ProxyHeadersMiddleware, trusted_hosts=[config.APPLICATION_LOAD_BALANCER_DNS])
 app.add_middleware(SessionMiddleware, secret_key=config.SESSION_SECRET_KEY)
-app.add_middleware(
-    TrustedHostMiddleware,
-    allowed_hosts=[
-        "localhost",
-        "127.0.0.1",
-        config.APPLICATION_LOAD_BALANCER_DNS,
-        config.AIPOLABS_DNS,
-    ],
-)
+
+# TODO: for now, we don't use TrustedHostMiddleware because it blocks health check from AWS ALB:
+# When ALB send health check request, it uses the task IP as the host, instead of the DNS name.
+# ALB health check headers example: Headers({'host': '10.0.164.143:8000', 'user-agent': 'ELB-HealthChecker/2.0'})
+# where 10.0.164.143 is the the host IP of the fargate task, in which case TrustedHostMiddleware will block the request.
+# It should be fine to remove TrustedHostMiddleware as we are running the service in a private subnet behind ALB with WAF integration.
+# app.add_middleware(
+#     TrustedHostMiddleware,
+#     allowed_hosts=[
+#         "localhost",
+#         "127.0.0.1",
+#         config.AIPOLABS_DNS,
+#     ],
+# )
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
