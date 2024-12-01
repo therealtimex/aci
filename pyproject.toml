@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "aipolabs"
-version = "0.0.1"
+version = "0.0.1-beta.2"
 description = "aipolabs"
 authors = ["Aipolabs <team@aipolabs.xyz>"]
 package-mode = false
