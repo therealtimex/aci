@@ -28,7 +28,7 @@ logger = get_logger(__name__)
 
 app = FastAPI(
     title="Aipolabs",
-    version="0.0.1-beta.2",
+    version="0.0.1-beta.3",
     docs_url="/v1/docs",
     redoc_url="/v1/redoc",
     openapi_url="/v1/openapi.json",
