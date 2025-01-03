@@ -20,7 +20,6 @@ from aipolabs.common.enums import (
     Visibility,
 )
 from aipolabs.common.logging import get_logger
-from aipolabs.common.schemas.accounts import ListLinkedAccountsFilters
 from aipolabs.common.schemas.agent import AgentCreate
 from aipolabs.common.schemas.app import AppCreate
 from aipolabs.common.schemas.function import FunctionCreate
@@ -43,22 +42,20 @@ class ProjectNotFoundError(Exception):
 
 
 def get_linked_accounts(
-    db_session: Session, project_id: UUID, filters: ListLinkedAccountsFilters
+    db_session: Session, project_id: UUID, app_id_or_name: str | None, account_name: str | None
 ) -> list[sql_models.LinkedAccount]:
     """Get all linked accounts under a project, with optional filters"""
     statement = select(sql_models.LinkedAccount).filter_by(project_id=project_id)
-    if filters.app_id_or_name:
+    if app_id_or_name:
         # check if it's an id or a name
         try:
-            app_id = UUID(filters.app_id_or_name)
+            app_id = UUID(app_id_or_name)
             statement = statement.filter(sql_models.LinkedAccount.app_id == app_id)
         except ValueError:
-            statement = statement.join(sql_models.App).filter(
-                sql_models.App.name == filters.app_id_or_name
-            )
+            statement = statement.join(sql_models.App).filter(sql_models.App.name == app_id_or_name)
 
-    if filters.account_name:
-        statement = statement.filter(sql_models.LinkedAccount.account_name == filters.account_name)
+    if account_name:
+        statement = statement.filter(sql_models.LinkedAccount.account_name == account_name)
 
     linked_accounts: list[sql_models.LinkedAccount] = db_session.execute(statement).scalars().all()
     return linked_accounts

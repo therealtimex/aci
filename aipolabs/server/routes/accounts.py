@@ -16,7 +16,7 @@ from aipolabs.common.schemas.accounts import (
     AccountCreate,
     AccountCreateOAuth2State,
     LinkedAccountPublic,
-    ListLinkedAccountsFilters,
+    LinkedAccountsList,
 )
 from aipolabs.server import config
 from aipolabs.server import dependencies as deps
@@ -73,7 +73,8 @@ async def link_account(
             {"alg": config.JWT_ALGORITHM}, state.model_dump(mode="json"), config.JWT_SECRET_KEY
         ).decode()
         # TODO: add expiration check to the state payload for extra security
-        # TODO: how to handle redirect in cli (e.g., parse the redirect url)?
+        # TODO: how to handle redirect in cli (e.g., parse the redirect url)? return JSONResponse(content={"redirect_url": redirect_url})
+        # instead of RedirectResponse
         oauth2_client = _create_oauth2_client(db_app)
         redirect_response = await oauth2_client.authorize_redirect(
             request, redirect_uri, state=state_jwt
@@ -197,19 +198,21 @@ async def accounts_oauth2_callback(
 # TODO: add pagination
 @router.get("/", response_model=list[LinkedAccountPublic])
 async def list_linked_accounts(
-    filters: Annotated[ListLinkedAccountsFilters, Query()],
+    query_params: Annotated[LinkedAccountsList, Query()],
     api_key_id: Annotated[UUID, Depends(deps.validate_api_key)],
     db_session: Annotated[Session, Depends(deps.yield_db_session)],
 ) -> list[sql_models.LinkedAccount]:
     """
-    List all linked accounts under the project (identified by api key), with optional filters.
+    List all linked accounts under the project (identified by api key).
     As of now, project_id + app_id/app_name + account_name uniquely identify a linked account.
     This can be an alternatively way to GET /accounts/{account_id} for getting a specific linked account.
     """
-    logger.info(f"Listing linked accounts for api_key_id={api_key_id}, filters={filters}")
+    logger.info(f"Listing linked accounts for api_key_id={api_key_id}, query_params={query_params}")
 
     db_project = crud.get_project_by_api_key_id(db_session, api_key_id)
-    linked_accounts = crud.get_linked_accounts(db_session, db_project.id, filters)
+    linked_accounts = crud.get_linked_accounts(
+        db_session, db_project.id, query_params.app_id_or_name, query_params.account_name
+    )
     return linked_accounts
 
 

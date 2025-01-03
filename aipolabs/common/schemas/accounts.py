@@ -35,7 +35,7 @@ class LinkedAccountPublic(BaseModel):
     updated_at: datetime
 
 
-class ListLinkedAccountsFilters(BaseModel):
+class LinkedAccountsList(BaseModel):
     """
     Filters for listing linked accounts.
     """
