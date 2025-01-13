@@ -1,24 +1,23 @@
 from datetime import datetime
 from uuid import UUID
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
-from aipolabs.common.db.sql_models import SecurityScheme
+from aipolabs.common.db.sql_models import MAX_STRING_LENGTH, SecurityScheme
 
 
-class LinkedAccountCreate(BaseModel):
+class LinkedAccountOAuth2Create(BaseModel):
     app_id: UUID
     linked_account_owner_id: str
-    api_key: str | None = None
 
 
-class LinkedAccountCreateOAuth2State(BaseModel):
+class LinkedAccountOAuth2CreateState(BaseModel):
     project_id: UUID
     app_id: UUID
-    # TODO: limit max length of linked_account_owner_id etc
-    linked_account_owner_id: str
-    iat: int
-    nonce: str
+    linked_account_owner_id: str = Field(..., max_length=MAX_STRING_LENGTH)
+    redirect_uri: str
+    code_verifier: str
+    nonce: str | None = None
 
 
 class LinkedAccountPublic(BaseModel):

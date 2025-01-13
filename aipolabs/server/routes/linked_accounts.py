@@ -1,12 +1,10 @@
-import secrets
-from datetime import datetime, timezone
-from typing import Annotated, cast
+import json
+from typing import Annotated, Any, cast
 from uuid import UUID
 
 from authlib.integrations.starlette_client import OAuth, StarletteOAuth2App
 from authlib.jose import jwt
 from fastapi import APIRouter, Depends, Query, Request, status
-from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 
 from aipolabs.common.db import crud
@@ -17,13 +15,13 @@ from aipolabs.common.exceptions import (
     AppNotFound,
     AuthenticationError,
     LinkedAccountNotFound,
+    LinkedAccountOAuth2Error,
     NoImplementationFound,
-    UnexpectedException,
 )
 from aipolabs.common.logging import get_logger
 from aipolabs.common.schemas.linked_accounts import (
-    LinkedAccountCreate,
-    LinkedAccountCreateOAuth2State,
+    LinkedAccountOAuth2Create,
+    LinkedAccountOAuth2CreateState,
     LinkedAccountPublic,
     LinkedAccountsList,
 )
@@ -33,90 +31,135 @@ from aipolabs.server import dependencies as deps
 router = APIRouter()
 logger = get_logger(__name__)
 
-ACCOUNTS_OAUTH2_CALLBACK_ROUTE_NAME = "accounts_oauth2_callback"
+LINKED_ACCOUNTS_OAUTH2_CALLBACK_ROUTE_NAME = "linked_accounts_oauth2_callback"
+
+"""
+IMPORTANT NOTE:
+The api endpoints (both URL design and implementation) for linked accounts are currently a bit hacky, especially for OAuth2 account type.
+Will revisit and potentially refactor later once we have more time and more clarity on the requirements.
+There are a few tricky parts:
+- There are different types of linked accounts (OAuth2, API key, etc.) And the OAuth2 type linking flow
+  is very different from the other types.
+- For OAuth2 account linking, we want to support quite a few scenarios that might require different
+  flows or setups. But for simplicity, we currently hack together an implementation that works for all,
+  with some compromises on the security. (well, I'd say it's still secure enough for this stage but need to
+  revisit and improve later.). These OAuth2 scenarios include:
+  - Scenario 1: allow (our direct) client to link an OAuth2 account on developer portal.
+  - Scenario 2: allow (client's) end user to link an OAuth2 account with the redirect url.
+    - Scenario 2.1: Client generates the redirect url and sends it to the end user.
+    - Scenario 2.2: Amid end user's conversation with the client's AI agent, the AI agent generates the
+      redirect url for OAuth2 account linking. (If the App the end user needs access too is not yet authenticated)
+  - Scenario 3: allow (our direct) client to generate a link to a webpage that we host for OAuth2 account linking.
+    Different from Scenario 2.1, the link is not a redirect url but a link to a webpage that we host. And potentially
+    can work for other types of accounting linking, e.g., allowend user to input API key.
+
+- Also see: https://www.notion.so/Replace-authlib-to-support-both-browser-and-cli-authentication-16f8378d6a4780eda593ef149a205198
+"""
 
 
 # TODO:
 # Note:
 # - For token refresh (when executing functions), either use authlib's oauth2 client/session or build the request manually.
 #   If doing mannually, might need to handle dynamic url dicovery via discovery doc (e.g., google)
-@router.post("/")
-async def link_account(
+@router.get("/oauth2")
+async def link_oauth2_account(
     request: Request,
     context: Annotated[deps.RequestContext, Depends(deps.get_request_context)],
-    body: LinkedAccountCreate,
-) -> RedirectResponse:
+    query_params: Annotated[LinkedAccountOAuth2Create, Query()],
+) -> dict:
     """
-    Start an account linking process.
-    The app configuration for the app determines the security scheme to use for the account linking process.
-    - If security_scheme configured in the app configuration is OAUTH2, this will return a redirect url to the OAuth2
-      provider's authorization endpoint, and a linked account will be created in the database after the end user
-      grants permission.
-    - If security_scheme configured in the app configuration is API_KEY, the api_key field in the request body is required.
+    Start an OAuth2 account linking process.
+    It will return a redirect url (as a string, instead of RedirectResponse) to the OAuth2 provider's authorization endpoint.
     """
     logger.info(
-        f"Linking account for api_key_id={context.api_key_id}, "
-        f"app_id={body.app_id}, "
-        f"linked_account_owner_id={body.linked_account_owner_id}"
+        f"Linking OAuth2 account for project={context.project.id}, "
+        f"app={query_params.app_id}, "
+        f"linked_account_owner_id={query_params.linked_account_owner_id}"
     )
     app_configuration = crud.app_configurations.get_app_configuration(
-        context.db_session, context.project.id, body.app_id
+        context.db_session, context.project.id, query_params.app_id
     )
     if not app_configuration:
         logger.error(
-            f"configuration for app={body.app_id} not found for project={context.project.id}"
+            f"configuration for app={query_params.app_id} not found for project={context.project.id}"
         )
         raise AppConfigurationNotFound(
-            f"configuration for app={body.app_id} not found for project={context.project.id}"
+            f"configuration for app={query_params.app_id} not found for project={context.project.id}"
         )
-
-    # for OAuth2 account, we need to redirect to the OAuth2 provider's authorization endpoint
-    if app_configuration.security_scheme == SecurityScheme.OAUTH2:
-        # create and encode the state payload
-        # note: the state payload is jwt encoded (signed), but it's not encrypted, anyone can decode it
-        state = LinkedAccountCreateOAuth2State(
-            app_id=body.app_id,
-            project_id=context.project.id,
-            linked_account_owner_id=body.linked_account_owner_id,
-            iat=int(datetime.now(timezone.utc).timestamp()),
-            nonce=secrets.token_urlsafe(16),
-        )
-        path = request.url_for(ACCOUNTS_OAUTH2_CALLBACK_ROUTE_NAME).path
-        redirect_uri = f"{config.AIPOLABS_REDIRECT_URI_BASE}{path}"
-        state_jwt = jwt.encode(
-            {"alg": config.JWT_ALGORITHM}, state.model_dump(mode="json"), config.SIGNING_KEY
-        ).decode()
-        # TODO: add expiration check to the state payload for extra security
-        # TODO: how to handle redirect in cli (e.g., parse the redirect url)? return JSONResponse(content={"redirect_url": redirect_url})
-        # instead of RedirectResponse
-        oauth2_client = _create_oauth2_client(app_configuration.app)
-        redirect_response = await oauth2_client.authorize_redirect(
-            request, redirect_uri, state=state_jwt
-        )
-
-        return redirect_response
-
-    elif app_configuration.security_scheme == SecurityScheme.API_KEY:
-        # TODO: ... handle API key ...
-        raise NoImplementationFound("API key security scheme is not implemented yet")
-
-    else:
-        # Should never reach here as all security schemes stored in the db should be supported
+    # TODO: for now we require the security_schema used for accounts under an App must be the same as the security_schema configured in the app
+    # configuration. But in the future, we might lift this restriction and allow any security_schema as long the App supports it.
+    if app_configuration.security_scheme != SecurityScheme.OAUTH2:
         logger.error(
-            f"unsupported security scheme={app_configuration.security_scheme} "
-            f"for app={body.app_id}"
+            f"app={query_params.app_id} is not configured with OAuth2, but {app_configuration.security_scheme}"
         )
-        raise UnexpectedException(
-            f"unsupported security scheme={app_configuration.security_scheme} "
-            f"for app={body.app_id}"
+        raise NoImplementationFound(
+            f"app={query_params.app_id} is not configured with OAuth2, but {app_configuration.security_scheme}"
         )
 
+    oauth2_client = _create_oauth2_client(app_configuration.app)
+    path = request.url_for(LINKED_ACCOUNTS_OAUTH2_CALLBACK_ROUTE_NAME).path
+    redirect_uri = f"{config.AIPOLABS_REDIRECT_URI_BASE}{path}"
+    # NOTE: normally we should generate "state"/"state_jwt" first, and then
+    # call authorize_redirect(request, redirect_uri, state=state_jwt), within which calls create_authorization_url() and save_authorize_data().
+    # But as we mentioned at the beginning of this file, we need to be a bit hacky to avoid any browser session related implementation.
+    # Here we just call create_authorization_url() to get the generated authorization_data, and we genrate a new 'state'
+    # value that contains both data from the authorization_data and data we need for further processing (like app_id,
+    # project_id, linked_account_owner_id, etc.), and replace the 'state' value in the url parameter with the new 'state' (jwt) value.
+    # In the callback endpoint, we will also need to manually parse the 'state' data and reconstruct the 'url' before calling fetch_access_token(), instead of calling
+    # authorize_access_token() directly in a normal oauth2 flow.
 
-@router.get("/oauth2/callback", name=ACCOUNTS_OAUTH2_CALLBACK_ROUTE_NAME)
+    # authorization_data exmaple:
+    # {
+    #     "code_verifier": "...",
+    #     "state": "...",
+    #     "url": "https://accounts.google.com/o/oauth2/auth?client_id=...&redirect_uri=...&scope=...&response_type=code&access_type=offline&state=...&code_verifier=...&nonce=...",
+    #     "nonce": "..."
+    # }
+
+    # the saved data (by calling save_authorize_data(request, redirect_uri=redirect_uri, **authorization_data), which also
+    # sets the request.session) is a bit different from the authrization data:
+    # {
+    # "_state_GOOGLE_CALENDAR_keyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE1MTYyMzkwMjIsImV4cCI6MTUxNjI0MjYyMiwiaXNzIjoibXlfaXNzdWVyIiwic3ViIjoibXlfc3ViamVjdCIsImF1ZCI6Im15X2F1ZGllbmNlIiwibmJmIjoxNTE2MjM5MDIyfQ.lgk5D-k4-tMsMKnTJd02v2tczPbQ9M87qOTtX-lCbX8": {
+    #     "data": {
+    #         "redirect_uri": "http://localhost:8000/v1/accounts/oauth2/callback",
+    #         "code_verifier": "NjpsQtcuLUNPAM5NQuMhE2UUavVB0BtYo0Ggr6EO3HPpGkxm",
+    #         "nonce": "Lr0KlHBM4ttofP16q9Hv",
+    #         "url": "https://accounts.google.com/o/oauth2/v2/auth?response_type=code&client_id=621325784080-uuu3mt1vvfmffbvdb7gj6ijq08q2iopi.apps.googleusercontent.com&redirect_uri=http%3A%2F%2Flocalhost%3A8000%2Fv1%2Faccounts%2Foauth2%2Fcallback&scope=openid+email+profile+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fcalendar&state=eyJpYXQiOjE1MTYyMzkwMjIsImV4cCI6MTUxNjI0MjYyMiwiaXNzIjoibXlfaXNzdWVyIiwic3ViIjoibXlfc3ViamVjdCIsImF1ZCI6Im15X2F1ZGllbmNlIiwibmJmIjoxNTE2MjM5MDIyfQ.lgk5D-k4-tMsMKnTJd02v2tczPbQ9M87qOTtX-lCbX8&access_type=offline&nonce=Lr0KlHBM4ttofP16q9Hv&prompt=consent"
+    #     },
+    #     "exp": 1735786775.4127536
+    # }
+    authorization_data = await oauth2_client.create_authorization_url(redirect_uri)
+    logger.info(f"authorization_data: \n {json.dumps(authorization_data, indent=2)}")
+    # create and encode the state payload. Including code_verifier in state is definitely a compromise.
+    # NOTE: the state payload is jwt encoded (signed), but it's not encrypted, anyone can decode it
+    # TODO: add expiration check to the state payload for extra security
+    new_state = LinkedAccountOAuth2CreateState(
+        app_id=query_params.app_id,
+        project_id=context.project.id,
+        linked_account_owner_id=query_params.linked_account_owner_id,
+        redirect_uri=redirect_uri,
+        code_verifier=authorization_data["code_verifier"],
+        nonce=authorization_data.get("nonce", None),  # nonce only exists for openid
+    )
+    new_state_jwt = jwt.encode(
+        {"alg": config.JWT_ALGORITHM}, new_state.model_dump(mode="json"), config.SIGNING_KEY
+    ).decode()  # decode() is needed to convert the bytes to a string (not decoding the jwt payload) for this jwt library.
+
+    # replace the state jwt token in the url parameter with the new state_jwt
+    return {
+        "url": str(authorization_data["url"]).replace(authorization_data["state"], new_state_jwt)
+    }
+
+
+@router.get(
+    "/oauth2/callback",
+    name=LINKED_ACCOUNTS_OAUTH2_CALLBACK_ROUTE_NAME,
+    response_model=LinkedAccountPublic,
+)
 async def linked_accounts_oauth2_callback(
     request: Request,
     db_session: Annotated[Session, Depends(deps.yield_db_session)],
-) -> None:
+) -> LinkedAccount:
     """
     Callback endpoint for OAuth2 account linking.
     - A linked account (with necessary credentials from the OAuth2 provider) will be created in the database.
@@ -129,7 +172,7 @@ async def linked_accounts_oauth2_callback(
         raise AuthenticationError("Missing state parameter")
     # decode the state payload
     try:
-        state = LinkedAccountCreateOAuth2State.model_validate(
+        state = LinkedAccountOAuth2CreateState.model_validate(
             jwt.decode(state_jwt, config.SIGNING_KEY)
         )
         logger.info(f"state: {state}")
@@ -142,14 +185,16 @@ async def linked_accounts_oauth2_callback(
     if not app:
         logger.error(f"app={state.app_id} not found")
         raise AppNotFound(state.app_id)
-
     oauth2_client = _create_oauth2_client(app)
+
     # get oauth2 account credentials
     # TODO: can each OAuth2 provider return different fields? if so, need to handle them accordingly. Maybe can
     # store the auth reponse schema in the App record in db. and cast the auth_response to the schema here.
     try:
         logger.info("retrieving oauth2 token")
-        token_response = await oauth2_client.authorize_access_token(request)
+        token_response = await _authorize_access_token(
+            oauth2_client, request, state.redirect_uri, state.code_verifier, state.nonce
+        )
         # TODO: remove PII log
         logger.warning(f"oauth2 token requested successfully, token_response: {token_response}")
     except Exception:
@@ -158,6 +203,7 @@ async def linked_accounts_oauth2_callback(
 
     # TODO: some of them might be optional (e.g., refresh_token, scope, expires_in, refresh_token_expires_in) and not provided by the OAuth2 provider
     # we should handle None or provide default values (using pydantic)
+    # TODO: we might want to verify scope authorized by end user is what we required
     security_credentials = {
         "access_token": token_response["access_token"],
         "token_type": token_response["token_type"],
@@ -165,6 +211,7 @@ async def linked_accounts_oauth2_callback(
         "scope": token_response["scope"],
         "refresh_token": token_response["refresh_token"],
     }
+    logger.info(f"security_credentials: \n {json.dumps(security_credentials, indent=2)}")
 
     # if the linked account already exists, update it, otherwise create a new one
     # TODO: consider separating the logic for updating and creating a linked account or give warning to clients
@@ -177,16 +224,14 @@ async def linked_accounts_oauth2_callback(
         state.linked_account_owner_id,
     )
     if linked_account:
-        logger.info(
-            f"Updating oauth2 credentials for linked account linked_account_id={linked_account.id}"
-        )
+        logger.info(f"updating oauth2 credentials for linked account={linked_account.id}")
         linked_account = crud.linked_accounts.update_linked_account(
             db_session, linked_account, SecurityScheme.OAUTH2, security_credentials
         )
     else:
         logger.info(
-            f"Creating oauth2 linked account for project_id={state.project_id}, "
-            f"app_id={state.app_id}, linked_account_owner_id={state.linked_account_owner_id}"
+            f"creating oauth2 linked account for project={state.project_id}, "
+            f"app={state.app_id}, linked_account_owner_id={state.linked_account_owner_id}"
         )
         linked_account = crud.linked_accounts.create_linked_account(
             db_session,
@@ -198,6 +243,8 @@ async def linked_accounts_oauth2_callback(
             enabled=True,
         )
     db_session.commit()
+
+    return linked_account
 
 
 # TODO: add pagination
@@ -254,6 +301,39 @@ def _create_oauth2_client(app: App) -> StarletteOAuth2App:
         server_metadata_url=app_default_oauth2_config.get("server_metadata_url", None),
     )
     return cast(StarletteOAuth2App, oauth_client)
+
+
+# a modified version of the authorize_access_token method in authlib/integrations/starlette_client/apps.py
+async def _authorize_access_token(
+    oauth2_client: StarletteOAuth2App,
+    request: Request,
+    redirect_uri: str,
+    code_verifier: str,
+    nonce: str | None = None,
+    **kwargs: Any,
+) -> dict:
+    error = request.query_params.get("error")
+    if error:
+        description = request.query_params.get("error_description")
+        logger.error(f"OAuth2 error: {error}, error_description: {description}")
+        raise LinkedAccountOAuth2Error(message=description)
+
+    params = {
+        "code": request.query_params.get("code"),
+        "state": request.query_params.get("state"),
+        "redirect_uri": redirect_uri,
+        "code_verifier": code_verifier,
+    }
+
+    claims_options = kwargs.pop("claims_options", None)
+    token = cast(dict, await oauth2_client.fetch_access_token(**params, **kwargs))
+
+    if "id_token" in token and nonce:
+        userinfo = await oauth2_client.parse_id_token(
+            token, nonce=nonce, claims_options=claims_options
+        )
+        token["userinfo"] = userinfo
+    return token
 
 
 @router.get("/{linked_account_id}", response_model=LinkedAccountPublic)
