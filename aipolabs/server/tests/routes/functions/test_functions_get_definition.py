@@ -79,11 +79,6 @@ def test_get_private_function(
     )
     assert response.status_code == status.HTTP_200_OK
 
-    # revert changes
-    crud.projects.set_project_visibility_access(db_session, dummy_project.id, Visibility.PUBLIC)
-    crud.functions.set_function_visibility(db_session, dummy_functions[0].id, Visibility.PUBLIC)
-    db_session.commit()
-
 
 def test_get_function_that_is_under_private_app(
     db_session: Session,
@@ -112,11 +107,6 @@ def test_get_function_that_is_under_private_app(
     )
     assert response.status_code == status.HTTP_200_OK
 
-    # revert changes
-    crud.apps.set_app_visibility(db_session, dummy_functions[0].app_id, Visibility.PUBLIC)
-    crud.projects.set_project_visibility_access(db_session, dummy_project.id, Visibility.PUBLIC)
-    db_session.commit()
-
 
 def test_get_function_that_is_inactive(
     db_session: Session,
@@ -134,10 +124,6 @@ def test_get_function_that_is_inactive(
     )
     assert response.status_code == status.HTTP_404_NOT_FOUND
 
-    # revert changes
-    crud.functions.set_function_active_status(db_session, dummy_functions[0].id, True)
-    db_session.commit()
-
 
 def test_get_function_that_is_under_inactive_app(
     db_session: Session,
@@ -154,7 +140,3 @@ def test_get_function_that_is_under_inactive_app(
         headers={"x-api-key": dummy_api_key},
     )
     assert response.status_code == status.HTTP_404_NOT_FOUND
-
-    # revert changes
-    crud.apps.set_app_active_status(db_session, dummy_functions[0].app_id, True)
-    db_session.commit()

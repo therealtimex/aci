@@ -28,10 +28,6 @@ def test_search_functions_with_inactive_functions(
     ]
     assert len(functions) == len(dummy_functions) - 1
 
-    # revert changes
-    crud.functions.set_function_active_status(db_session, dummy_functions[0].id, True)
-    db_session.commit()
-
 
 def test_search_functions_with_inactive_apps(
     db_session: Session,
@@ -58,10 +54,6 @@ def test_search_functions_with_inactive_apps(
     assert (
         len(functions) == len(dummy_functions) - inactive_functions_count
     ), "no functions should be returned under inactive apps"
-
-    # revert changes
-    crud.apps.set_app_active_status(db_session, dummy_functions[0].app_id, True)
-    db_session.commit()
 
 
 def test_search_functions_with_private_functions(
@@ -96,11 +88,6 @@ def test_search_functions_with_private_functions(
         FunctionBasic.model_validate(response_function) for response_function in response.json()
     ]
     assert len(functions) == len(dummy_functions)
-
-    # revert changes
-    crud.projects.set_project_visibility_access(db_session, dummy_project.id, Visibility.PUBLIC)
-    crud.functions.set_function_visibility(db_session, dummy_functions[0].id, Visibility.PUBLIC)
-    db_session.commit()
 
 
 def test_search_functions_with_private_apps(
@@ -142,11 +129,6 @@ def test_search_functions_with_private_apps(
         FunctionBasic.model_validate(response_function) for response_function in response.json()
     ]
     assert len(functions) == len(dummy_functions)
-
-    # revert changes
-    crud.apps.set_app_visibility(db_session, dummy_functions[0].app_id, Visibility.PUBLIC)
-    crud.projects.set_project_visibility_access(db_session, dummy_project.id, Visibility.PUBLIC)
-    db_session.commit()
 
 
 def test_search_functions_with_app_ids(

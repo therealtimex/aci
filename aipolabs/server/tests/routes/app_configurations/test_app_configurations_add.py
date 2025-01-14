@@ -1,12 +1,9 @@
-from typing import Generator
-
-import pytest
 from fastapi import status
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
 from aipolabs.common.db import crud
-from aipolabs.common.db.sql_models import App, AppConfiguration
+from aipolabs.common.db.sql_models import App
 from aipolabs.common.enums import SecurityScheme, Visibility
 from aipolabs.common.schemas.app_configurations import (
     AppConfigurationCreate,
@@ -15,14 +12,6 @@ from aipolabs.common.schemas.app_configurations import (
 from aipolabs.server import config
 
 NON_EXISTENT_APP_ID = "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
-
-
-@pytest.fixture(autouse=True)
-def cleanup(db_session: Session) -> Generator[None, None, None]:
-    """Automatically clean up app configurations table after each test"""
-    yield
-    db_session.query(AppConfiguration).delete()
-    db_session.commit()
 
 
 def test_create_app_configuration(
@@ -103,9 +92,6 @@ def test_create_app_configuration_app_not_enabled(
     assert response.status_code == status.HTTP_404_NOT_FOUND
     assert str(response.json()["error"]).startswith("App not found")
 
-    crud.apps.set_app_active_status(db_session, dummy_app_google.id, True)
-    db_session.commit()
-
 
 def test_create_app_configuration_project_does_not_have_access(
     test_client: TestClient,
@@ -126,7 +112,3 @@ def test_create_app_configuration_project_does_not_have_access(
     )
     assert response.status_code == status.HTTP_404_NOT_FOUND
     assert str(response.json()["error"]).startswith("App not found")
-
-    # revert changes
-    crud.apps.set_app_visibility(db_session, dummy_app_google.id, Visibility.PUBLIC)
-    db_session.commit()

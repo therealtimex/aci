@@ -49,10 +49,6 @@ def test_get_inactive_app(
     )
     assert response.status_code == status.HTTP_404_NOT_FOUND
 
-    # revert changes
-    crud.apps.set_app_active_status(db_session, dummy_apps[0].id, True)
-    db_session.commit()
-
 
 def test_get_private_app(
     db_session: Session,
@@ -83,8 +79,3 @@ def test_get_private_app(
     assert response.status_code == status.HTTP_200_OK
     app = AppBasicWithFunctions.model_validate(response.json())
     assert app.name == dummy_apps[0].name
-
-    # revert changes
-    crud.projects.set_project_visibility_access(db_session, dummy_project.id, Visibility.PUBLIC)
-    crud.apps.set_app_visibility(db_session, dummy_apps[0].id, Visibility.PUBLIC)
-    db_session.commit()

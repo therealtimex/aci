@@ -6,7 +6,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
 from aipolabs.common.db import crud
-from aipolabs.common.db.sql_models import App, AppConfiguration, LinkedAccount
+from aipolabs.common.db.sql_models import App, LinkedAccount
 from aipolabs.common.enums import SecurityScheme
 from aipolabs.common.schemas.app_configurations import (
     AppConfigurationCreate,
@@ -15,7 +15,7 @@ from aipolabs.common.schemas.app_configurations import (
 from aipolabs.server import config
 
 
-@pytest.fixture(autouse=True, scope="module")
+@pytest.fixture(scope="function", autouse=True)
 def setup_and_cleanup(
     db_session: Session,
     test_client: TestClient,
@@ -88,11 +88,6 @@ def setup_and_cleanup(
         dummy_app_1_linked_account_2,
         dummy_app_2_linked_account_1,
     ]
-
-    # cleanup
-    db_session.query(LinkedAccount).delete()
-    db_session.query(AppConfiguration).delete()
-    db_session.commit()
 
 
 def test_list_linked_accounts_no_filters(

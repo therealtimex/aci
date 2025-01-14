@@ -24,9 +24,33 @@ from sqlalchemy.orm import Session
 
 logger = logging.getLogger(__name__)
 
+# call this one time for entire tests because it's slow and costs money (negligible) as it needs
+# to generate embeddings using OpenAI for each app and function
+dummy_apps_and_functions_to_be_inserted_into_db = helper.prepare_dummy_apps_and_functions()
+GOOGLE_APP_NAME = "GOOGLE"
+GITHUB_APP_NAME = "GITHUB"
+AIPOLABS_TEST_APP_NAME = "AIPOLABS_TEST"
 
-@pytest.fixture(scope="session", autouse=True)
+
+@pytest.fixture(scope="function")
+def test_client() -> Generator[TestClient, None, None]:
+    # disable following redirects for testing login
+    # NOTE: need to set base_url to http://localhost because we set TrustedHostMiddleware in main.py
+    with TestClient(fastapi_app, base_url="http://localhost", follow_redirects=False) as c:
+        yield c
+
+
+@pytest.fixture(scope="function")
+def db_session() -> Generator[Session, None, None]:
+    with utils.create_db_session(config.DB_FULL_URL) as db_session:
+        yield db_session
+
+
+@pytest.fixture(scope="function", autouse=True)
 def database_setup_and_cleanup() -> Generator[None, None, None]:
+    """
+    Setup and cleanup the database for each test case.
+    """
     # make sure we are connecting to the local db not the production db
     # TODO: it's part of the environment separation problem, need to properly set up failsafe prod isolation
     assert config.DB_HOST == "localhost"
@@ -51,21 +75,13 @@ def database_setup_and_cleanup() -> Generator[None, None, None]:
         # Clean up: Empty all tables after tests in reverse order of creation
         for table in reversed(Base.metadata.sorted_tables):
             if table.name != "alembic_version" and session.query(table).count() > 0:
-                logger.warning(f"Deleting all records from table {table.name}")
+                logger.debug(f"Deleting all records from table {table.name}")
                 session.execute(table.delete())
         session.commit()
 
 
-@pytest.fixture(scope="session")
-def test_client() -> Generator[TestClient, None, None]:
-    # disable following redirects for testing login
-    # NOTE: need to set base_url to http://localhost because we set TrustedHostMiddleware in main.py
-    with TestClient(fastapi_app, base_url="http://localhost", follow_redirects=False) as c:
-        yield c
-
-
-@pytest.fixture(scope="session", autouse=True)
-def dummy_user() -> Generator[User, None, None]:
+@pytest.fixture(scope="function", autouse=True)
+def dummy_user(database_setup_and_cleanup: None) -> Generator[User, None, None]:
     with utils.create_db_session(config.DB_FULL_URL) as fixture_db_session:
         dummy_user = crud.users.create_user(
             fixture_db_session,
@@ -80,12 +96,12 @@ def dummy_user() -> Generator[User, None, None]:
         yield dummy_user
 
 
-@pytest.fixture(scope="session", autouse=True)
+@pytest.fixture(scope="function", autouse=True)
 def dummy_user_bearer_token(dummy_user: User) -> str:
     return create_access_token(str(dummy_user.id), timedelta(minutes=15))
 
 
-@pytest.fixture(scope="session", autouse=True)
+@pytest.fixture(scope="function", autouse=True)
 def dummy_project(dummy_user: User) -> Generator[Project, None, None]:
     with utils.create_db_session(config.DB_FULL_URL) as fixture_db_session:
         dummy_project = crud.projects.create_project(
@@ -98,7 +114,7 @@ def dummy_project(dummy_user: User) -> Generator[Project, None, None]:
         yield dummy_project
 
 
-@pytest.fixture(scope="session", autouse=True)
+@pytest.fixture(scope="function", autouse=True)
 def dummy_api_key(dummy_project: Project) -> Generator[str, None, None]:
     with utils.create_db_session(config.DB_FULL_URL) as fixture_db_session:
         dummy_agent = crud.projects.create_agent(
@@ -113,7 +129,7 @@ def dummy_api_key(dummy_project: Project) -> Generator[str, None, None]:
         yield dummy_agent.api_keys[0].key
 
 
-@pytest.fixture(scope="session", autouse=True)
+@pytest.fixture(scope="function", autouse=True)
 def dummy_project_2(dummy_user: User) -> Generator[Project, None, None]:
     with utils.create_db_session(config.DB_FULL_URL) as fixture_db_session:
         dummy_project = crud.projects.create_project(
@@ -126,8 +142,8 @@ def dummy_project_2(dummy_user: User) -> Generator[Project, None, None]:
         yield dummy_project
 
 
-@pytest.fixture(scope="session", autouse=True)
-def dummy_api_key_2(dummy_project_2: Project, dummy_user: User) -> Generator[str, None, None]:
+@pytest.fixture(scope="function", autouse=True)
+def dummy_api_key_2(dummy_project_2: Project) -> Generator[str, None, None]:
     with utils.create_db_session(config.DB_FULL_URL) as fixture_db_session:
         dummy_agent = crud.projects.create_agent(
             fixture_db_session,
@@ -141,35 +157,48 @@ def dummy_api_key_2(dummy_project_2: Project, dummy_user: User) -> Generator[str
         yield dummy_agent.api_keys[0].key
 
 
-@pytest.fixture(scope="session", autouse=True)
-def dummy_apps() -> Generator[list[App], None, None]:
+@pytest.fixture(scope="function", autouse=True)
+def dummy_apps(database_setup_and_cleanup: None) -> Generator[list[App], None, None]:
+    dummy_apps: list[App] = []
     with utils.create_db_session(config.DB_FULL_URL) as fixture_db_session:
-        dummy_apps = helper.create_dummy_apps_and_functions(fixture_db_session)
+        for (
+            app_create,
+            functions_create,
+            app_embedding,
+            functions_embeddings,
+        ) in dummy_apps_and_functions_to_be_inserted_into_db:
+            app = crud.apps.create_app(fixture_db_session, app_create, app_embedding)
+            crud.functions.create_functions(
+                fixture_db_session, functions_create, functions_embeddings
+            )
+            fixture_db_session.commit()
+            dummy_apps.append(app)
+
         yield dummy_apps
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="function")
 def dummy_app_google(dummy_apps: list[App]) -> App:
-    dummy_app_google = next(app for app in dummy_apps if app.name == "GOOGLE")
+    dummy_app_google = next(app for app in dummy_apps if app.name == GOOGLE_APP_NAME)
     assert dummy_app_google is not None
     return dummy_app_google
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="function")
 def dummy_app_github(dummy_apps: list[App]) -> App:
-    dummy_app_github = next(app for app in dummy_apps if app.name == "GITHUB")
+    dummy_app_github = next(app for app in dummy_apps if app.name == GITHUB_APP_NAME)
     assert dummy_app_github is not None
     return dummy_app_github
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="function")
 def dummy_app_aipolabs_test(dummy_apps: list[App]) -> App:
-    dummy_app_aipolabs_test = next(app for app in dummy_apps if app.name == "AIPOLABS_TEST")
+    dummy_app_aipolabs_test = next(app for app in dummy_apps if app.name == AIPOLABS_TEST_APP_NAME)
     assert dummy_app_aipolabs_test is not None
     return dummy_app_aipolabs_test
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="function")
 def dummy_functions(dummy_apps: list[App]) -> list[Function]:
     dummy_functions: list[Function] = []
     for dummy_app in dummy_apps:
@@ -177,7 +206,7 @@ def dummy_functions(dummy_apps: list[App]) -> list[Function]:
     return dummy_functions
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="function")
 def dummy_function_github__create_repository(
     dummy_functions: list[Function],
 ) -> Function:
@@ -188,7 +217,7 @@ def dummy_function_github__create_repository(
     return dummy_function_github__create_repository
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="function")
 def dummy_function_google__calendar_create_event(
     dummy_functions: list[Function],
 ) -> Function:
@@ -199,7 +228,7 @@ def dummy_function_google__calendar_create_event(
     return dummy_function_google__calendar_create_event
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="function")
 def dummy_function_aipolabs_test__hello_world_nested_args(
     dummy_functions: list[Function],
 ) -> Function:
@@ -210,7 +239,7 @@ def dummy_function_aipolabs_test__hello_world_nested_args(
     return dummy_function_aipolabs_test__hello_world_nested_args
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="function")
 def dummy_function_aipolabs_test__hello_world_no_args(
     dummy_functions: list[Function],
 ) -> Function:
@@ -221,7 +250,7 @@ def dummy_function_aipolabs_test__hello_world_no_args(
     return dummy_function_aipolabs_test__hello_world_no_args
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="function")
 def dummy_function_aipolabs_test__http_bearer__hello_world(
     dummy_functions: list[Function],
 ) -> Function:
@@ -232,7 +261,7 @@ def dummy_function_aipolabs_test__http_bearer__hello_world(
     return dummy_function_aipolabs_test__http_bearer__hello_world
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="function")
 def dummy_function_aipolabs_test__hello_world_with_args(
     dummy_functions: list[Function],
 ) -> Function:
@@ -241,9 +270,3 @@ def dummy_function_aipolabs_test__hello_world_with_args(
     )
     assert dummy_function_aipolabs_test__hello_world_with_args is not None
     return dummy_function_aipolabs_test__hello_world_with_args
-
-
-@pytest.fixture(scope="module")
-def db_session() -> Generator[Session, None, None]:
-    with utils.create_db_session(config.DB_FULL_URL) as db_session:
-        yield db_session

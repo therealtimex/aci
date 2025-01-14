@@ -23,7 +23,7 @@ logger = get_logger(__name__)
 def create_functions(
     db_session: Session,
     functions_create: list[FunctionCreate],
-    function_embeddings: list[list[float]],
+    functions_embeddings: list[list[float]],
 ) -> list[Function]:
     """Create functions of the same app"""
     logger.debug(f"upserting functions: {functions_create}")
@@ -60,7 +60,7 @@ def create_functions(
             protocol_data=function_create.protocol_data.model_dump(),
             parameters=function_create.parameters,
             response=function_create.response,
-            embedding=function_embeddings[i],
+            embedding=functions_embeddings[i],
         )
         db_session.add(function)
         functions.append(function)

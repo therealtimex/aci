@@ -98,8 +98,3 @@ def test_list_apps_with_private_apps(
     assert response.status_code == status.HTTP_200_OK
     apps = [AppDetails.model_validate(response_app) for response_app in response.json()]
     assert len(apps) == len(dummy_apps)
-
-    # revert changes
-    crud.projects.set_project_visibility_access(db_session, dummy_project.id, Visibility.PUBLIC)
-    crud.apps.set_app_visibility(db_session, dummy_apps[0].id, Visibility.PUBLIC)
-    db_session.commit()

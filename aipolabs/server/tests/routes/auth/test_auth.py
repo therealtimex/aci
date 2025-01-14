@@ -63,10 +63,6 @@ def test_callback_google(test_client: TestClient, db_session: Session) -> None:
     assert user.name == MOCK_USER_GOOGLE_AUTH_DATA["userinfo"]["name"]
     assert user.profile_picture == MOCK_USER_GOOGLE_AUTH_DATA["userinfo"]["picture"]
 
-    # Clean up: Delete the created user
-    db_session.delete(user)
-    db_session.commit()
-
 
 def test_login_unsupported_provider(test_client: TestClient) -> None:
     response = test_client.get(f"{config.ROUTER_PREFIX_AUTH}/login/unsupported")

@@ -107,11 +107,6 @@ def test_list_functions_with_private_functions(
     functions = [FunctionDetails.model_validate(func) for func in response.json()]
     assert len(functions) == len(dummy_functions)
 
-    # revert changes
-    crud.projects.set_project_visibility_access(db_session, dummy_project.id, Visibility.PUBLIC)
-    crud.functions.set_function_visibility(db_session, dummy_functions[0].id, Visibility.PUBLIC)
-    db_session.commit()
-
 
 def test_list_functions_with_private_apps(
     db_session: Session,
@@ -148,8 +143,3 @@ def test_list_functions_with_private_apps(
     assert response.status_code == status.HTTP_200_OK
     functions = [FunctionDetails.model_validate(func) for func in response.json()]
     assert len(functions) == len(dummy_functions)
-
-    # revert changes
-    crud.apps.set_app_visibility(db_session, dummy_functions[0].app_id, Visibility.PUBLIC)
-    crud.projects.set_project_visibility_access(db_session, dummy_project.id, Visibility.PUBLIC)
-    db_session.commit()

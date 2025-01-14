@@ -5,7 +5,7 @@ from fastapi import status
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
-from aipolabs.common.db.sql_models import App, AppConfiguration
+from aipolabs.common.db.sql_models import App
 from aipolabs.common.enums import SecurityScheme
 from aipolabs.common.schemas.app_configurations import (
     AppConfigurationCreate,
@@ -16,7 +16,7 @@ from aipolabs.server import config
 NON_EXISTENT_APP_ID = "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
 
 
-@pytest.fixture(autouse=True, scope="module")
+@pytest.fixture(scope="function", autouse=True)
 def setup_and_cleanup(
     db_session: Session,
     test_client: TestClient,
@@ -47,10 +47,6 @@ def setup_and_cleanup(
     assert response.status_code == status.HTTP_200_OK
 
     yield
-
-    # cleanup
-    db_session.query(AppConfiguration).delete()
-    db_session.commit()
 
 
 def test_list_app_configuration(
