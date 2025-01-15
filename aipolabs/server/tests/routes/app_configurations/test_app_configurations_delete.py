@@ -1,86 +1,38 @@
-from typing import Generator
-
-import pytest
 from fastapi import status
 from fastapi.testclient import TestClient
-from sqlalchemy.orm import Session
 
 from aipolabs.common.db.sql_models import App
-from aipolabs.common.enums import SecurityScheme
-from aipolabs.common.schemas.app_configurations import (
-    AppConfigurationCreate,
-    AppConfigurationPublic,
-)
+from aipolabs.common.schemas.app_configurations import AppConfigurationPublic
 from aipolabs.server import config
-
-
-@pytest.fixture(scope="function", autouse=True)
-def setup_and_cleanup(
-    db_session: Session,
-    test_client: TestClient,
-    dummy_api_key: str,
-    dummy_api_key_2: str,
-    dummy_app_google: App,
-    dummy_app_github: App,
-) -> Generator[list[AppConfigurationPublic], None, None]:
-    """Setup app configurations for testing and cleanup after"""
-    # create google app configuration
-    body = AppConfigurationCreate(app_id=dummy_app_google.id, security_scheme=SecurityScheme.OAUTH2)
-
-    response = test_client.post(
-        f"{config.ROUTER_PREFIX_APP_CONFIGURATIONS}/",
-        json=body.model_dump(mode="json"),
-        headers={"x-api-key": dummy_api_key},
-    )
-    assert response.status_code == status.HTTP_200_OK
-    google_app_configuration = AppConfigurationPublic.model_validate(response.json())
-
-    # create github app configuration
-    body = AppConfigurationCreate(
-        app_id=dummy_app_github.id, security_scheme=SecurityScheme.API_KEY
-    )
-
-    response = test_client.post(
-        f"{config.ROUTER_PREFIX_APP_CONFIGURATIONS}/",
-        json=body.model_dump(mode="json"),
-        headers={"x-api-key": dummy_api_key_2},
-    )
-    assert response.status_code == status.HTTP_200_OK
-    github_app_configuration = AppConfigurationPublic.model_validate(response.json())
-
-    yield [google_app_configuration, github_app_configuration]
 
 
 def test_delete_app_configuration(
     test_client: TestClient,
-    dummy_api_key: str,
-    setup_and_cleanup: list[AppConfigurationPublic],
+    dummy_api_key_1: str,
+    dummy_google_app_configuration_under_dummy_project_1: AppConfigurationPublic,
 ) -> None:
-    google_app_configuration, _ = setup_and_cleanup
-
-    response = test_client.delete(
-        f"{config.ROUTER_PREFIX_APP_CONFIGURATIONS}/{google_app_configuration.app_id}",
-        headers={"x-api-key": dummy_api_key},
+    ENDPOINT = (
+        f"{config.ROUTER_PREFIX_APP_CONFIGURATIONS}/"
+        f"{dummy_google_app_configuration_under_dummy_project_1.app_id}"
     )
+
+    response = test_client.delete(ENDPOINT, headers={"x-api-key": dummy_api_key_1})
     assert response.status_code == status.HTTP_200_OK
 
     # get deleted app configuration should return 404
-    response = test_client.get(
-        f"{config.ROUTER_PREFIX_APP_CONFIGURATIONS}/{google_app_configuration.app_id}",
-        headers={"x-api-key": dummy_api_key},
-    )
+    response = test_client.get(ENDPOINT, headers={"x-api-key": dummy_api_key_1})
     assert response.status_code == status.HTTP_404_NOT_FOUND
     # TODO: check if linked accounts are deleted
 
 
 def test_delete_non_existent_app_configuration(
     test_client: TestClient,
-    dummy_api_key: str,
+    dummy_api_key_1: str,
     dummy_app_aipolabs_test: App,
 ) -> None:
     response = test_client.delete(
         f"{config.ROUTER_PREFIX_APP_CONFIGURATIONS}/{dummy_app_aipolabs_test.id}",
-        headers={"x-api-key": dummy_api_key},
+        headers={"x-api-key": dummy_api_key_1},
     )
     assert response.status_code == status.HTTP_404_NOT_FOUND
     assert str(response.json()["error"]).startswith("App configuration not found")

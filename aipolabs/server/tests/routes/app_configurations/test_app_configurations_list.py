@@ -1,94 +1,61 @@
-from typing import Generator
-
-import pytest
 from fastapi import status
 from fastapi.testclient import TestClient
-from sqlalchemy.orm import Session
 
 from aipolabs.common.db.sql_models import App
-from aipolabs.common.enums import SecurityScheme
 from aipolabs.common.schemas.app_configurations import (
-    AppConfigurationCreate,
+    AppConfigurationPublic,
     AppConfigurationsList,
 )
 from aipolabs.server import config
 
-NON_EXISTENT_APP_ID = "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
-
-
-@pytest.fixture(scope="function", autouse=True)
-def setup_and_cleanup(
-    db_session: Session,
-    test_client: TestClient,
-    dummy_api_key: str,
-    dummy_app_google: App,
-    dummy_app_github: App,
-) -> Generator[None, None, None]:
-    """Setup app configurations for testing and cleanup after"""
-    # create google app configuration
-    body = AppConfigurationCreate(app_id=dummy_app_google.id, security_scheme=SecurityScheme.OAUTH2)
-    response = test_client.post(
-        f"{config.ROUTER_PREFIX_APP_CONFIGURATIONS}/",
-        json=body.model_dump(mode="json"),
-        headers={"x-api-key": dummy_api_key},
-    )
-    assert response.status_code == status.HTTP_200_OK
-
-    # create github app configuration
-    body = AppConfigurationCreate(
-        app_id=dummy_app_github.id, security_scheme=SecurityScheme.API_KEY
-    )
-
-    response = test_client.post(
-        f"{config.ROUTER_PREFIX_APP_CONFIGURATIONS}/",
-        json=body.model_dump(mode="json"),
-        headers={"x-api-key": dummy_api_key},
-    )
-    assert response.status_code == status.HTTP_200_OK
-
-    yield
-
 
 def test_list_app_configuration(
     test_client: TestClient,
-    dummy_api_key: str,
+    dummy_api_key_1: str,
+    dummy_google_app_configuration_under_dummy_project_1: AppConfigurationPublic,
+    dummy_github_app_configuration_under_dummy_project_1: AppConfigurationPublic,
 ) -> None:
     response = test_client.get(
-        f"{config.ROUTER_PREFIX_APP_CONFIGURATIONS}/", headers={"x-api-key": dummy_api_key}
+        f"{config.ROUTER_PREFIX_APP_CONFIGURATIONS}/", headers={"x-api-key": dummy_api_key_1}
     )
-    print(response.json())
     assert response.status_code == status.HTTP_200_OK
     assert len(response.json()) == 2
+    assert response.json()[0]["id"] == str(dummy_google_app_configuration_under_dummy_project_1.id)
+    assert response.json()[1]["id"] == str(dummy_github_app_configuration_under_dummy_project_1.id)
 
 
 def test_list_app_configuration_with_app_id(
     test_client: TestClient,
-    dummy_api_key: str,
+    dummy_api_key_1: str,
     dummy_app_google: App,
+    dummy_google_app_configuration_under_dummy_project_1: AppConfigurationPublic,
+    dummy_github_app_configuration_under_dummy_project_1: AppConfigurationPublic,
 ) -> None:
     query_params = AppConfigurationsList(app_id=dummy_app_google.id)
 
     response = test_client.get(
         f"{config.ROUTER_PREFIX_APP_CONFIGURATIONS}/",
-        headers={"x-api-key": dummy_api_key},
+        headers={"x-api-key": dummy_api_key_1},
         params=query_params.model_dump(mode="json"),
     )
 
     assert response.status_code == status.HTTP_200_OK
     assert len(response.json()) == 1
-    assert response.json()[0]["app_id"] == str(dummy_app_google.id)
+    assert response.json()[0]["id"] == str(dummy_google_app_configuration_under_dummy_project_1.id)
 
 
 def test_list_non_existent_app_configuration(
     test_client: TestClient,
-    dummy_api_key: str,
+    dummy_api_key_1: str,
     dummy_app_aipolabs_test: App,
+    dummy_google_app_configuration_under_dummy_project_1: AppConfigurationPublic,
+    dummy_github_app_configuration_under_dummy_project_1: AppConfigurationPublic,
 ) -> None:
     query_params = AppConfigurationsList(app_id=dummy_app_aipolabs_test.id)
 
     response = test_client.get(
         f"{config.ROUTER_PREFIX_APP_CONFIGURATIONS}/",
-        headers={"x-api-key": dummy_api_key},
+        headers={"x-api-key": dummy_api_key_1},
         params=query_params.model_dump(mode="json"),
     )
     assert response.status_code == status.HTTP_200_OK
@@ -96,13 +63,16 @@ def test_list_non_existent_app_configuration(
 
 
 def test_list_app_configuration_with_limit_and_offset(
-    test_client: TestClient, dummy_api_key: str
+    test_client: TestClient,
+    dummy_api_key_1: str,
+    dummy_google_app_configuration_under_dummy_project_1: AppConfigurationPublic,
+    dummy_github_app_configuration_under_dummy_project_1: AppConfigurationPublic,
 ) -> None:
     query_params = AppConfigurationsList(limit=1, offset=0)
 
     response = test_client.get(
         f"{config.ROUTER_PREFIX_APP_CONFIGURATIONS}/",
-        headers={"x-api-key": dummy_api_key},
+        headers={"x-api-key": dummy_api_key_1},
         # Note: need to exclude None values, otherwise it won't be injected into the query params correctly
         params=query_params.model_dump(exclude_none=True),
     )

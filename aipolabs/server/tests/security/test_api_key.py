@@ -20,7 +20,7 @@ def test_without_api_key(test_client: TestClient) -> None:
 
 
 # sending a request with a invalid api key should fail
-def test_with_invalid_api_key(test_client: TestClient, dummy_api_key: str) -> None:
+def test_with_invalid_api_key(test_client: TestClient, dummy_api_key_1: str) -> None:
     search_params = {
         "intent": "i want to create a new code repo for my project",
         "categories": [],

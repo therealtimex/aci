@@ -15,12 +15,12 @@ from aipolabs.server import config
 def test_get_function_definition_openai(
     test_client: TestClient,
     dummy_function_github__create_repository: Function,
-    dummy_api_key: str,
+    dummy_api_key_1: str,
 ) -> None:
     response = test_client.get(
         f"{config.ROUTER_PREFIX_FUNCTIONS}/{dummy_function_github__create_repository.id}/definition",
         params={"inference_provider": "openai"},
-        headers={"x-api-key": dummy_api_key},
+        headers={"x-api-key": dummy_api_key_1},
     )
     assert response.status_code == status.HTTP_200_OK
     response_json = response.json()
@@ -38,12 +38,12 @@ def test_get_function_definition_openai(
 def test_get_function_definition_anthropic(
     test_client: TestClient,
     dummy_function_github__create_repository: Function,
-    dummy_api_key: str,
+    dummy_api_key_1: str,
 ) -> None:
     response = test_client.get(
         f"{config.ROUTER_PREFIX_FUNCTIONS}/{dummy_function_github__create_repository.id}/definition",
         params={"inference_provider": "anthropic"},
-        headers={"x-api-key": dummy_api_key},
+        headers={"x-api-key": dummy_api_key_1},
     )
     assert response.status_code == status.HTTP_200_OK
     function_definition = AnthropicFunctionDefinition.model_validate(response.json())
@@ -56,8 +56,8 @@ def test_get_private_function(
     db_session: Session,
     test_client: TestClient,
     dummy_functions: list[Function],
-    dummy_api_key: str,
-    dummy_project: Project,
+    dummy_api_key_1: str,
+    dummy_project_1: Project,
 ) -> None:
     # private function should not be reachable for project with only public access
     crud.functions.set_function_visibility(db_session, dummy_functions[0].id, Visibility.PRIVATE)
@@ -65,17 +65,17 @@ def test_get_private_function(
 
     response = test_client.get(
         f"{config.ROUTER_PREFIX_FUNCTIONS}/{dummy_functions[0].id}/definition",
-        headers={"x-api-key": dummy_api_key},
+        headers={"x-api-key": dummy_api_key_1},
     )
     assert response.status_code == status.HTTP_404_NOT_FOUND
 
     # should be reachable for project with private access
-    crud.projects.set_project_visibility_access(db_session, dummy_project.id, Visibility.PRIVATE)
+    crud.projects.set_project_visibility_access(db_session, dummy_project_1.id, Visibility.PRIVATE)
     db_session.commit()
 
     response = test_client.get(
         f"{config.ROUTER_PREFIX_FUNCTIONS}/{dummy_functions[0].id}/definition",
-        headers={"x-api-key": dummy_api_key},
+        headers={"x-api-key": dummy_api_key_1},
     )
     assert response.status_code == status.HTTP_200_OK
 
@@ -84,8 +84,8 @@ def test_get_function_that_is_under_private_app(
     db_session: Session,
     test_client: TestClient,
     dummy_functions: list[Function],
-    dummy_api_key: str,
-    dummy_project: Project,
+    dummy_api_key_1: str,
+    dummy_project_1: Project,
 ) -> None:
     # public function under private app should not be reachable for project with only public access
     crud.apps.set_app_visibility(db_session, dummy_functions[0].app_id, Visibility.PRIVATE)
@@ -93,17 +93,17 @@ def test_get_function_that_is_under_private_app(
 
     response = test_client.get(
         f"{config.ROUTER_PREFIX_FUNCTIONS}/{dummy_functions[0].id}/definition",
-        headers={"x-api-key": dummy_api_key},
+        headers={"x-api-key": dummy_api_key_1},
     )
     assert response.status_code == status.HTTP_404_NOT_FOUND
 
     # should be reachable for project with private access
-    crud.projects.set_project_visibility_access(db_session, dummy_project.id, Visibility.PRIVATE)
+    crud.projects.set_project_visibility_access(db_session, dummy_project_1.id, Visibility.PRIVATE)
     db_session.commit()
 
     response = test_client.get(
         f"{config.ROUTER_PREFIX_FUNCTIONS}/{dummy_functions[0].id}/definition",
-        headers={"x-api-key": dummy_api_key},
+        headers={"x-api-key": dummy_api_key_1},
     )
     assert response.status_code == status.HTTP_200_OK
 
@@ -112,7 +112,7 @@ def test_get_function_that_is_inactive(
     db_session: Session,
     test_client: TestClient,
     dummy_functions: list[Function],
-    dummy_api_key: str,
+    dummy_api_key_1: str,
 ) -> None:
     # inactive function should not be reachable
     crud.functions.set_function_active_status(db_session, dummy_functions[0].id, False)
@@ -120,7 +120,7 @@ def test_get_function_that_is_inactive(
 
     response = test_client.get(
         f"{config.ROUTER_PREFIX_FUNCTIONS}/{dummy_functions[0].id}/definition",
-        headers={"x-api-key": dummy_api_key},
+        headers={"x-api-key": dummy_api_key_1},
     )
     assert response.status_code == status.HTTP_404_NOT_FOUND
 
@@ -129,7 +129,7 @@ def test_get_function_that_is_under_inactive_app(
     db_session: Session,
     test_client: TestClient,
     dummy_functions: list[Function],
-    dummy_api_key: str,
+    dummy_api_key_1: str,
 ) -> None:
     # functions (active or inactive) under inactive app should not be reachable
     crud.apps.set_app_active_status(db_session, dummy_functions[0].app_id, False)
@@ -137,6 +137,6 @@ def test_get_function_that_is_under_inactive_app(
 
     response = test_client.get(
         f"{config.ROUTER_PREFIX_FUNCTIONS}/{dummy_functions[0].id}/definition",
-        headers={"x-api-key": dummy_api_key},
+        headers={"x-api-key": dummy_api_key_1},
     )
     assert response.status_code == status.HTTP_404_NOT_FOUND

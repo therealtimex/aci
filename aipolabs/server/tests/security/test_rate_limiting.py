@@ -26,7 +26,7 @@ def get_ratelimit_middleware_instance(fastapi_app: FastAPI) -> RateLimitMiddlewa
     assert False, f"{RateLimitMiddleware.__name__} instance not found"
 
 
-def test_rate_limiting_ip_per_second(test_client: TestClient, dummy_api_key: str) -> None:
+def test_rate_limiting_ip_per_second(test_client: TestClient, dummy_api_key_1: str) -> None:
     OVERRIDE_RATE_LIMIT_IP_PER_SECOND = 1
 
     rate_limit_middleware_instance = get_ratelimit_middleware_instance(fastapi_app)
@@ -41,13 +41,13 @@ def test_rate_limiting_ip_per_second(test_client: TestClient, dummy_api_key: str
         for counter in range(OVERRIDE_RATE_LIMIT_IP_PER_SECOND):
             logger.info(f"counter: {counter}")
             response = test_client.get(
-                f"{config.ROUTER_PREFIX_APPS}/search", headers={"x-api-key": dummy_api_key}
+                f"{config.ROUTER_PREFIX_APPS}/search", headers={"x-api-key": dummy_api_key_1}
             )
             assert response.status_code == status.HTTP_200_OK
 
         # Test rate limit exceeded
         response = test_client.get(
-            f"{config.ROUTER_PREFIX_APPS}/search", headers={"x-api-key": dummy_api_key}
+            f"{config.ROUTER_PREFIX_APPS}/search", headers={"x-api-key": dummy_api_key_1}
         )
         assert response.status_code == status.HTTP_429_TOO_MANY_REQUESTS
 
@@ -60,12 +60,12 @@ def test_rate_limiting_ip_per_second(test_client: TestClient, dummy_api_key: str
         # sleep to reset rate limit, should succeed
         time.sleep(2)
         response = test_client.get(
-            f"{config.ROUTER_PREFIX_APPS}/search", headers={"x-api-key": dummy_api_key}
+            f"{config.ROUTER_PREFIX_APPS}/search", headers={"x-api-key": dummy_api_key_1}
         )
         assert response.status_code == status.HTTP_200_OK
 
 
-def test_rate_limiting_ip_per_day(test_client: TestClient, dummy_api_key: str) -> None:
+def test_rate_limiting_ip_per_day(test_client: TestClient, dummy_api_key_1: str) -> None:
     OVERRIDE_RATE_LIMIT_IP_PER_DAY = 1
 
     rate_limit_middleware_instance = get_ratelimit_middleware_instance(fastapi_app)
@@ -80,13 +80,13 @@ def test_rate_limiting_ip_per_day(test_client: TestClient, dummy_api_key: str) -
         for counter in range(OVERRIDE_RATE_LIMIT_IP_PER_DAY):
             logger.info(f"counter: {counter}")
             response = test_client.get(
-                f"{config.ROUTER_PREFIX_APPS}/search", headers={"x-api-key": dummy_api_key}
+                f"{config.ROUTER_PREFIX_APPS}/search", headers={"x-api-key": dummy_api_key_1}
             )
             assert response.status_code == status.HTTP_200_OK
 
         # Test rate limit exceeded
         response = test_client.get(
-            f"{config.ROUTER_PREFIX_APPS}/search", headers={"x-api-key": dummy_api_key}
+            f"{config.ROUTER_PREFIX_APPS}/search", headers={"x-api-key": dummy_api_key_1}
         )
         assert response.status_code == status.HTTP_429_TOO_MANY_REQUESTS
 
@@ -99,6 +99,6 @@ def test_rate_limiting_ip_per_day(test_client: TestClient, dummy_api_key: str) -
         # sleep for seconds should NOT reset daily rate limit, so should fail
         time.sleep(2)
         response = test_client.get(
-            f"{config.ROUTER_PREFIX_APPS}/search", headers={"x-api-key": dummy_api_key}
+            f"{config.ROUTER_PREFIX_APPS}/search", headers={"x-api-key": dummy_api_key_1}
         )
         assert response.status_code == status.HTTP_429_TOO_MANY_REQUESTS

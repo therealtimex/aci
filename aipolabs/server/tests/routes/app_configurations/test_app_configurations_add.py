@@ -16,7 +16,7 @@ NON_EXISTENT_APP_ID = "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
 
 def test_create_app_configuration(
     test_client: TestClient,
-    dummy_api_key: str,
+    dummy_api_key_1: str,
     dummy_apps: list[App],
 ) -> None:
     # success case
@@ -26,7 +26,7 @@ def test_create_app_configuration(
     response = test_client.post(
         f"{config.ROUTER_PREFIX_APP_CONFIGURATIONS}/",
         json=body.model_dump(mode="json"),
-        headers={"x-api-key": dummy_api_key},
+        headers={"x-api-key": dummy_api_key_1},
     )
     assert response.status_code == status.HTTP_200_OK
     AppConfigurationPublic.model_validate(response.json())
@@ -35,7 +35,7 @@ def test_create_app_configuration(
     response = test_client.post(
         f"{config.ROUTER_PREFIX_APP_CONFIGURATIONS}/",
         json=body.model_dump(mode="json"),
-        headers={"x-api-key": dummy_api_key},
+        headers={"x-api-key": dummy_api_key_1},
     )
     assert response.status_code == status.HTTP_409_CONFLICT
     assert str(response.json()["error"]).startswith("App configuration already exists")
@@ -43,7 +43,7 @@ def test_create_app_configuration(
 
 def test_create_app_configuration_security_scheme_not_supported(
     test_client: TestClient,
-    dummy_api_key: str,
+    dummy_api_key_1: str,
     dummy_apps: list[App],
 ) -> None:
     dummy_app = dummy_apps[0]
@@ -51,7 +51,7 @@ def test_create_app_configuration_security_scheme_not_supported(
     response = test_client.post(
         f"{config.ROUTER_PREFIX_APP_CONFIGURATIONS}/",
         json=body.model_dump(mode="json"),
-        headers={"x-api-key": dummy_api_key},
+        headers={"x-api-key": dummy_api_key_1},
     )
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert str(response.json()["error"]).startswith(
@@ -61,13 +61,13 @@ def test_create_app_configuration_security_scheme_not_supported(
 
 def test_create_app_configuration_app_not_found(
     test_client: TestClient,
-    dummy_api_key: str,
+    dummy_api_key_1: str,
 ) -> None:
     body = AppConfigurationCreate(app_id=NON_EXISTENT_APP_ID, security_scheme=SecurityScheme.OAUTH2)
     response = test_client.post(
         f"{config.ROUTER_PREFIX_APP_CONFIGURATIONS}/",
         json=body.model_dump(mode="json"),
-        headers={"x-api-key": dummy_api_key},
+        headers={"x-api-key": dummy_api_key_1},
     )
     assert response.status_code == status.HTTP_404_NOT_FOUND
     assert str(response.json()["error"]).startswith("App not found")
@@ -76,7 +76,7 @@ def test_create_app_configuration_app_not_found(
 def test_create_app_configuration_app_not_enabled(
     test_client: TestClient,
     db_session: Session,
-    dummy_api_key: str,
+    dummy_api_key_1: str,
     dummy_app_google: App,
 ) -> None:
     crud.apps.set_app_active_status(db_session, dummy_app_google.id, False)
@@ -87,7 +87,7 @@ def test_create_app_configuration_app_not_enabled(
     response = test_client.post(
         f"{config.ROUTER_PREFIX_APP_CONFIGURATIONS}/",
         json=body.model_dump(mode="json"),
-        headers={"x-api-key": dummy_api_key},
+        headers={"x-api-key": dummy_api_key_1},
     )
     assert response.status_code == status.HTTP_404_NOT_FOUND
     assert str(response.json()["error"]).startswith("App not found")
@@ -96,7 +96,7 @@ def test_create_app_configuration_app_not_enabled(
 def test_create_app_configuration_project_does_not_have_access(
     test_client: TestClient,
     db_session: Session,
-    dummy_api_key: str,
+    dummy_api_key_1: str,
     dummy_app_google: App,
 ) -> None:
     # set the app to private
@@ -108,7 +108,7 @@ def test_create_app_configuration_project_does_not_have_access(
     response = test_client.post(
         f"{config.ROUTER_PREFIX_APP_CONFIGURATIONS}/",
         json=body.model_dump(mode="json"),
-        headers={"x-api-key": dummy_api_key},
+        headers={"x-api-key": dummy_api_key_1},
     )
     assert response.status_code == status.HTTP_404_NOT_FOUND
     assert str(response.json()["error"]).startswith("App not found")

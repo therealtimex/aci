@@ -10,14 +10,14 @@ from aipolabs.server import config
 
 def test_execute_function_with_invalid_input(
     test_client: TestClient,
-    dummy_api_key: str,
+    dummy_api_key_1: str,
     dummy_function_aipolabs_test__hello_world_with_args: Function,
 ) -> None:
     body = {"function_input": {"name": "John"}}
     response = test_client.post(
         f"{config.ROUTER_PREFIX_FUNCTIONS}/{dummy_function_aipolabs_test__hello_world_with_args.id}/execute",
         json=body,
-        headers={"x-api-key": dummy_api_key},
+        headers={"x-api-key": dummy_api_key_1},
     )
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 
@@ -25,7 +25,7 @@ def test_execute_function_with_invalid_input(
 @respx.mock
 def test_mock_execute_function_with_no_args(
     test_client: TestClient,
-    dummy_api_key: str,
+    dummy_api_key_1: str,
     dummy_function_aipolabs_test__hello_world_no_args: Function,
 ) -> None:
     # Mock the HTTP endpoint
@@ -37,7 +37,7 @@ def test_mock_execute_function_with_no_args(
     response = test_client.post(
         f"{config.ROUTER_PREFIX_FUNCTIONS}/{dummy_function_aipolabs_test__hello_world_no_args.id}/execute",
         json={},
-        headers={"x-api-key": dummy_api_key},
+        headers={"x-api-key": dummy_api_key_1},
     )
     assert response.status_code == status.HTTP_200_OK
     assert "error" not in response.json()
@@ -49,7 +49,7 @@ def test_mock_execute_function_with_no_args(
 @respx.mock
 def test_execute_function_with_args(
     test_client: TestClient,
-    dummy_api_key: str,
+    dummy_api_key_1: str,
     dummy_function_aipolabs_test__hello_world_with_args: Function,
 ) -> None:
     # Mock the HTTP endpoint
@@ -76,7 +76,7 @@ def test_execute_function_with_args(
     response = test_client.post(
         f"{config.ROUTER_PREFIX_FUNCTIONS}/{dummy_function_aipolabs_test__hello_world_with_args.id}/execute",
         json=function_execution_request_body,
-        headers={"x-api-key": dummy_api_key},
+        headers={"x-api-key": dummy_api_key_1},
     )
     assert response.status_code == status.HTTP_200_OK
     assert "error" not in response.json()
@@ -95,7 +95,7 @@ def test_execute_function_with_args(
 @respx.mock
 def test_execute_function_with_nested_args(
     test_client: TestClient,
-    dummy_api_key: str,
+    dummy_api_key_1: str,
     dummy_function_aipolabs_test__hello_world_nested_args: Function,
 ) -> None:
     # Mock the HTTP endpoint
@@ -124,7 +124,7 @@ def test_execute_function_with_nested_args(
     response = test_client.post(
         f"{config.ROUTER_PREFIX_FUNCTIONS}/{dummy_function_aipolabs_test__hello_world_nested_args.id}/execute",
         json=function_execution_request_body,
-        headers={"x-api-key": dummy_api_key},
+        headers={"x-api-key": dummy_api_key_1},
     )
     assert response.status_code == status.HTTP_200_OK
     assert "error" not in response.json()
@@ -146,7 +146,7 @@ def test_execute_function_with_nested_args(
 @respx.mock
 def test_http_bearer_auth_token_injection(
     test_client: TestClient,
-    dummy_api_key: str,
+    dummy_api_key_1: str,
     dummy_function_aipolabs_test__http_bearer__hello_world: Function,
 ) -> None:
     # Mock the HTTP endpoint
@@ -157,7 +157,7 @@ def test_http_bearer_auth_token_injection(
     response = test_client.post(
         f"{config.ROUTER_PREFIX_FUNCTIONS}/{dummy_function_aipolabs_test__http_bearer__hello_world.id}/execute",
         json={},
-        headers={"x-api-key": dummy_api_key},
+        headers={"x-api-key": dummy_api_key_1},
     )
 
     # Verify the request was made as expected

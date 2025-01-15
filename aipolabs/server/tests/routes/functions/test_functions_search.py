@@ -13,14 +13,16 @@ def test_search_functions_with_inactive_functions(
     db_session: Session,
     test_client: TestClient,
     dummy_functions: list[Function],
-    dummy_api_key: str,
+    dummy_api_key_1: str,
 ) -> None:
     # inactive functions should not be returned
     crud.functions.set_function_active_status(db_session, dummy_functions[0].id, False)
     db_session.commit()
 
     response = test_client.get(
-        f"{config.ROUTER_PREFIX_FUNCTIONS}/search", params={}, headers={"x-api-key": dummy_api_key}
+        f"{config.ROUTER_PREFIX_FUNCTIONS}/search",
+        params={},
+        headers={"x-api-key": dummy_api_key_1},
     )
     assert response.status_code == status.HTTP_200_OK
     functions = [
@@ -33,14 +35,16 @@ def test_search_functions_with_inactive_apps(
     db_session: Session,
     test_client: TestClient,
     dummy_functions: list[Function],
-    dummy_api_key: str,
+    dummy_api_key_1: str,
 ) -> None:
     # all functions (active or not) under inactive apps should not be returned
     crud.apps.set_app_active_status(db_session, dummy_functions[0].app_id, False)
     db_session.commit()
 
     response = test_client.get(
-        f"{config.ROUTER_PREFIX_FUNCTIONS}/search", params={}, headers={"x-api-key": dummy_api_key}
+        f"{config.ROUTER_PREFIX_FUNCTIONS}/search",
+        params={},
+        headers={"x-api-key": dummy_api_key_1},
     )
     assert response.status_code == status.HTTP_200_OK
     functions = [
@@ -59,16 +63,18 @@ def test_search_functions_with_inactive_apps(
 def test_search_functions_with_private_functions(
     db_session: Session,
     test_client: TestClient,
-    dummy_project: Project,
+    dummy_project_1: Project,
     dummy_functions: list[Function],
-    dummy_api_key: str,
+    dummy_api_key_1: str,
 ) -> None:
     # private functions should not be reachable for project with only public access
     crud.functions.set_function_visibility(db_session, dummy_functions[0].id, Visibility.PRIVATE)
     db_session.commit()
 
     response = test_client.get(
-        f"{config.ROUTER_PREFIX_FUNCTIONS}/search", params={}, headers={"x-api-key": dummy_api_key}
+        f"{config.ROUTER_PREFIX_FUNCTIONS}/search",
+        params={},
+        headers={"x-api-key": dummy_api_key_1},
     )
     assert response.status_code == status.HTTP_200_OK
     functions = [
@@ -77,11 +83,13 @@ def test_search_functions_with_private_functions(
     assert len(functions) == len(dummy_functions) - 1
 
     # private functions should be reachable for project with private access
-    crud.projects.set_project_visibility_access(db_session, dummy_project.id, Visibility.PRIVATE)
+    crud.projects.set_project_visibility_access(db_session, dummy_project_1.id, Visibility.PRIVATE)
     db_session.commit()
 
     response = test_client.get(
-        f"{config.ROUTER_PREFIX_FUNCTIONS}/search", params={}, headers={"x-api-key": dummy_api_key}
+        f"{config.ROUTER_PREFIX_FUNCTIONS}/search",
+        params={},
+        headers={"x-api-key": dummy_api_key_1},
     )
     assert response.status_code == status.HTTP_200_OK
     functions = [
@@ -93,16 +101,18 @@ def test_search_functions_with_private_functions(
 def test_search_functions_with_private_apps(
     db_session: Session,
     test_client: TestClient,
-    dummy_project: Project,
+    dummy_project_1: Project,
     dummy_functions: list[Function],
-    dummy_api_key: str,
+    dummy_api_key_1: str,
 ) -> None:
     # all functions (public and private) under private apps should not be reachable for project with only public access
     crud.apps.set_app_visibility(db_session, dummy_functions[0].app_id, Visibility.PRIVATE)
     db_session.commit()
 
     response = test_client.get(
-        f"{config.ROUTER_PREFIX_FUNCTIONS}/search", params={}, headers={"x-api-key": dummy_api_key}
+        f"{config.ROUTER_PREFIX_FUNCTIONS}/search",
+        params={},
+        headers={"x-api-key": dummy_api_key_1},
     )
     assert response.status_code == status.HTTP_200_OK
     functions = [
@@ -118,11 +128,13 @@ def test_search_functions_with_private_apps(
     ), "all functions under private apps should not be returned"
 
     # all functions (public and private) under private apps should be reachable for project with private access
-    crud.projects.set_project_visibility_access(db_session, dummy_project.id, Visibility.PRIVATE)
+    crud.projects.set_project_visibility_access(db_session, dummy_project_1.id, Visibility.PRIVATE)
     db_session.commit()
 
     response = test_client.get(
-        f"{config.ROUTER_PREFIX_FUNCTIONS}/search", params={}, headers={"x-api-key": dummy_api_key}
+        f"{config.ROUTER_PREFIX_FUNCTIONS}/search",
+        params={},
+        headers={"x-api-key": dummy_api_key_1},
     )
     assert response.status_code == status.HTTP_200_OK
     functions = [
@@ -132,7 +144,7 @@ def test_search_functions_with_private_apps(
 
 
 def test_search_functions_with_app_ids(
-    test_client: TestClient, dummy_functions: list[Function], dummy_api_key: str
+    test_client: TestClient, dummy_functions: list[Function], dummy_api_key_1: str
 ) -> None:
     search_param = {
         "app_ids": [dummy_functions[0].app_id, dummy_functions[1].app_id],
@@ -142,7 +154,7 @@ def test_search_functions_with_app_ids(
     response = test_client.get(
         f"{config.ROUTER_PREFIX_FUNCTIONS}/search",
         params=search_param,
-        headers={"x-api-key": dummy_api_key},
+        headers={"x-api-key": dummy_api_key_1},
     )
 
     assert response.status_code == status.HTTP_200_OK
@@ -166,7 +178,7 @@ def test_search_functions_with_intent(
     dummy_functions: list[Function],
     dummy_function_github__create_repository: Function,
     dummy_function_google__calendar_create_event: Function,
-    dummy_api_key: str,
+    dummy_api_key_1: str,
 ) -> None:
 
     # intent1: create repo
@@ -178,7 +190,7 @@ def test_search_functions_with_intent(
     response = test_client.get(
         f"{config.ROUTER_PREFIX_FUNCTIONS}/search",
         params=search_param,
-        headers={"x-api-key": dummy_api_key},
+        headers={"x-api-key": dummy_api_key_1},
     )
 
     assert response.status_code == status.HTTP_200_OK
@@ -193,7 +205,7 @@ def test_search_functions_with_intent(
     response = test_client.get(
         f"{config.ROUTER_PREFIX_FUNCTIONS}/search",
         params=search_param,
-        headers={"x-api-key": dummy_api_key},
+        headers={"x-api-key": dummy_api_key_1},
     )
     assert response.status_code == status.HTTP_200_OK
     functions = [
@@ -206,7 +218,7 @@ def test_search_functions_with_intent(
 def test_search_functions_with_app_ids_and_intent(
     test_client: TestClient,
     dummy_functions: list[Function],
-    dummy_api_key: str,
+    dummy_api_key_1: str,
     dummy_app_github: App,
 ) -> None:
     search_param = {
@@ -218,7 +230,7 @@ def test_search_functions_with_app_ids_and_intent(
     response = test_client.get(
         f"{config.ROUTER_PREFIX_FUNCTIONS}/search",
         params=search_param,
-        headers={"x-api-key": dummy_api_key},
+        headers={"x-api-key": dummy_api_key_1},
     )
 
     assert response.status_code == status.HTTP_200_OK
@@ -236,7 +248,7 @@ def test_search_functions_with_app_ids_and_intent(
 
 
 def test_search_functions_pagination(
-    test_client: TestClient, dummy_functions: list[Function], dummy_api_key: str
+    test_client: TestClient, dummy_functions: list[Function], dummy_api_key_1: str
 ) -> None:
     assert len(dummy_functions) > 2
 
@@ -248,7 +260,7 @@ def test_search_functions_pagination(
     response = test_client.get(
         f"{config.ROUTER_PREFIX_FUNCTIONS}/search",
         params=search_param,
-        headers={"x-api-key": dummy_api_key},
+        headers={"x-api-key": dummy_api_key_1},
     )
     assert response.status_code == status.HTTP_200_OK
     functions = [
@@ -260,7 +272,7 @@ def test_search_functions_pagination(
     response = test_client.get(
         f"{config.ROUTER_PREFIX_FUNCTIONS}/search",
         params=search_param,
-        headers={"x-api-key": dummy_api_key},
+        headers={"x-api-key": dummy_api_key_1},
     )
     assert response.status_code == status.HTTP_200_OK
     functions = [

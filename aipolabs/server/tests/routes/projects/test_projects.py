@@ -39,7 +39,7 @@ def test_create_project_under_user(
 def test_create_agent(
     test_client: TestClient,
     db_session: Session,
-    dummy_project: Project,
+    dummy_project_1: Project,
     dummy_user_bearer_token: str,
 ) -> None:
     body = AgentCreate(
@@ -48,7 +48,7 @@ def test_create_agent(
     )
 
     response = test_client.post(
-        f"{config.ROUTER_PREFIX_PROJECTS}/{dummy_project.id}/agents/",
+        f"{config.ROUTER_PREFIX_PROJECTS}/{dummy_project_1.id}/agents/",
         json=body.model_dump(mode="json"),
         headers={"Authorization": f"Bearer {dummy_user_bearer_token}"},
     )
@@ -56,7 +56,7 @@ def test_create_agent(
     agent_public = AgentPublic.model_validate(response.json())
     assert agent_public.name == body.name
     assert agent_public.description == body.description
-    assert agent_public.project_id == dummy_project.id
+    assert agent_public.project_id == dummy_project_1.id
 
     # Verify the agent was actually created in the database and values match returned values
     agent = db_session.execute(
@@ -74,4 +74,4 @@ def test_create_agent(
     assert len(agent_public.api_keys) == 1
     assert agent_public.api_keys[0].key == api_key.key
 
-    # Clean up: no need to delete agent and api key, it will be deleted when dummy_project is deleted
+    # Clean up: no need to delete agent and api key, it will be deleted when dummy_project_1 is deleted

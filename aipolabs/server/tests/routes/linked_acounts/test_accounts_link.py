@@ -1,8 +1,6 @@
-from typing import Generator
 from unittest.mock import patch
 from urllib.parse import parse_qs, urlparse
 
-import pytest
 from authlib.jose import jwt
 from fastapi import status
 from fastapi.testclient import TestClient
@@ -11,10 +9,7 @@ from sqlalchemy.orm import Session
 from aipolabs.common.db import crud
 from aipolabs.common.db.sql_models import App
 from aipolabs.common.enums import SecurityScheme
-from aipolabs.common.schemas.app_configurations import (
-    AppConfigurationCreate,
-    AppConfigurationPublic,
-)
+from aipolabs.common.schemas.app_configurations import AppConfigurationPublic
 from aipolabs.common.schemas.linked_accounts import (
     LinkedAccountOAuth2Create,
     LinkedAccountOAuth2CreateState,
@@ -27,66 +22,21 @@ MOCK_GOOGLE_AUTH_REDIRECT_URI_PREFIX = (
 )
 
 
-@pytest.fixture(scope="function", autouse=True)
-def setup_and_cleanup(
-    db_session: Session,
-    test_client: TestClient,
-    dummy_api_key: str,
-    dummy_api_key_2: str,
-    dummy_app_google: App,
-    dummy_app_github: App,
-) -> Generator[list[AppConfigurationPublic], None, None]:
-    """Setup app configurations for testing and cleanup after"""
-    # create google app configuration
-    body = AppConfigurationCreate(
-        app_id=dummy_app_google.id,
-        security_scheme=SecurityScheme.OAUTH2,
-        security_config_overrides={},
-    )
-
-    response = test_client.post(
-        f"{config.ROUTER_PREFIX_APP_CONFIGURATIONS}/",
-        json=body.model_dump(mode="json"),
-        headers={"x-api-key": dummy_api_key},
-    )
-    assert response.status_code == status.HTTP_200_OK
-    google_app_configuration = AppConfigurationPublic.model_validate(response.json())
-
-    # create github app configuration under different project (with different api key)
-    body = AppConfigurationCreate(
-        app_id=dummy_app_github.id,
-        security_scheme=SecurityScheme.API_KEY,
-        security_config_overrides={},
-    )
-
-    response = test_client.post(
-        f"{config.ROUTER_PREFIX_APP_CONFIGURATIONS}/",
-        json=body.model_dump(mode="json"),
-        headers={"x-api-key": dummy_api_key_2},
-    )
-    assert response.status_code == status.HTTP_200_OK
-    github_app_configuration = AppConfigurationPublic.model_validate(response.json())
-
-    yield [google_app_configuration, github_app_configuration]
-
-
 def test_link_oauth2_account_success(
     test_client: TestClient,
-    dummy_api_key: str,
-    setup_and_cleanup: list[AppConfigurationPublic],
+    dummy_api_key_1: str,
+    dummy_google_app_configuration_under_dummy_project_1: AppConfigurationPublic,
     db_session: Session,
 ) -> None:
-    google_app_configuration, _ = setup_and_cleanup
-
-    # init account linking proces, trigger redirect to oauth2 provider
+    # init account linking proces
     body = LinkedAccountOAuth2Create(
-        app_id=google_app_configuration.app_id,
-        linked_account_owner_id="test_account",
+        app_id=dummy_google_app_configuration_under_dummy_project_1.app_id,
+        linked_account_owner_id="test_link_oauth2_account_success",
     )
     response = test_client.get(
         f"{config.ROUTER_PREFIX_LINKED_ACCOUNTS}/oauth2",
         params=body.model_dump(mode="json"),
-        headers={"x-api-key": dummy_api_key},
+        headers={"x-api-key": dummy_api_key_1},
     )
 
     assert response.status_code == status.HTTP_200_OK
@@ -96,9 +46,9 @@ def test_link_oauth2_account_success(
     state_jwt = qs_params.get("state", [None])[0]
     assert state_jwt is not None
     state = LinkedAccountOAuth2CreateState.model_validate(jwt.decode(state_jwt, config.SIGNING_KEY))
-    assert state.project_id == google_app_configuration.project_id
-    assert state.app_id == google_app_configuration.app_id
-    assert state.linked_account_owner_id == "test_account"
+    assert state.project_id == dummy_google_app_configuration_under_dummy_project_1.project_id
+    assert state.app_id == dummy_google_app_configuration_under_dummy_project_1.app_id
+    assert state.linked_account_owner_id == "test_link_oauth2_account_success"
     assert (
         state.redirect_uri
         == f"{config.AIPOLABS_REDIRECT_URI_BASE}{config.ROUTER_PREFIX_LINKED_ACCOUNTS}/oauth2/callback"
@@ -142,7 +92,7 @@ def test_link_oauth2_account_success(
     assert linked_account.security_scheme == SecurityScheme.OAUTH2
     assert linked_account.security_credentials == mock_oauth2_token_response
     assert linked_account.enabled is True
-    assert linked_account.app_id == google_app_configuration.app_id
+    assert linked_account.app_id == dummy_google_app_configuration_under_dummy_project_1.app_id
     assert linked_account.project_id == state.project_id
     assert linked_account.app_id == state.app_id
     assert linked_account.linked_account_owner_id == state.linked_account_owner_id
@@ -150,17 +100,17 @@ def test_link_oauth2_account_success(
 
 def test_link_oauth2_account_non_existent_app_configuration(
     test_client: TestClient,
-    dummy_api_key: str,
+    dummy_api_key_1: str,
     dummy_app_aipolabs_test: App,
 ) -> None:
     body = LinkedAccountOAuth2Create(
         app_id=dummy_app_aipolabs_test.id,
-        linked_account_owner_id="test_account",
+        linked_account_owner_id="test_link_oauth2_account_non_existent_app_configuration",
     )
     response = test_client.get(
         f"{config.ROUTER_PREFIX_LINKED_ACCOUNTS}/oauth2",
         params=body.model_dump(mode="json"),
-        headers={"x-api-key": dummy_api_key},
+        headers={"x-api-key": dummy_api_key_1},
     )
     assert response.status_code == status.HTTP_404_NOT_FOUND
     assert str(response.json()["error"]).startswith("App configuration not found")

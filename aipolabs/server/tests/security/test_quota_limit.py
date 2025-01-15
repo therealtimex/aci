@@ -16,7 +16,7 @@ need to mock some object otherwise the other tests might fail because of we set 
 """
 
 
-def test_validate_project_quota_valid(test_client: TestClient, dummy_api_key: str) -> None:
+def test_validate_project_quota_valid(test_client: TestClient, dummy_api_key_1: str) -> None:
     project = MagicMock()
     project.daily_quota_reset_at = datetime.now(timezone.utc)
     project.daily_quota_used = config.PROJECT_DAILY_QUOTA - 1
@@ -28,13 +28,13 @@ def test_validate_project_quota_valid(test_client: TestClient, dummy_api_key: st
         response = test_client.get(
             f"{config.ROUTER_PREFIX_APPS}/search",
             params={"limit": 1},
-            headers={"x-api-key": dummy_api_key},
+            headers={"x-api-key": dummy_api_key_1},
         )
         logger.info(f"response: {response.json()}")
         assert response.status_code == status.HTTP_200_OK
 
 
-def test_validate_project_quota_exceeded(test_client: TestClient, dummy_api_key: str) -> None:
+def test_validate_project_quota_exceeded(test_client: TestClient, dummy_api_key_1: str) -> None:
     project = MagicMock()
     project.daily_quota_reset_at = datetime.now(timezone.utc)
     project.daily_quota_used = config.PROJECT_DAILY_QUOTA
@@ -46,7 +46,7 @@ def test_validate_project_quota_exceeded(test_client: TestClient, dummy_api_key:
         response = test_client.get(
             f"{config.ROUTER_PREFIX_APPS}/search",
             params={"limit": 1},
-            headers={"x-api-key": dummy_api_key},
+            headers={"x-api-key": dummy_api_key_1},
         )
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
         assert str(response.json()["error"]).startswith("Daily quota exceeded")

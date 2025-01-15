@@ -11,12 +11,19 @@ with patch.dict("os.environ", {"SERVER_RATE_LIMIT_IP_PER_SECOND": "999"}):
     from aipolabs.server.main import app as fastapi_app
     from aipolabs.server.routes.auth import create_access_token
     from aipolabs.server.tests import helper
+    from aipolabs.common.enums import SecurityScheme
+    from aipolabs.common.schemas.app_configurations import (
+        AppConfigurationCreate,
+        AppConfigurationPublic,
+    )
+    from aipolabs.common.db.sql_models import LinkedAccount
 
 import logging
 from datetime import timedelta
 from typing import Generator, cast
 
 import pytest
+from fastapi import status
 from fastapi.testclient import TestClient
 from sqlalchemy import inspect
 from sqlalchemy.engine.reflection import Inspector
@@ -80,7 +87,7 @@ def database_setup_and_cleanup() -> Generator[None, None, None]:
         session.commit()
 
 
-@pytest.fixture(scope="function", autouse=True)
+@pytest.fixture(scope="function")
 def dummy_user(database_setup_and_cleanup: None) -> Generator[User, None, None]:
     with utils.create_db_session(config.DB_FULL_URL) as fixture_db_session:
         dummy_user = crud.users.create_user(
@@ -96,30 +103,30 @@ def dummy_user(database_setup_and_cleanup: None) -> Generator[User, None, None]:
         yield dummy_user
 
 
-@pytest.fixture(scope="function", autouse=True)
+@pytest.fixture(scope="function")
 def dummy_user_bearer_token(dummy_user: User) -> str:
     return create_access_token(str(dummy_user.id), timedelta(minutes=15))
 
 
-@pytest.fixture(scope="function", autouse=True)
-def dummy_project(dummy_user: User) -> Generator[Project, None, None]:
+@pytest.fixture(scope="function")
+def dummy_project_1(dummy_user: User) -> Generator[Project, None, None]:
     with utils.create_db_session(config.DB_FULL_URL) as fixture_db_session:
-        dummy_project = crud.projects.create_project(
+        dummy_project_1 = crud.projects.create_project(
             fixture_db_session,
             owner_id=dummy_user.id,
             name="Dummy Project",
             visibility_access=Visibility.PUBLIC,
         )
         fixture_db_session.commit()
-        yield dummy_project
+        yield dummy_project_1
 
 
-@pytest.fixture(scope="function", autouse=True)
-def dummy_api_key(dummy_project: Project) -> Generator[str, None, None]:
+@pytest.fixture(scope="function")
+def dummy_api_key_1(dummy_project_1: Project) -> Generator[str, None, None]:
     with utils.create_db_session(config.DB_FULL_URL) as fixture_db_session:
         dummy_agent = crud.projects.create_agent(
             fixture_db_session,
-            project_id=dummy_project.id,
+            project_id=dummy_project_1.id,
             name="Dummy Agent",
             description="Dummy Agent",
             excluded_apps=[],
@@ -129,20 +136,20 @@ def dummy_api_key(dummy_project: Project) -> Generator[str, None, None]:
         yield dummy_agent.api_keys[0].key
 
 
-@pytest.fixture(scope="function", autouse=True)
+@pytest.fixture(scope="function")
 def dummy_project_2(dummy_user: User) -> Generator[Project, None, None]:
     with utils.create_db_session(config.DB_FULL_URL) as fixture_db_session:
-        dummy_project = crud.projects.create_project(
+        dummy_project_2 = crud.projects.create_project(
             fixture_db_session,
             owner_id=dummy_user.id,
             name="Dummy Project 2",
             visibility_access=Visibility.PUBLIC,
         )
         fixture_db_session.commit()
-        yield dummy_project
+        yield dummy_project_2
 
 
-@pytest.fixture(scope="function", autouse=True)
+@pytest.fixture(scope="function")
 def dummy_api_key_2(dummy_project_2: Project) -> Generator[str, None, None]:
     with utils.create_db_session(config.DB_FULL_URL) as fixture_db_session:
         dummy_agent = crud.projects.create_agent(
@@ -157,7 +164,7 @@ def dummy_api_key_2(dummy_project_2: Project) -> Generator[str, None, None]:
         yield dummy_agent.api_keys[0].key
 
 
-@pytest.fixture(scope="function", autouse=True)
+@pytest.fixture(scope="function")
 def dummy_apps(database_setup_and_cleanup: None) -> Generator[list[App], None, None]:
     dummy_apps: list[App] = []
     with utils.create_db_session(config.DB_FULL_URL) as fixture_db_session:
@@ -270,3 +277,124 @@ def dummy_function_aipolabs_test__hello_world_with_args(
     )
     assert dummy_function_aipolabs_test__hello_world_with_args is not None
     return dummy_function_aipolabs_test__hello_world_with_args
+
+
+@pytest.fixture(scope="function")
+def dummy_google_app_configuration_under_dummy_project_1(
+    test_client: TestClient,
+    dummy_api_key_1: str,
+    dummy_app_google: App,
+) -> AppConfigurationPublic:
+    body = AppConfigurationCreate(app_id=dummy_app_google.id, security_scheme=SecurityScheme.OAUTH2)
+
+    response = test_client.post(
+        f"{config.ROUTER_PREFIX_APP_CONFIGURATIONS}/",
+        json=body.model_dump(mode="json"),
+        headers={"x-api-key": dummy_api_key_1},
+    )
+    assert response.status_code == status.HTTP_200_OK
+    google_app_configuration: AppConfigurationPublic = AppConfigurationPublic.model_validate(
+        response.json()
+    )
+    return google_app_configuration
+
+
+@pytest.fixture(scope="function")
+def dummy_google_app_configuration_under_dummy_project_2(
+    test_client: TestClient,
+    dummy_api_key_2: str,
+    dummy_app_google: App,
+) -> AppConfigurationPublic:
+    body = AppConfigurationCreate(app_id=dummy_app_google.id, security_scheme=SecurityScheme.OAUTH2)
+
+    response = test_client.post(
+        f"{config.ROUTER_PREFIX_APP_CONFIGURATIONS}/",
+        json=body.model_dump(mode="json"),
+        headers={"x-api-key": dummy_api_key_2},
+    )
+    assert response.status_code == status.HTTP_200_OK
+    google_app_configuration: AppConfigurationPublic = AppConfigurationPublic.model_validate(
+        response.json()
+    )
+    return google_app_configuration
+
+
+@pytest.fixture(scope="function")
+def dummy_github_app_configuration_under_dummy_project_1(
+    test_client: TestClient,
+    dummy_api_key_1: str,
+    dummy_app_github: App,
+) -> AppConfigurationPublic:
+    body = AppConfigurationCreate(
+        app_id=dummy_app_github.id, security_scheme=SecurityScheme.API_KEY
+    )
+    response = test_client.post(
+        f"{config.ROUTER_PREFIX_APP_CONFIGURATIONS}/",
+        json=body.model_dump(mode="json"),
+        headers={"x-api-key": dummy_api_key_1},
+    )
+    assert response.status_code == status.HTTP_200_OK
+    github_app_configuration: AppConfigurationPublic = AppConfigurationPublic.model_validate(
+        response.json()
+    )
+    return github_app_configuration
+
+
+@pytest.fixture(scope="function")
+def dummy_google_linked_account_under_dummy_project_1(
+    dummy_google_app_configuration_under_dummy_project_1: AppConfigurationPublic,
+) -> Generator[LinkedAccount, None, None]:
+    with utils.create_db_session(config.DB_FULL_URL) as fixture_db_session:
+        dummy_google_linked_account_under_dummy_project_1 = (
+            crud.linked_accounts.create_linked_account(
+                fixture_db_session,
+                dummy_google_app_configuration_under_dummy_project_1.project_id,
+                dummy_google_app_configuration_under_dummy_project_1.app_id,
+                "dummy_google_linked_account_under_dummy_project_1",
+                SecurityScheme.OAUTH2,
+                {"access_token": "mock_access_token"},
+                enabled=True,
+            )
+        )
+        fixture_db_session.commit()
+        yield dummy_google_linked_account_under_dummy_project_1
+
+
+@pytest.fixture(scope="function")
+def dummy_github_linked_account_under_dummy_project_1(
+    dummy_github_app_configuration_under_dummy_project_1: AppConfigurationPublic,
+) -> Generator[LinkedAccount, None, None]:
+    with utils.create_db_session(config.DB_FULL_URL) as fixture_db_session:
+        dummy_github_linked_account_under_dummy_project_1 = (
+            crud.linked_accounts.create_linked_account(
+                fixture_db_session,
+                dummy_github_app_configuration_under_dummy_project_1.project_id,
+                dummy_github_app_configuration_under_dummy_project_1.app_id,
+                "dummy_github_linked_account_under_dummy_project_1",
+                SecurityScheme.API_KEY,
+                {"api_key": "mock_api_key"},
+                enabled=True,
+            )
+        )
+        fixture_db_session.commit()
+        yield dummy_github_linked_account_under_dummy_project_1
+
+
+@pytest.fixture(scope="function")
+def dummy_google_linked_account_under_dummy_project_2(
+    dummy_google_app_configuration_under_dummy_project_2: AppConfigurationPublic,
+) -> Generator[LinkedAccount, None, None]:
+    with utils.create_db_session(config.DB_FULL_URL) as fixture_db_session:
+        dummy_google_linked_account_under_dummy_project_2 = (
+            crud.linked_accounts.create_linked_account(
+                fixture_db_session,
+                dummy_google_app_configuration_under_dummy_project_2.project_id,
+                dummy_google_app_configuration_under_dummy_project_2.app_id,
+                "dummy_google_linked_account_under_dummy_project_2",
+                SecurityScheme.OAUTH2,
+                {"access_token": "mock_access_token"},
+                enabled=True,
+            )
+        )
+        fixture_db_session.commit()
+        yield dummy_google_linked_account_under_dummy_project_2

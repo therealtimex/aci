@@ -16,7 +16,7 @@ def test_search_apps_with_intent(
     dummy_apps: list[App],
     dummy_app_github: App,
     dummy_app_google: App,
-    dummy_api_key: str,
+    dummy_api_key_1: str,
 ) -> None:
     # try with intent to find GITHUB app
     search_params = {
@@ -28,7 +28,7 @@ def test_search_apps_with_intent(
     response = test_client.get(
         f"{config.ROUTER_PREFIX_APPS}/search",
         params=search_params,
-        headers={"x-api-key": dummy_api_key},
+        headers={"x-api-key": dummy_api_key_1},
     )
 
     assert response.status_code == status.HTTP_200_OK
@@ -41,7 +41,7 @@ def test_search_apps_with_intent(
     response = test_client.get(
         f"{config.ROUTER_PREFIX_APPS}/search",
         params=search_params,
-        headers={"x-api-key": dummy_api_key},
+        headers={"x-api-key": dummy_api_key_1},
     )
 
     assert response.status_code == status.HTTP_200_OK
@@ -51,10 +51,10 @@ def test_search_apps_with_intent(
 
 
 def test_search_apps_without_intent(
-    test_client: TestClient, dummy_apps: list[App], dummy_api_key: str
+    test_client: TestClient, dummy_apps: list[App], dummy_api_key_1: str
 ) -> None:
     response = test_client.get(
-        f"{config.ROUTER_PREFIX_APPS}/search", headers={"x-api-key": dummy_api_key}
+        f"{config.ROUTER_PREFIX_APPS}/search", headers={"x-api-key": dummy_api_key_1}
     )
 
     assert response.status_code == status.HTTP_200_OK
@@ -65,7 +65,7 @@ def test_search_apps_without_intent(
 
 def test_search_apps_with_categories(
     test_client: TestClient,
-    dummy_api_key: str,
+    dummy_api_key_1: str,
     dummy_app_aipolabs_test: App,
 ) -> None:
     search_params = {
@@ -77,7 +77,7 @@ def test_search_apps_with_categories(
     response = test_client.get(
         f"{config.ROUTER_PREFIX_APPS}/search",
         params=search_params,
-        headers={"x-api-key": dummy_api_key},
+        headers={"x-api-key": dummy_api_key_1},
     )
 
     assert response.status_code == status.HTTP_200_OK
@@ -88,7 +88,7 @@ def test_search_apps_with_categories(
 
 def test_search_apps_with_categories_and_intent(
     test_client: TestClient,
-    dummy_api_key: str,
+    dummy_api_key_1: str,
     dummy_app_google: App,
     dummy_app_github: App,
 ) -> None:
@@ -101,7 +101,7 @@ def test_search_apps_with_categories_and_intent(
     response = test_client.get(
         f"{config.ROUTER_PREFIX_APPS}/search",
         params=search_params,
-        headers={"x-api-key": dummy_api_key},
+        headers={"x-api-key": dummy_api_key_1},
     )
 
     assert response.status_code == status.HTTP_200_OK
@@ -112,7 +112,7 @@ def test_search_apps_with_categories_and_intent(
 
 
 def test_search_apps_pagination(
-    test_client: TestClient, dummy_apps: list[App], dummy_api_key: str
+    test_client: TestClient, dummy_apps: list[App], dummy_api_key_1: str
 ) -> None:
     assert len(dummy_apps) > 2
 
@@ -126,7 +126,7 @@ def test_search_apps_pagination(
     response = test_client.get(
         f"{config.ROUTER_PREFIX_APPS}/search",
         params=search_params,
-        headers={"x-api-key": dummy_api_key},
+        headers={"x-api-key": dummy_api_key_1},
     )
 
     assert response.status_code == status.HTTP_200_OK
@@ -137,7 +137,7 @@ def test_search_apps_pagination(
     response = test_client.get(
         f"{config.ROUTER_PREFIX_APPS}/search",
         params=search_params,
-        headers={"x-api-key": dummy_api_key},
+        headers={"x-api-key": dummy_api_key_1},
     )
 
     assert response.status_code == status.HTTP_200_OK
@@ -149,14 +149,14 @@ def test_search_apps_with_inactive_apps(
     db_session: Session,
     test_client: TestClient,
     dummy_apps: list[App],
-    dummy_api_key: str,
+    dummy_api_key_1: str,
 ) -> None:
     crud.apps.set_app_active_status(db_session, dummy_apps[0].id, False)
     db_session.commit()
 
     # inactive app should not be returned
     response = test_client.get(
-        f"{config.ROUTER_PREFIX_APPS}/search", params={}, headers={"x-api-key": dummy_api_key}
+        f"{config.ROUTER_PREFIX_APPS}/search", params={}, headers={"x-api-key": dummy_api_key_1}
     )
     assert response.status_code == status.HTTP_200_OK
     apps = [AppBasic.model_validate(response_app) for response_app in response.json()]
@@ -167,8 +167,8 @@ def test_search_apps_with_private_apps(
     db_session: Session,
     test_client: TestClient,
     dummy_apps: list[App],
-    dummy_project: Project,
-    dummy_api_key: str,
+    dummy_project_1: Project,
+    dummy_api_key_1: str,
 ) -> None:
     # private app should not be reachable for project with only public access
     crud.apps.set_app_visibility(db_session, dummy_apps[0].id, Visibility.PRIVATE)
@@ -177,7 +177,7 @@ def test_search_apps_with_private_apps(
     response = test_client.get(
         f"{config.ROUTER_PREFIX_APPS}/search",
         params={},
-        headers={"x-api-key": dummy_api_key},
+        headers={"x-api-key": dummy_api_key_1},
     )
 
     assert response.status_code == status.HTTP_200_OK
@@ -185,13 +185,13 @@ def test_search_apps_with_private_apps(
     assert len(apps) == len(dummy_apps) - 1
 
     # private app should be reachable for project with private access
-    crud.projects.set_project_visibility_access(db_session, dummy_project.id, Visibility.PRIVATE)
+    crud.projects.set_project_visibility_access(db_session, dummy_project_1.id, Visibility.PRIVATE)
     db_session.commit()
 
     response = test_client.get(
         f"{config.ROUTER_PREFIX_APPS}/search",
         params={},
-        headers={"x-api-key": dummy_api_key},
+        headers={"x-api-key": dummy_api_key_1},
     )
 
     assert response.status_code == status.HTTP_200_OK
