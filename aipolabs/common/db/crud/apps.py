@@ -74,6 +74,7 @@ def search_apps(
     db_session: Session,
     public_only: bool,
     active_only: bool,
+    app_ids: list[UUID] | None,
     categories: list[str] | None,
     intent_embedding: list[float] | None,
     limit: int,
@@ -82,9 +83,6 @@ def search_apps(
     """Get a list of apps with optional filtering by categories and sorting by vector similarity to intent. and pagination."""
     statement = select(App)
 
-    # filter out inactive apps
-    statement = statement.filter(App.active)
-
     # filter out private apps
     if public_only:
         statement = statement.filter(App.visibility == Visibility.PUBLIC)
@@ -92,6 +90,10 @@ def search_apps(
     # filter out inactive apps
     if active_only:
         statement = statement.filter(App.active)
+
+    # filter out apps by app_ids
+    if app_ids:
+        statement = statement.filter(App.id.in_(app_ids))
 
     # filter out apps by categories
     # TODO: Is there any way to get typing for cosine_distance, label, overlap?

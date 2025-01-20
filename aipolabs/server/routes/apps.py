@@ -51,7 +51,6 @@ async def search_apps(
     Intented to be used by agents to search for apps based on natural language intent.
     """
     # TODO: currently the search is done across all apps, we might want to add flags to account for below scenarios:
-    # - when clients search for apps, if the app is not configured, should it be discoverable?
     # - when clients search for apps, if an app is configured but disabled by client, should it be discoverable?
     logger.info(f"Getting apps with filter params: {query_params}")
     intent_embedding = (
@@ -64,15 +63,29 @@ async def search_apps(
         else None
     )
     logger.debug(f"Generated intent embedding: {intent_embedding}")
+
+    # If configured_only is False, None is passed to the search_apps function and no filtering is done
+    configured_app_ids = None
+    if query_params.configured_only:
+        configured_app_ids = crud.app_configurations.get_configured_app_ids(
+            context.db_session,
+            context.project.id,
+        )
+        # if no apps are configured, return an empty list
+        if not configured_app_ids:
+            return []
+
     apps_with_scores = crud.apps.search_apps(
         context.db_session,
         context.project.visibility_access == Visibility.PUBLIC,
         True,
+        configured_app_ids,
         query_params.categories,
         intent_embedding,
         query_params.limit,
         query_params.offset,
     )
+
     # build apps list with similarity scores if they exist
     apps: list[AppBasic] = []
     for app, _ in apps_with_scores:
