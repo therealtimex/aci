@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 from aipolabs.common.db import crud
 from aipolabs.common.db.sql_models import App, Function, Project
 from aipolabs.common.enums import Visibility
+from aipolabs.common.schemas.app_configurations import AppConfigurationPublic
 from aipolabs.common.schemas.function import FunctionBasic
 from aipolabs.server import config
 
@@ -279,3 +280,108 @@ def test_search_functions_pagination(
         FunctionBasic.model_validate(response_function) for response_function in response.json()
     ]
     assert len(functions) == 1
+
+
+def test_search_functions_configured_only_true(
+    test_client: TestClient,
+    dummy_google_app_configuration_under_dummy_project_1: AppConfigurationPublic,
+    dummy_apps: list[App],
+    dummy_api_key_1: str,
+) -> None:
+    response = test_client.get(
+        f"{config.ROUTER_PREFIX_FUNCTIONS}/search",
+        params={"configured_only": True},
+        headers={"x-api-key": dummy_api_key_1},
+    )
+    assert response.status_code == status.HTTP_200_OK
+    functions = [
+        FunctionBasic.model_validate(response_function) for response_function in response.json()
+    ]
+    assert len(functions) == len(dummy_apps[0].functions)
+    dummy_app_function_names = [function.name for function in dummy_apps[0].functions]
+    assert all(function.name in dummy_app_function_names for function in functions)
+
+
+def test_search_functions_configured_only_false(
+    test_client: TestClient,
+    dummy_google_app_configuration_under_dummy_project_1: AppConfigurationPublic,
+    dummy_functions: list[Function],
+    dummy_api_key_1: str,
+) -> None:
+    response = test_client.get(
+        f"{config.ROUTER_PREFIX_FUNCTIONS}/search",
+        params={"configured_only": False},
+        headers={"x-api-key": dummy_api_key_1},
+    )
+    assert response.status_code == status.HTTP_200_OK
+    functions = [
+        FunctionBasic.model_validate(response_function) for response_function in response.json()
+    ]
+    assert len(functions) == len(dummy_functions)
+
+
+def test_search_functions_no_configured_apps(
+    test_client: TestClient,
+    dummy_apps: list[App],
+    dummy_api_key_1: str,
+) -> None:
+    # Case 1: No app configurations and so no functions should be returned
+    response = test_client.get(
+        f"{config.ROUTER_PREFIX_FUNCTIONS}/search",
+        params={"configured_only": True},
+        headers={"x-api-key": dummy_api_key_1},
+    )
+    assert response.status_code == status.HTTP_200_OK
+    functions = [
+        FunctionBasic.model_validate(response_function) for response_function in response.json()
+    ]
+    assert len(functions) == 0
+
+    # Case 2: No app configurations, app_ids are provided but no functions should be returned
+    response = test_client.get(
+        f"{config.ROUTER_PREFIX_FUNCTIONS}/search",
+        params={"app_ids": [dummy_apps[0].id], "configured_only": True},
+        headers={"x-api-key": dummy_api_key_1},
+    )
+    assert response.status_code == status.HTTP_200_OK
+    functions = [
+        FunctionBasic.model_validate(response_function) for response_function in response.json()
+    ]
+    assert len(functions) == 0
+
+
+def test_search_functions_with_app_ids_and_configured_only(
+    test_client: TestClient,
+    dummy_github_app_configuration_under_dummy_project_1: AppConfigurationPublic,
+    dummy_app_github: App,
+    dummy_app_google: App,
+    dummy_api_key_1: str,
+) -> None:
+    # Case 1: 1 configured app and 2 app_ids are provided
+    response = test_client.get(
+        f"{config.ROUTER_PREFIX_FUNCTIONS}/search",
+        params={
+            "app_ids": [dummy_app_github.id, dummy_app_google.id],
+            "configured_only": True,
+        },
+        headers={"x-api-key": dummy_api_key_1},
+    )
+    assert response.status_code == status.HTTP_200_OK
+    functions = [
+        FunctionBasic.model_validate(response_function) for response_function in response.json()
+    ]
+    assert len(functions) == len(dummy_app_github.functions)
+    dummy_app_github_function_names = [function.name for function in dummy_app_github.functions]
+    assert all(function.name in dummy_app_github_function_names for function in functions)
+
+    # Case 2: 1 configured app and a different app_id is provided, should return 0 functions
+    response = test_client.get(
+        f"{config.ROUTER_PREFIX_FUNCTIONS}/search",
+        params={"app_ids": [dummy_app_google.id], "configured_only": True},
+        headers={"x-api-key": dummy_api_key_1},
+    )
+    assert response.status_code == status.HTTP_200_OK
+    functions = [
+        FunctionBasic.model_validate(response_function) for response_function in response.json()
+    ]
+    assert len(functions) == 0
