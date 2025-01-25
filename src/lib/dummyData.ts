@@ -1,22 +1,8 @@
-export interface App {
-  id: string;
-  name: string;
-  icon: string;
-  description: string;
-  categories: string[];
-  tags: string[];
-}
-
-export interface AppFunction {
-  id: string;
-  name: string;
-  functionId: string;
-  description: string;
-}
+import { App, AppFunction } from "./types";
 
 export const dummyApps: App[] = [
   {
-    id: "slack",
+    id: "I78576",
     name: "Slack",
     icon: "/globe.svg",
     description: "Slack is a channel-based messaging platform.",
@@ -24,7 +10,7 @@ export const dummyApps: App[] = [
     tags: ["Collaboration"],
   },
   {
-    id: "salesforce",
+    id: "I78577",
     name: "Salesforce",
     icon: "/window.svg",
     description: "Salesforce is a customer relationship management solution.",
@@ -32,15 +18,16 @@ export const dummyApps: App[] = [
     tags: [],
   },
   {
-    id: "hubspot",
+    id: "I78578",
     name: "HubSpot",
     icon: "/file.svg",
-    description: "HubSpot is a developer and marketer of software products for inbound marketing, sales, and customer service.",
+    description:
+      "HubSpot is a developer and marketer of software products for inbound marketing, sales, and customer service.",
     categories: ["CRM", "Marketing"],
     tags: [],
   },
   {
-    id: "github",
+    id: "I78579",
     name: "GitHub",
     icon: "/globe.svg",
     description: "A platform for version control and collaboration",
@@ -48,34 +35,39 @@ export const dummyApps: App[] = [
     tags: ["Collaboration"],
   },
   {
-    id: "jira",
+    id: "I78580",
     name: "Jira",
     icon: "/window.svg",
-    description: "A tool for bug tracking, issue tracking, and agile project management.",
+    description:
+      "A tool for bug tracking, issue tracking, and agile project management.",
     categories: ["Productivity", "Ticketing"],
     tags: [],
   },
   {
-    id: "gmail",
+    id: "I78581",
     name: "Gmail",
     icon: "/file.svg",
     description: "Connect to Gmail to send and manage emails.",
     categories: ["Productivity", "Email"],
     tags: [],
-  }
+  },
 ];
 
-export const dummyAppFunctions: AppFunction[] = [
+export const dummyFunctions: AppFunction[] = [
   {
     id: "1",
     name: "Jira Feature 1",
     functionId: "#WE785",
     description: "Ut enim ad minim veniam, quis nostrud exercita...",
+    categories: ["Category 1", "Category 2"],
+    tags: ["Tag 1", "Tag 2"],
   },
   {
     id: "2",
     name: "Jira Feature 2",
     functionId: "#WE785",
     description: "Ut enim ad minim veniam, quis nostrud exercita...",
+    categories: ["Category 2", "Category 3"],
+    tags: ["Tag 2", "Tag 3"],
   },
 ];

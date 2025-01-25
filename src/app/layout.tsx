@@ -29,15 +29,13 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <ProjectProvider>
-          <div>
-            <SidebarProvider>
-              <AppSidebar />
-              <main className="w-full mr-2 my-2 border rounded-lg border-gray-400 border-opacity-30">
-                <Header />
-                {children}
-              </main>
-            </SidebarProvider>
-          </div>
+          <SidebarProvider>
+            <AppSidebar />
+            <main className="w-full mr-2 my-2 border rounded-lg border-gray-400 border-opacity-30 bg-white">
+              <Header />
+              {children}
+            </main>
+          </SidebarProvider>
         </ProjectProvider>
         <Footer />
       </body>

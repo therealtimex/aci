@@ -1,74 +1,92 @@
-"use client"
-
-import { useParams } from "next/navigation"
-import { Input } from "@/components/ui/input"
-import { AppCard } from "./app-card"
-import { type App } from "@/lib/dummy-data"
-import { useState } from "react"
+"use client";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { AppCard } from "./app-card";
+import { useState } from "react";
+interface App {
+  id: string;
+  name: string;
+  icon: string;
+  description: string;
+  categories: string[];
+  tags: string[];
+}
 
 interface AppGridProps {
   apps: App[];
 }
 
 export function AppGrid({ apps }: AppGridProps) {
-  const params = useParams<{ project: string }>()
-  const [searchQuery, setSearchQuery] = useState("")
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
+  const [searchQuery, setSearchQuery] = useState("");
 
-  // Get unique categories from all apps
-  const categories = Array.from(
-    new Set(apps.flatMap((app) => app.categories))
-  ).sort()
+  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [selectedTag, setSelectedTag] = useState("all");
 
-  // Filter apps based on search query and selected category
+  const categories = Array.from(new Set(apps.flatMap(app => app.categories)));
+  const tags = Array.from(new Set(apps.flatMap(app => app.tags)));
+
   const filteredApps = apps.filter((app) => {
-    const matchesSearch = app.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      app.description.toLowerCase().includes(searchQuery.toLowerCase())
-    
-    const matchesCategory = !selectedCategory || app.categories.includes(selectedCategory)
-    
-    return matchesSearch && matchesCategory
-  })
+    const matchesSearch =
+      app.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      app.description.toLowerCase().includes(searchQuery.toLowerCase());
+
+    const matchesCategory =
+      selectedCategory === "all" ||
+      app.categories.includes(selectedCategory);
+
+    const matchesTag =
+      selectedTag === "all" ||
+      app.tags.includes(selectedTag);
+
+    return matchesSearch && matchesCategory && matchesTag;
+  });
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+      <div className="flex items-center gap-3">
         <Input
           placeholder="Search apps..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="max-w-sm"
         />
-        <div className="flex flex-wrap gap-2">
-          <button
-            onClick={() => setSelectedCategory(null)}
-            className={`rounded-full px-3 py-1 text-sm ${
-              !selectedCategory
-                ? "bg-primary text-primary-foreground"
-                : "bg-secondary text-secondary-foreground"
-            }`}
-          >
-            All
-          </button>
-          {categories.map((category) => (
-            <button
-              key={category}
-              onClick={() => setSelectedCategory(category)}
-              className={`rounded-full px-3 py-1 text-sm ${
-                selectedCategory === category
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-secondary text-secondary-foreground"
-              }`}
-            >
-              {category}
-            </button>
-          ))}
-        </div>
+
+        <Select onValueChange={setSelectedCategory}>
+          <SelectTrigger className="w-[120px]">
+            <SelectValue placeholder="Category" />
+          </SelectTrigger>
+          <SelectContent>
+            {["all", ...categories].map((category) => (
+              <SelectItem key={category} value={category}>
+                {category}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        <Select onValueChange={setSelectedTag}>
+          <SelectTrigger className="w-[80px]">
+            <SelectValue placeholder="Tags" />
+          </SelectTrigger>
+          <SelectContent>
+            {["all", ...tags].map((tag) => (
+              <SelectItem key={tag} value={tag}>
+                {tag}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {filteredApps.map((app) => (
-          <AppCard key={app.id} app={app} projectName={params.project} />
+          <AppCard key={app.id} app={app} />
         ))}
       </div>
 
@@ -78,5 +96,5 @@ export function AppGrid({ apps }: AppGridProps) {
         </div>
       )}
     </div>
-  )
+  );
 }
