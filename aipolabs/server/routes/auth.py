@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 from starlette.responses import RedirectResponse
 
 from aipolabs.common.db import crud
+from aipolabs.common.db.sql_models import User
 from aipolabs.common.exceptions import UnexpectedException
 from aipolabs.common.logging import get_logger
 from aipolabs.common.schemas.user import AuthResponse, UserCreate
@@ -64,7 +65,7 @@ def create_access_token(user_id: str, expires_delta: timedelta) -> str:
 async def login(request: Request, provider: ClientIdentityProvider) -> RedirectResponse:
     oauth2_client = OAUTH2_CLIENTS[provider]
 
-    path = request.url_for("auth_callback", provider=provider).path
+    path = request.url_for("auth_callback", provider=provider.value).path
     redirect_uri = f"{config.AIPOLABS_REDIRECT_URI_BASE}{path}"
     logger.info(f"initiating login for provider={provider}, redirecting to={redirect_uri}")
 
@@ -120,6 +121,8 @@ async def auth_callback(
                 profile_picture=user_info["picture"],
             ),
         )
+        _onboard_new_user(db_session, user)
+
         db_session.commit()
 
     # Generate JWT token for the user
@@ -133,3 +136,21 @@ async def auth_callback(
     )
 
     return AuthResponse(access_token=jwt_token, token_type="bearer", user_id=user.id)
+
+
+# TODO: For the Feb 2025 release, we decided to create default project (and agent, api key, app confiiguration, etc)
+# for new users to decrease friction of onboarding. Need to revisit if we should keep this (or some of it)
+# for the future releases.
+def _onboard_new_user(db_session: Session, user: User) -> None:
+    logger.info(f"onboarding new user={user.id}")
+    project = crud.projects.create_project(db_session, owner_id=user.id, name="Default Project")
+    logger.info(f"created default project={project.id} for user={user.id}")
+    agent = crud.projects.create_agent(
+        db_session,
+        project.id,
+        name="Default Agent",
+        description="Default Agent",
+        excluded_apps=[],
+        excluded_functions=[],
+    )
+    logger.info(f"created default agent={agent.id} for project={project.id}")
