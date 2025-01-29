@@ -27,6 +27,7 @@ const AppPage = () => {
       <Separator />
 
       <div className="m-4">
+        {/* TODO: Pass the appId or pass the functions into it? */}
         <AppFunctionsTable appId={params.appId} />
       </div>
     </div>
