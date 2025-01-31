@@ -7,6 +7,9 @@ import { Footer } from "@/components/layout/footer";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/layout/app-sidebar";
 import { ProjectProvider } from "@/components/context/project";
+import Protected from "@/components/auth/protected";
+import { UserProvider } from "@/components/context/user";
+import { Toaster } from "@/components/ui/sonner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -28,16 +31,21 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <ProjectProvider>
-          <SidebarProvider>
-            <AppSidebar />
-            <main className="w-full mr-2 my-2 border rounded-lg border-gray-400 border-opacity-30 bg-white">
-              <Header />
-              {children}
-            </main>
-          </SidebarProvider>
-        </ProjectProvider>
-        <Footer />
+        <UserProvider>
+          <ProjectProvider>
+            <Protected>
+              <SidebarProvider>
+                <AppSidebar />
+                <main className="w-full mr-2 my-2 border rounded-lg border-gray-400 border-opacity-30 bg-white">
+                  <Header />
+                  {children}
+                </main>
+              </SidebarProvider>
+            </Protected>
+          </ProjectProvider>
+          <Footer />
+        </UserProvider>
+        <Toaster />
       </body>
     </html>
   );

@@ -19,10 +19,12 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { useEffect, useState } from "react";
-import { Project, useProject } from "@/components/context/project";
+import { useProject } from "@/components/context/project";
 import { Skeleton } from "../ui/skeleton";
 import { GoPlus } from "react-icons/go";
 import { RiSettings3Line } from "react-icons/ri";
+import { useUser } from "@/components/context/user";
+import { Project } from "@/lib/types";
 
 interface ProjectSelectOption {
   value: string; // project id
@@ -30,6 +32,7 @@ interface ProjectSelectOption {
 }
 
 export function ProjectSelector() {
+  const { user } = useUser();
   const { project, setProject } = useProject();
   const [projects, setProjects] = useState<Map<string, Project>>(new Map());
   const [projectSelectOptions, setProjectSelectOptions] = useState<
@@ -39,33 +42,39 @@ export function ProjectSelector() {
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
-    setProjects(
-      new Map( // TODO: The array will be fetched from backend
-        [
-          {
-            id: "1",
-            name: "Default",
-          },
-          {
-            id: "2",
-            name: "Project 1",
-          },
-          {
-            id: "3",
-            name: "Project 2",
-          },
-        ].map((p) => [p.id, p])
-      )
-    );
+    async function fetchProjects() {
+      if (!user) {
+        return;
+      }
 
-    if (!project) {
-      // TODO: the initial active project will be fetched from backend
-      setProject({
-        id: "1",
-        name: "Default",
-      });
+      try {
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/v1/projects/`,
+          {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${user.accessToken}`,
+            },
+          }
+        );
+
+        if (!response.ok) {
+          console.log(response);
+          throw new Error(`Failed to fetch projects`);
+        }
+        const retrievedProjects: Project[] = await response.json();
+
+        setProjects(new Map(retrievedProjects.map((p) => [p.id, p])));
+        if (!project && retrievedProjects.length > 0) {
+          setProject(retrievedProjects[0]);
+        }
+      } catch (error) {
+        console.error("Error fetching projects:", error);
+      }
     }
-  }, [project, setProject, setProjects]);
+
+    fetchProjects();
+  }, [user, project, setProject, setProjects]);
 
   useEffect(() => {
     setProjectSelectOptions(
@@ -99,9 +108,14 @@ export function ProjectSelector() {
                 <CommandItem
                   key={option.value}
                   value={option.value}
-                  onSelect={(selectedProjectId) => {
-                    setProject(projects.get(selectedProjectId)!);
-                    setOpen(false);
+                  onSelect={() => {
+                    const selectedProject = projects.get(option.value);
+                    if (selectedProject) {
+                      setProject(selectedProject);
+                      setOpen(false);
+                    } else {
+                      console.error(`Project ${option.value} not found`);
+                    }
                   }}
                 >
                   {option.label}

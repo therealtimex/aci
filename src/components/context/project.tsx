@@ -1,11 +1,7 @@
 "use client";
 
+import { Project } from "@/lib/types";
 import React, { createContext, useContext, useState, ReactNode } from "react";
-
-export interface Project {
-  id: string;
-  name: string;
-}
 
 interface ProjectContextType {
   project: Project | null;

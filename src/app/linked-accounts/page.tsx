@@ -1,3 +1,5 @@
+"use client";
+
 export default function LinkedAccountsPage() {
   return (
     <div className="m-4">

@@ -21,11 +21,7 @@ import { PiStorefront } from "react-icons/pi";
 import { GoHome } from "react-icons/go";
 import { RiSettings4Line } from "react-icons/ri";
 
-import { useProject } from "@/components/context/project";
-
 export function AppSidebar() {
-  const { project } = useProject();
-  console.log(project); // TODO:
   const items = [
     {
       title: "Home",
@@ -51,7 +47,7 @@ export function AppSidebar() {
 
   return (
     <Sidebar variant="inset" className="">
-      <SidebarHeader >
+      <SidebarHeader>
         <div className="flex items-end w-full justify-between">
           Aipotheosis Labs
           <SidebarTrigger />
@@ -63,7 +59,7 @@ export function AppSidebar() {
         <Separator />
       </SidebarHeader>
 
-      <SidebarContent >
+      <SidebarContent>
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>

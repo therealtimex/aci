@@ -1,3 +1,5 @@
+"use client";
+
 import { AppGrid } from "@/components/apps/app-grid";
 
 import { Separator } from "@/components/ui/separator";
