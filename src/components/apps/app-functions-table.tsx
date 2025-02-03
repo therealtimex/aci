@@ -9,8 +9,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { type AppFunction } from "@/lib/types";
-import { useEffect, useState } from "react";
+import { type Function } from "@/lib/types/function";
+import { useState } from "react";
 import {
   Select,
   SelectContent,
@@ -18,33 +18,34 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { dummyFunctions } from "@/lib/dummyData";
+import { IdDisplay } from "@/components/apps/id-display";
 
 interface AppFunctionsTableProps {
-  appId: string;
+  functions: Function[];
 }
 
-export function AppFunctionsTable({ appId }: AppFunctionsTableProps) {
-  const [functions, setFunctions] = useState<AppFunction[]>([]);
-  // TODO: fetch functions from backend with app id
-  const [selectedCategory, setSelectedCategory] = useState("all"); // eslint-disable-line
-  const [selectedTag, setSelectedTag] = useState("all"); // eslint-disable-line
+export function AppFunctionsTable({ functions }: AppFunctionsTableProps) {
+  // const [selectedCategory, setSelectedCategory] = useState("all");
+  const [selectedTag, setSelectedTag] = useState("all");
 
-  useEffect(() => {
-    setFunctions(dummyFunctions);
-  }, [appId]);
-
-  const categories = Array.from(
-    new Set(dummyFunctions.flatMap((func) => func.categories || []))
-  );
+  // const categories = Array.from(
+  //   new Set(functions.flatMap((func) => func.categories || []))
+  // );
   const tags = Array.from(
-    new Set(dummyFunctions.flatMap((func) => func.tags || []))
+    new Set(functions.flatMap((func) => func.tags || []))
   );
+
+  const filteredFunctions = functions.filter((func) => {
+    // const matchesCategory = selectedCategory === "all" || (func.categories && func.categories.includes(selectedCategory));
+    const matchesTag =
+      selectedTag === "all" || (func.tags && func.tags.includes(selectedTag));
+    return matchesTag; // && matchesCategory
+  });
 
   return (
     <div>
       <div className="flex items-center gap-3 mb-4">
-        <Select onValueChange={setSelectedCategory}>
+        {/* <Select onValueChange={setSelectedCategory}>
           <SelectTrigger className="w-[120px]">
             <SelectValue placeholder="Category" />
           </SelectTrigger>
@@ -55,7 +56,7 @@ export function AppFunctionsTable({ appId }: AppFunctionsTableProps) {
               </SelectItem>
             ))}
           </SelectContent>
-        </Select>
+        </Select> */}
 
         <Select onValueChange={setSelectedTag}>
           <SelectTrigger className="w-[80px]">
@@ -77,18 +78,22 @@ export function AppFunctionsTable({ appId }: AppFunctionsTableProps) {
               <TableHead>FUNCTION NAME</TableHead>
               <TableHead>FUNCTION ID</TableHead>
               <TableHead className="max-w-[500px]">DESCRIPTION</TableHead>
-              <TableHead className="text-right">ACTIONS</TableHead>
+              <TableHead className="text-center">ACTIONS</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {functions.map((func) => (
+            {filteredFunctions.map((func) => (
               <TableRow key={func.id}>
                 <TableCell className="font-medium">{func.name}</TableCell>
-                <TableCell>{func.functionId}</TableCell>
+                <TableCell>
+                  <div className="flex-shrink-0 w-20">
+                    <IdDisplay id={func.id} />
+                  </div>
+                </TableCell>
                 <TableCell className="max-w-[500px]">
                   {func.description}
                 </TableCell>
-                <TableCell className="text-right">
+                <TableCell className="text-center">
                   <Button variant="outline" size="sm">
                     See Details
                   </Button>

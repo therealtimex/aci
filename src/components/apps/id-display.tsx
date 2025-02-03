@@ -3,10 +3,10 @@ import { BiCopy } from "react-icons/bi";
 import { toast } from "sonner";
 
 interface AppIdDisplayProps {
-  appId: string;
+  id: string;
 }
 
-export function AppIdDisplay({ appId }: AppIdDisplayProps) {
+export function IdDisplay({ id: appId }: AppIdDisplayProps) {
   const copyToClipboard = () => {
     if (!navigator.clipboard) {
       console.error("Clipboard API not supported");
@@ -16,7 +16,7 @@ export function AppIdDisplay({ appId }: AppIdDisplayProps) {
     navigator.clipboard
       .writeText(appId)
       .then(() => {
-        toast.success("App ID copied to clipboard");
+        toast.success("Copied to clipboard");
       })
       .catch((err) => {
         console.error("Failed to copy:", err);
@@ -25,8 +25,8 @@ export function AppIdDisplay({ appId }: AppIdDisplayProps) {
   };
 
   return (
-    <div className="flex items-center gap-2">
-      <span className="text-sm text-gray-500">#{appId}</span>
+    <div className="flex items-center  w-full">
+      <span className="text-sm text-gray-500 truncate min-w-0">#{appId}</span>
       <button
         onClick={(e) => {
           e.preventDefault();
@@ -36,7 +36,7 @@ export function AppIdDisplay({ appId }: AppIdDisplayProps) {
         aria-label="Copy app ID"
         title="Copy app ID to clipboard"
       >
-        <BiCopy className="w-5 h-5" />
+        <BiCopy/>
       </button>
     </div>
   );

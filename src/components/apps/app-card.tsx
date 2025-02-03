@@ -8,31 +8,42 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { type App } from "@/lib/types";
-import { AppIdDisplay } from "@/components/apps/app-id-display";
+import { type App } from "@/lib/types/app";
+import { IdDisplay } from "@/components/apps/id-display";
 
 interface AppCardProps {
   app: App;
 }
 
 export function AppCard({ app }: AppCardProps) {
+  const formatAppName = (name: string) => {
+    return name
+      .split("_")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(" ");
+  };
+
   return (
     <Link href={`/apps/${app.id}`} className="block">
       <Card className="h-full transition-shadow hover:shadow-lg">
         <CardHeader className="space-y-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="relative h-12 w-12 overflow-hidden rounded-lg">
+            <div className="flex items-center gap-3 min-w-0 flex-1 mr-4">
+              <div className="relative h-12 w-12 flex-shrink-0 overflow-hidden rounded-lg">
                 <Image
-                  src={app.icon}
-                  alt={`${app.name} icon`}
+                  src={app.logo}
+                  alt={`${app.name} logo`}
                   fill
                   className="object-cover"
                 />
               </div>
-              <CardTitle>{app.name}</CardTitle>
+              <CardTitle className="truncate">
+                {formatAppName(app.name)}
+              </CardTitle>
             </div>
-            <AppIdDisplay appId={app.id} />
+            <div className="flex-shrink-0 w-20">
+              <IdDisplay id={app.id} />
+            </div>
           </div>
           <CardDescription>{app.description}</CardDescription>
         </CardHeader>
@@ -41,19 +52,19 @@ export function AppCard({ app }: AppCardProps) {
             {app.categories.map((category) => (
               <span
                 key={category}
-                className="rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-600"
+                className="rounded-md bg-gray-100 px-3 py-1 text-sm font-medium text-gray-600 border border-gray-200"
               >
                 {category}
               </span>
             ))}
-            {app.tags.map((tag) => (
+            {/* {app.tags.map((tag) => (
               <span
                 key={tag}
                 className="rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-600"
               >
                 {tag}
               </span>
-            ))}
+            ))} */}
           </div>
         </CardContent>
       </Card>

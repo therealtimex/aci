@@ -9,14 +9,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { AppCard } from "./app-card";
 import { useState } from "react";
-interface App {
-  id: string;
-  name: string;
-  icon: string;
-  description: string;
-  categories: string[];
-  tags: string[];
-}
+import { App } from "@/lib/types/app";
 
 interface AppGridProps {
   apps: App[];
@@ -26,10 +19,10 @@ export function AppGrid({ apps }: AppGridProps) {
   const [searchQuery, setSearchQuery] = useState("");
 
   const [selectedCategory, setSelectedCategory] = useState("all");
-  const [selectedTag, setSelectedTag] = useState("all");
+  // const [selectedTag, setSelectedTag] = useState("all");
 
   const categories = Array.from(new Set(apps.flatMap(app => app.categories)));
-  const tags = Array.from(new Set(apps.flatMap(app => app.tags)));
+  // const tags = Array.from(new Set(apps.flatMap(app => app.tags)));
 
   const filteredApps = apps.filter((app) => {
     const matchesSearch =
@@ -40,11 +33,11 @@ export function AppGrid({ apps }: AppGridProps) {
       selectedCategory === "all" ||
       app.categories.includes(selectedCategory);
 
-    const matchesTag =
-      selectedTag === "all" ||
-      app.tags.includes(selectedTag);
+    // const matchesTag =
+    //   selectedTag === "all" ||
+    //   app.tags.includes(selectedTag);
 
-    return matchesSearch && matchesCategory && matchesTag;
+    return matchesSearch && matchesCategory; // && matchesTag;
   });
 
   return (
@@ -70,7 +63,7 @@ export function AppGrid({ apps }: AppGridProps) {
           </SelectContent>
         </Select>
 
-        <Select onValueChange={setSelectedTag}>
+        {/* <Select onValueChange={setSelectedTag}>
           <SelectTrigger className="w-[80px]">
             <SelectValue placeholder="Tags" />
           </SelectTrigger>
@@ -81,7 +74,7 @@ export function AppGrid({ apps }: AppGridProps) {
               </SelectItem>
             ))}
           </SelectContent>
-        </Select>
+        </Select> */}
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

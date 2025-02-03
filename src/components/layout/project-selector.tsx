@@ -24,7 +24,7 @@ import { Skeleton } from "../ui/skeleton";
 import { GoPlus } from "react-icons/go";
 import { RiSettings3Line } from "react-icons/ri";
 import { useUser } from "@/components/context/user";
-import { Project } from "@/lib/types";
+import { Project } from "@/lib/types/project";
 
 interface ProjectSelectOption {
   value: string; // project id
