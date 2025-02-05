@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import Image from "next/image";
-import { RiLinkUnlinkM } from "react-icons/ri";
+// import { RiLinkUnlinkM } from "react-icons/ri";
 import { GrAppsRounded } from "react-icons/gr";
 import { cn } from "@/lib/utils";
 
@@ -45,11 +45,11 @@ export function AppSidebar() {
       url: `/appconfig`,
       icon: GrAppsRounded,
     },
-    {
-      title: "Linked Accounts",
-      url: `/linked-accounts`,
-      icon: RiLinkUnlinkM,
-    },
+    // {
+    //   title: "Linked Accounts",
+    //   url: `/linked-accounts`,
+    //   icon: RiLinkUnlinkM,
+    // },
   ];
 
   return (
@@ -123,8 +123,8 @@ export function AppSidebar() {
 
       <SidebarFooter>
         <Separator />
-        <Link 
-          href="/settings" 
+        <Link
+          href="/account" 
           className={cn(
             "flex items-center gap-3 p-4",
             isCollapsed && "justify-center"

@@ -86,7 +86,7 @@ export function AppFunctionsTable({ functions }: AppFunctionsTableProps) {
               <TableRow key={func.id}>
                 <TableCell className="font-medium">{func.name}</TableCell>
                 <TableCell>
-                  <div className="flex-shrink-0 w-20">
+                  <div className="flex-shrink-0 w-24">
                     <IdDisplay id={func.id} />
                   </div>
                 </TableCell>
