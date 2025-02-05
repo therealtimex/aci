@@ -25,6 +25,7 @@ import { GoPlus } from "react-icons/go";
 import { RiSettings3Line } from "react-icons/ri";
 import { useUser } from "@/components/context/user";
 import { Project } from "@/lib/types/project";
+import Link from "next/link";
 
 interface ProjectSelectOption {
   value: string; // project id
@@ -134,10 +135,12 @@ export function ProjectSelector() {
                 <GoPlus />
                 <span>Create Project</span>
               </CommandItem>
-              <CommandItem>
-                <RiSettings3Line />
-                <span>Manage Project</span>
-              </CommandItem>
+              <Link href="/project-setting">
+                <CommandItem>
+                  <RiSettings3Line />
+                  <span>Manage Project</span>
+                </CommandItem>
+              </Link>
             </CommandGroup>
           </CommandList>
         </Command>
