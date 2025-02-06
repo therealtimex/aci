@@ -1,4 +1,3 @@
-
 export interface AppConfig {
     id: string;
     project_id: string;
@@ -9,7 +8,3 @@ export interface AppConfig {
     all_functions_enabled: boolean;
     enabled_functions: string[];
 }
-
-
-
-

@@ -1,23 +1,27 @@
 "use client";
 
-import { AppConfigsTable } from "@/components/apps/app-configs-table";
-import { useProject } from "@/components/context/project";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
-import { dummyAppConfigs } from "@/lib/dummyData";
-import { AppConfig } from "@/lib/types";
 import { useEffect, useState } from "react";
 import { GoPlus } from "react-icons/go";
+import { AppConfig } from "@/lib/types/appconfig";
+import { dummyAppConfigs } from "@/lib/dummyData";
+import { Separator } from "@/components/ui/separator";
+import { AppConfigsTable } from "@/components/apps/app-configs-table";
 
 export default function AppConfigPage() {
-  const { project } = useProject();
-
   const [appConfigs, setAppConfigs] = useState<AppConfig[]>([]);
 
   useEffect(() => {
-    // TODO: fetch app configurations from backend with app id
-    setAppConfigs(dummyAppConfigs);
-  }, [project?.id]);
+    async function fetchAppConfigs() {
+      try {
+        setAppConfigs(dummyAppConfigs);
+      } catch (error) {
+        console.error("Error fetching app configs:", error);
+      }
+    }
+
+    fetchAppConfigs();
+  }, []);
 
   return (
     <div>
@@ -25,7 +29,7 @@ export default function AppConfigPage() {
         <div>
           <h1 className="text-2xl font-bold">App Configurations</h1>
         </div>
-        <Button className="bg-teal-400 text-black hover:bg-teal-500">
+        <Button className="bg-primary hover:bg-primary/90 text-white">
           <GoPlus />
           Add App
         </Button>
