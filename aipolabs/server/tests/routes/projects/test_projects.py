@@ -1,10 +1,9 @@
 from fastapi import status
 from fastapi.testclient import TestClient
-from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from aipolabs.common.db import crud
-from aipolabs.common.db.sql_models import Agent, APIKey, Project, User
+from aipolabs.common.db.sql_models import User
 from aipolabs.common.enums import Visibility
 from aipolabs.common.schemas.agent import AgentCreate, AgentPublic
 from aipolabs.common.schemas.project import ProjectCreate, ProjectPublic
@@ -34,45 +33,6 @@ def test_create_project_under_user(
 
     assert project is not None
     assert project_public.model_dump() == ProjectPublic.model_validate(project).model_dump()
-
-
-def test_create_agent(
-    test_client: TestClient,
-    db_session: Session,
-    dummy_project_1: Project,
-    dummy_user_bearer_token: str,
-) -> None:
-    body = AgentCreate(
-        name="new test agent",
-        description="new test agent description",
-    )
-
-    response = test_client.post(
-        f"{config.ROUTER_PREFIX_PROJECTS}/{dummy_project_1.id}/agents/",
-        json=body.model_dump(mode="json"),
-        headers={"Authorization": f"Bearer {dummy_user_bearer_token}"},
-    )
-    assert response.status_code == status.HTTP_200_OK
-    agent_public = AgentPublic.model_validate(response.json())
-    assert agent_public.name == body.name
-    assert agent_public.description == body.description
-    assert agent_public.project_id == dummy_project_1.id
-
-    # Verify the agent was actually created in the database and values match returned values
-    agent = db_session.execute(
-        select(Agent).filter(Agent.id == agent_public.id)
-    ).scalar_one_or_none()
-
-    assert agent is not None
-    assert agent_public.model_dump() == AgentPublic.model_validate(agent).model_dump()
-
-    # check api keys
-    api_key = db_session.execute(
-        select(APIKey).filter(APIKey.agent_id == agent.id)
-    ).scalar_one_or_none()
-    assert api_key is not None
-    assert len(agent_public.api_keys) == 1
-    assert agent_public.api_keys[0].key == api_key.key
 
 
 def test_get_projects_under_user(

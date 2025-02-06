@@ -7,8 +7,9 @@ from sqlalchemy.orm import Session
 from aipolabs.common.db import crud
 from aipolabs.common.db.sql_models import Agent, Project, User
 from aipolabs.common.enums import OrganizationRole
+from aipolabs.common.exceptions import AgentNotFound, ProjectNotFound
 from aipolabs.common.logging import get_logger
-from aipolabs.common.schemas.agent import AgentCreate, AgentPublic
+from aipolabs.common.schemas.agent import AgentCreate, AgentPublic, AgentUpdate
 from aipolabs.common.schemas.project import ProjectCreate, ProjectPublic
 from aipolabs.server import acl
 from aipolabs.server import dependencies as deps
@@ -71,7 +72,40 @@ async def create_agent(
         body.description,
         body.excluded_apps,
         body.excluded_functions,
+        body.custom_instructions,
     )
     db_session.commit()
     logger.info(f"Created agent: {AgentPublic.model_validate(agent)}")
+    return agent
+
+
+@router.patch("/{project_id}/agents/{agent_id}", response_model=AgentPublic, include_in_schema=True)
+async def update_agent(
+    project_id: UUID,
+    agent_id: UUID,
+    body: AgentUpdate,
+    user: Annotated[User, Depends(deps.validate_http_bearer)],
+    db_session: Annotated[Session, Depends(deps.yield_db_session)],
+) -> Agent:
+    logger.info(f"Updating agent={agent_id} in project={project_id}")
+
+    agent = crud.projects.get_agent_by_id(db_session, agent_id)
+    if not agent:
+        logger.error(f"agent={agent_id} not found")
+        raise AgentNotFound(str(agent_id))
+
+    project = crud.projects.get_project(db_session, project_id)
+    if not project:
+        logger.error(f"project={project_id} not found")
+        raise ProjectNotFound(str(project_id))
+
+    if agent.project_id != project_id:
+        logger.error(f"agent={agent_id} is not in project={project_id}")
+        raise AgentNotFound(str(agent_id))
+
+    acl.validate_user_access_to_project(db_session, user.id, agent.project_id)
+
+    crud.projects.update_agent(db_session, agent, body)
+    db_session.commit()
+
     return agent

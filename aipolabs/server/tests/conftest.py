@@ -15,6 +15,7 @@ with patch.dict("os.environ", {"SERVER_RATE_LIMIT_IP_PER_SECOND": "999"}):
     from aipolabs.common import utils
     from aipolabs.common.db import crud
     from aipolabs.common.db.sql_models import (
+        Agent,
         App,
         Base,
         Function,
@@ -112,8 +113,30 @@ def dummy_user(
 
 
 @pytest.fixture(scope="function")
+def dummy_user_2(
+    db_session: Session, database_setup_and_cleanup: None
+) -> Generator[User, None, None]:
+    dummy_user_2 = crud.users.create_user(
+        db_session,
+        UserCreate(
+            identity_provider="dummy_identity_provider_2",
+            user_id_by_provider="dummy_user_id_by_provider_2",
+            name="Dummy User 2",
+            email="dummy2@example.com",
+        ),
+    )
+    db_session.commit()
+    yield dummy_user_2
+
+
+@pytest.fixture(scope="function")
 def dummy_user_bearer_token(dummy_user: User) -> str:
     return create_access_token(str(dummy_user.id), timedelta(minutes=15))
+
+
+@pytest.fixture(scope="function")
+def dummy_user_2_bearer_token(dummy_user_2: User) -> str:
+    return create_access_token(str(dummy_user_2.id), timedelta(minutes=15))
 
 
 @pytest.fixture(scope="function")
@@ -137,6 +160,7 @@ def dummy_api_key_1(db_session: Session, dummy_project_1: Project) -> Generator[
         description="Dummy Agent",
         excluded_apps=[],
         excluded_functions=[],
+        custom_instructions={},
     )
     db_session.commit()
     yield dummy_agent.api_keys[0].key
@@ -163,9 +187,25 @@ def dummy_api_key_2(db_session: Session, dummy_project_2: Project) -> Generator[
         description="Dummy Agent 2",
         excluded_apps=[],
         excluded_functions=[],
+        custom_instructions={},
     )
     db_session.commit()
     yield dummy_agent.api_keys[0].key
+
+
+@pytest.fixture(scope="function")
+def dummy_agent_1(db_session: Session, dummy_project_1: Project) -> Generator[Agent, None, None]:
+    dummy_agent_1 = crud.projects.create_agent(
+        db_session,
+        project_id=dummy_project_1.id,
+        name="Dummy Agent 1",
+        description="Dummy Agent 1",
+        excluded_apps=[],
+        excluded_functions=[],
+        custom_instructions={},
+    )
+    db_session.commit()
+    yield dummy_agent_1
 
 
 ################################################################################
