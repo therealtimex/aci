@@ -2,12 +2,9 @@
 CRUD operations for apps. (not including app_configurations)
 """
 
-from uuid import UUID
-
 from sqlalchemy import select, update
 from sqlalchemy.orm import Session
 
-from aipolabs.common import utils
 from aipolabs.common.db.sql_models import App
 from aipolabs.common.enums import SecurityScheme, Visibility
 from aipolabs.common.logging import get_logger
@@ -46,26 +43,9 @@ def update_app_default_security_credentials(
     app.default_security_credentials_by_scheme[security_scheme] = security_credentials
 
 
-def get_app(
-    db_session: Session, app_id_or_name: str, public_only: bool, active_only: bool
-) -> App | None:
-    if utils.is_uuid(app_id_or_name):
-        statement = select(App).filter_by(id=app_id_or_name)
-    else:
-        statement = select(App).filter_by(name=app_id_or_name)
-
-    if active_only:
-        statement = statement.filter(App.active)
-    if public_only:
-        statement = statement.filter(App.visibility == Visibility.PUBLIC)
-    app: App | None = db_session.execute(statement).scalar_one_or_none()
-    return app
-
-
-def get_app_by_name(
-    db_session: Session, app_name: str, public_only: bool, active_only: bool
-) -> App | None:
+def get_app(db_session: Session, app_name: str, public_only: bool, active_only: bool) -> App | None:
     statement = select(App).filter_by(name=app_name)
+
     if active_only:
         statement = statement.filter(App.active)
     if public_only:
@@ -78,7 +58,7 @@ def get_apps(
     db_session: Session,
     public_only: bool,
     active_only: bool,
-    app_ids: list[UUID] | None,
+    app_names: list[str] | None,
     limit: int | None,
     offset: int | None,
 ) -> list[App]:
@@ -87,8 +67,8 @@ def get_apps(
         statement = statement.filter(App.visibility == Visibility.PUBLIC)
     if active_only:
         statement = statement.filter(App.active)
-    if app_ids is not None:
-        statement = statement.filter(App.id.in_(app_ids))
+    if app_names is not None:
+        statement = statement.filter(App.name.in_(app_names))
     if offset is not None:
         statement = statement.offset(offset)
     if limit is not None:
@@ -101,7 +81,7 @@ def search_apps(
     db_session: Session,
     public_only: bool,
     active_only: bool,
-    app_ids: list[UUID] | None,
+    app_names: list[str] | None,
     categories: list[str] | None,
     intent_embedding: list[float] | None,
     limit: int,
@@ -118,9 +98,9 @@ def search_apps(
     if active_only:
         statement = statement.filter(App.active)
 
-    # filter out apps by app_ids
-    if app_ids:
-        statement = statement.filter(App.id.in_(app_ids))
+    # filter out apps by app_names
+    if app_names:
+        statement = statement.filter(App.name.in_(app_names))
 
     # filter out apps by categories
     # TODO: Is there any way to get typing for cosine_distance, label, overlap?
@@ -145,11 +125,11 @@ def search_apps(
         return [(app, None) for app, in results]
 
 
-def set_app_active_status(db_session: Session, app_id: UUID, active: bool) -> None:
-    statement = update(App).filter_by(id=app_id).values(active=active)
+def set_app_active_status(db_session: Session, app_name: str, active: bool) -> None:
+    statement = update(App).filter_by(name=app_name).values(active=active)
     db_session.execute(statement)
 
 
-def set_app_visibility(db_session: Session, app_id: UUID, visibility: Visibility) -> None:
-    statement = update(App).filter_by(id=app_id).values(visibility=visibility)
+def set_app_visibility(db_session: Session, app_name: str, visibility: Visibility) -> None:
+    statement = update(App).filter_by(name=app_name).values(visibility=visibility)
     db_session.execute(statement)

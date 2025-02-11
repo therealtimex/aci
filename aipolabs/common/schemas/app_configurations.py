@@ -9,12 +9,12 @@ from aipolabs.common.enums import SecurityScheme
 class AppConfigurationPublic(BaseModel):
     id: UUID
     project_id: UUID
-    app_id: UUID
+    app_name: str
     security_scheme: SecurityScheme
     security_scheme_overrides: dict
     enabled: bool
     all_functions_enabled: bool
-    enabled_functions: list[UUID]
+    enabled_functions: list[str]
     created_at: datetime
     updated_at: datetime
 
@@ -28,12 +28,12 @@ class AppConfigurationCreate(BaseModel):
     “all_functions_enabled=False” AND empty enabled_functions → all functions disabled.
     """
 
-    app_id: UUID
+    app_name: str
     security_scheme: SecurityScheme
     # TODO: add typing/class to security_scheme_overrides
     security_scheme_overrides: dict = Field(default_factory=dict)
     all_functions_enabled: bool = Field(default=True)
-    enabled_functions: list[UUID] = Field(default_factory=list)
+    enabled_functions: list[str] = Field(default_factory=list)
 
     # validate:
     # when all_functions_enabled is True, enabled_functions provided by user should be empty
@@ -51,7 +51,7 @@ class AppConfigurationUpdate(BaseModel):
     security_scheme_overrides: dict | None = None
     enabled: bool | None = None
     all_functions_enabled: bool | None = None
-    enabled_functions: list[UUID] | None = None
+    enabled_functions: list[str] | None = None
 
     @model_validator(mode="after")
     def check_all_functions_enabled(self) -> "AppConfigurationUpdate":
@@ -63,7 +63,7 @@ class AppConfigurationUpdate(BaseModel):
 
 
 class AppConfigurationsList(BaseModel):
-    app_ids: list[UUID] | None = Field(default=None, description="Filter by app ids.")
+    app_names: list[str] | None = Field(default=None, description="Filter by app names.")
     limit: int = Field(
         default=100, ge=1, le=1000, description="Maximum number of results per response."
     )

@@ -13,7 +13,7 @@ from sqlalchemy.orm import Session
 from aipolabs.common.db.sql_models import Agent, APIKey, Project
 from aipolabs.common.enums import APIKeyStatus, Visibility
 from aipolabs.common.logging import get_logger
-from aipolabs.common.schemas.agent import AgentUpdate, CustomInstructions
+from aipolabs.common.schemas.agent import AgentUpdate, ValidInstruction
 
 logger = get_logger(__name__)
 
@@ -119,9 +119,9 @@ def create_agent(
     project_id: UUID,
     name: str,
     description: str,
-    excluded_apps: list[UUID],
-    excluded_functions: list[UUID],
-    custom_instructions: CustomInstructions,
+    excluded_apps: list[str],
+    excluded_functions: list[str],
+    custom_instructions: dict[str, ValidInstruction],
 ) -> Agent:
     """
     Create a new agent under a project, and create a new API key for the agent.
@@ -165,7 +165,7 @@ def update_agent(
     if update.excluded_functions is not None:
         agent.excluded_functions = update.excluded_functions
     if update.custom_instructions is not None:
-        agent.custom_instructions = update.model_dump(mode="json")["custom_instructions"]
+        agent.custom_instructions = update.custom_instructions
 
     db_session.flush()
     db_session.refresh(agent)
@@ -183,7 +183,7 @@ def get_agent_by_id(db_session: Session, agent_id: UUID) -> Agent | None:
 
 def get_agent_by_api_key_id(db_session: Session, api_key_id: UUID) -> Agent | None:
     agent: Agent | None = db_session.execute(
-        select(Agent).join(APIKey).filter(APIKey.id == str(api_key_id))
+        select(Agent).join(APIKey, Agent.id == APIKey.agent_id).filter(APIKey.id == str(api_key_id))
     ).scalar_one_or_none()
 
     return agent
