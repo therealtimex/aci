@@ -16,13 +16,6 @@ interface AppCardProps {
 }
 
 export function AppCard({ app }: AppCardProps) {
-  const formatAppName = (name: string) => {
-    return name
-      .split("_")
-      .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-      .join(" ");
-  };
-
   return (
     <Link href={`/apps/${app.id}`} className="block">
       <Card className="h-full transition-shadow hover:shadow-lg">
@@ -38,7 +31,7 @@ export function AppCard({ app }: AppCardProps) {
                 />
               </div>
               <CardTitle className="truncate">
-                {formatAppName(app.name)}
+                {app.display_name}
               </CardTitle>
             </div>
             <div className="flex-shrink-0 w-20">

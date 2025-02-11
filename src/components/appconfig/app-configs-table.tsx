@@ -21,16 +21,18 @@ import {
 import { Switch } from "@/components/ui/switch";
 import Link from "next/link";
 import { Input } from "@/components/ui/input";
-import { IdDisplay } from "./id-display";
+import { IdDisplay } from "../apps/id-display";
 import { GoTrash } from "react-icons/go";
+import { App } from "@/lib/types/app";
 
 interface AppConfigsTableProps {
   appConfigs: AppConfig[];
+  appsMap: Record<string, App>;
 }
 
-export function AppConfigsTable({ appConfigs }: AppConfigsTableProps) {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("all");
+export function AppConfigsTable({ appConfigs, appsMap }: AppConfigsTableProps) {
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
 
   const filteredAppConfigs = appConfigs.filter((config) =>
     config.id.toLowerCase().includes(searchQuery.toLowerCase())
@@ -73,18 +75,21 @@ export function AppConfigsTable({ appConfigs }: AppConfigsTableProps) {
           <TableBody>
             {filteredAppConfigs.map((config) => (
               <TableRow key={config.id}>
-                <TableCell>{config.id}</TableCell>
+                <TableCell>{appsMap[config.app_id]?.display_name}</TableCell>
                 <TableCell>
                   <div className="flex-shrink-0 w-20">
-                    <IdDisplay id={config.id} />
+                    <IdDisplay id={config.app_id} />
                   </div>
                 </TableCell>
-                <TableCell>10</TableCell>
+                <TableCell>
+                  10
+                  {/* TODO: query backend to display read linked accounts number */}
+                </TableCell>
                 <TableCell>
                   <Switch checked={config.enabled} />
                 </TableCell>
                 <TableCell className="space-x-2 flex">
-                  <Link href={`/appconfig/${config.id}`}>
+                  <Link href={`/appconfig/${config.app_id}`}>
                     <Button variant="outline" size="sm">
                       Open
                     </Button>

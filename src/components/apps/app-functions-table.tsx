@@ -1,5 +1,6 @@
 "use client";
 
+import { FunctionDetail } from "@/components/apps/function-detail";
 import {
   Table,
   TableBody,
@@ -8,8 +9,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
-import { type Function } from "@/lib/types/function";
+import { type AppFunction } from "@/lib/types/appfunction";
 import { useState } from "react";
 import {
   Select,
@@ -21,7 +21,7 @@ import {
 import { IdDisplay } from "@/components/apps/id-display";
 
 interface AppFunctionsTableProps {
-  functions: Function[];
+  functions: AppFunction[];
 }
 
 export function AppFunctionsTable({ functions }: AppFunctionsTableProps) {
@@ -94,9 +94,7 @@ export function AppFunctionsTable({ functions }: AppFunctionsTableProps) {
                   {func.description}
                 </TableCell>
                 <TableCell className="text-center">
-                  <Button variant="outline" size="sm">
-                    See Details
-                  </Button>
+                  <FunctionDetail func={func} />
                 </TableCell>
               </TableRow>
             ))}

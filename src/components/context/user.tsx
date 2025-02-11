@@ -60,6 +60,7 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
   const logout = useCallback(() => {
     Cookies.remove("accessToken");
     setUser(null);
+    // TODO: redirect to home page
   }, [setUser]);
 
   return (
