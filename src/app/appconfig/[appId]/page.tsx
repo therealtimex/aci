@@ -19,6 +19,7 @@ import { useParams } from "next/navigation";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { App } from "@/lib/types/app";
 import { useProject } from "@/components/context/project";
+import { AddAccountForm } from "@/components/appconfig/add-account";
 
 export default function AppConfigDetailPage() {
   const { appId } = useParams<{ appId: string }>();
@@ -69,7 +70,7 @@ export default function AppConfigDetailPage() {
     const apiKey = getApiKey();
     if (!apiKey) return null;
     const params = new URLSearchParams();
-    params.append("app_ids", appId);
+    params.append("app_id", appId);
 
     const response = await fetch(
       `${
@@ -115,9 +116,12 @@ export default function AppConfigDetailPage() {
             <IdDisplay id={app?.id ?? ""} />
           </div>
         </div>
-        <Button className="bg-primary hover:bg-primary/90 text-white">
-          + Add Account
-        </Button>
+        {app && (
+          <AddAccountForm
+            app={app}
+            updateLinkedAccounts={updateLinkedAccounts}
+          />
+        )}
       </div>
 
       <Tabs defaultValue={"linked"} className="w-full">
@@ -132,8 +136,7 @@ export default function AppConfigDetailPage() {
             <Table>
               <TableHeader className="bg-gray-100">
                 <TableRow>
-                  <TableHead>ACCOUNT OWNER</TableHead>
-                  <TableHead>ACCOUNT ID</TableHead>
+                  <TableHead>ACCOUNT OWNER ID</TableHead>
                   <TableHead>CREATED AT</TableHead>
                   <TableHead>ENABLED</TableHead>
                   <TableHead></TableHead>
@@ -143,16 +146,7 @@ export default function AppConfigDetailPage() {
                 {linkedAccounts.map((account) => (
                   <TableRow key={account.id}>
                     <TableCell>
-                      {/* TODO: show real owner name */}
-                      <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold">
-                          D
-                        </div>
-                        Tom
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex-shrink-0 w-20">
+                      <div className="flex-shrink-0">
                         <IdDisplay id={account.linked_account_owner_id} />
                       </div>
                     </TableCell>

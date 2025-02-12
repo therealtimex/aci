@@ -226,6 +226,8 @@ export default function AccountPage() {
             </Button>
           </div>
         </div>
+
+        {/* TODO: Allow deleting accounts */}
       </div>
     </div>
   );

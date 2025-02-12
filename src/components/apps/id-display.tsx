@@ -1,12 +1,18 @@
 import React from "react";
 import { BiCopy } from "react-icons/bi";
 import { toast } from "sonner";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface AppIdDisplayProps {
   id: string;
 }
 
-export function IdDisplay({ id: appId }: AppIdDisplayProps) {
+export function IdDisplay({ id }: AppIdDisplayProps) {
   const copyToClipboard = () => {
     if (!navigator.clipboard) {
       console.error("Clipboard API not supported");
@@ -14,7 +20,7 @@ export function IdDisplay({ id: appId }: AppIdDisplayProps) {
       return;
     }
     navigator.clipboard
-      .writeText(appId)
+      .writeText(id)
       .then(() => {
         toast.success("Copied to clipboard");
       })
@@ -25,19 +31,36 @@ export function IdDisplay({ id: appId }: AppIdDisplayProps) {
   };
 
   return (
-    <div className="flex items-center  w-full">
-      <span className="text-sm text-gray-500 truncate min-w-0">#{appId}</span>
-      <button
-        onClick={(e) => {
-          e.preventDefault();
-          copyToClipboard();
-        }}
-        className="text-gray-500 hover:text-gray-700"
-        aria-label="Copy app ID"
-        title="Copy app ID to clipboard"
-      >
-        <BiCopy/>
-      </button>
-    </div>
+    <TooltipProvider>
+      <div className="flex items-center w-full">
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <span className="text-sm text-gray-500 truncate min-w-0 cursor-default">
+              #{id}
+            </span>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>{id}</p>
+          </TooltipContent>
+        </Tooltip>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                copyToClipboard();
+              }}
+              className="text-gray-500 hover:text-gray-700"
+              aria-label="Copy app ID"
+            >
+              <BiCopy />
+            </button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Copy ID to clipboard</p>
+          </TooltipContent>
+        </Tooltip>
+      </div>
+    </TooltipProvider>
   );
 }
