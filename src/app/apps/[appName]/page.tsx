@@ -13,7 +13,7 @@ import { toast } from "sonner";
 import { AppConfig } from "@/lib/types/appconfig";
 
 const AppPage = () => {
-  const { appId } = useParams<{ appId: string }>();
+  const { appName } = useParams<{ appName: string }>();
   const { project } = useProject();
   const [app, setApp] = useState<App | null>(null);
   const [functions, setFunctions] = useState<AppFunction[]>([]);
@@ -46,7 +46,7 @@ const AppPage = () => {
             "X-API-KEY": apiKey,
           },
           body: JSON.stringify({
-            app_id: appId,
+            app_name: appName,
             security_scheme: app.security_schemes[0],
             security_scheme_overrides: {},
             all_functions_enabled: true,
@@ -77,7 +77,7 @@ const AppPage = () => {
     const apiKey = getApiKey();
     if (!apiKey) return null;
     const params = new URLSearchParams();
-    params.append("app_ids", appId);
+    params.append("app_names", appName);
 
     const response = await fetch(
       `${process.env.NEXT_PUBLIC_API_URL}/v1/apps/?${params.toString()}`,
@@ -97,13 +97,13 @@ const AppPage = () => {
     const app = apps[0];
     setApp(app);
     return app;
-  }, [appId, getApiKey]);
+  }, [appName, getApiKey]);
 
   const updateFunctions = useCallback(async () => {
     const apiKey = getApiKey();
     if (!apiKey) return [];
     const params = new URLSearchParams();
-    params.append("app_ids", appId);
+    params.append("app_names", appName);
 
     const response = await fetch(
       `${process.env.NEXT_PUBLIC_API_URL}/v1/functions/?${params.toString()}`,
@@ -122,13 +122,13 @@ const AppPage = () => {
     const functions = await response.json();
     setFunctions(functions);
     return functions;
-  }, [appId, getApiKey]);
+  }, [appName, getApiKey]);
 
   const updateAppConfig = useCallback(async () => {
     const apiKey = getApiKey();
     if (!apiKey) return null;
     const params = new URLSearchParams();
-    params.append("app_ids", appId);
+    params.append("app_names", appName);
 
     const response = await fetch(
       `${
@@ -150,7 +150,7 @@ const AppPage = () => {
     const config = configs.length > 0 ? configs[0] : null;
     setAppConfig(config);
     return config;
-  }, [appId, getApiKey]);
+  }, [appName, getApiKey]);
 
   useEffect(() => {
     async function loadData() {
@@ -162,14 +162,18 @@ const AppPage = () => {
     }
 
     loadData();
-  }, [appId, updateApp, updateAppConfig, updateFunctions, project]);
+  }, [appName, updateApp, updateAppConfig, updateFunctions, project]);
 
   return (
     <div>
       <div className="m-4 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">{app?.display_name}</h1>
-          <IdDisplay id={appId} />
+          {app && (
+            <>
+              <h1 className="text-2xl font-bold">{app.display_name}</h1>
+              <IdDisplay id={app.id} />
+            </>
+          )}
         </div>
         <Button
           className="bg-primary text-white hover:bg-primary/90"

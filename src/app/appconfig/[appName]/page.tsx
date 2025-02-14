@@ -22,7 +22,7 @@ import { useProject } from "@/components/context/project";
 import { AddAccountForm } from "@/components/appconfig/add-account";
 
 export default function AppConfigDetailPage() {
-  const { appId } = useParams<{ appId: string }>();
+  const { appName } = useParams<{ appName: string }>();
   const { project } = useProject();
   const [app, setApp] = useState<App | null>(null);
   const [linkedAccounts, setLinkedAccounts] = useState<LinkedAccount[]>([]);
@@ -44,7 +44,7 @@ export default function AppConfigDetailPage() {
     const apiKey = getApiKey();
     if (!apiKey) return null;
     const params = new URLSearchParams();
-    params.append("app_ids", appId);
+    params.append("app_names", appName);
 
     const response = await fetch(
       `${process.env.NEXT_PUBLIC_API_URL}/v1/apps/?${params.toString()}`,
@@ -64,13 +64,13 @@ export default function AppConfigDetailPage() {
     const app = apps[0];
     setApp(app);
     return app;
-  }, [appId, getApiKey]);
+  }, [appName, getApiKey]);
 
   const updateLinkedAccounts = useCallback(async () => {
     const apiKey = getApiKey();
     if (!apiKey) return null;
     const params = new URLSearchParams();
-    params.append("app_id", appId);
+    params.append("app_name", appName);
 
     const response = await fetch(
       `${
@@ -90,7 +90,7 @@ export default function AppConfigDetailPage() {
 
     const linkedAccounts = await response.json();
     setLinkedAccounts(linkedAccounts);
-  }, [appId, getApiKey]);
+  }, [appName, getApiKey]);
 
   useEffect(() => {
     updateApp();

@@ -8,11 +8,11 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
-interface AppIdDisplayProps {
+interface IdDisplayProps {
   id: string;
 }
 
-export function IdDisplay({ id }: AppIdDisplayProps) {
+export function IdDisplay({ id }: IdDisplayProps) {
   const copyToClipboard = () => {
     if (!navigator.clipboard) {
       console.error("Clipboard API not supported");
@@ -26,7 +26,7 @@ export function IdDisplay({ id }: AppIdDisplayProps) {
       })
       .catch((err) => {
         console.error("Failed to copy:", err);
-        toast.error("Failed to copy App ID to clipboard");
+        toast.error("Failed to copy ID to clipboard");
       });
   };
 

@@ -61,7 +61,7 @@ export default function AppConfigPage() {
 
     const params = new URLSearchParams();
     appConfigs.forEach((config) => {
-      params.append("app_ids", config.app_id);
+      params.append("app_names", config.app_name);
     });
 
     try {
@@ -83,7 +83,7 @@ export default function AppConfigPage() {
       const retrievedApps: App[] = await response.json();
       setAppsMap(
         retrievedApps.reduce((acc, app) => {
-          acc[app.id] = app;
+          acc[app.name] = app;
           return acc;
         }, {} as Record<string, App>)
       );

@@ -17,7 +17,7 @@ interface AppCardProps {
 
 export function AppCard({ app }: AppCardProps) {
   return (
-    <Link href={`/apps/${app.id}`} className="block">
+    <Link href={`/apps/${app.name}`} className="block">
       <Card className="h-full transition-shadow hover:shadow-lg">
         <CardHeader className="space-y-4">
           <div className="flex items-center justify-between">

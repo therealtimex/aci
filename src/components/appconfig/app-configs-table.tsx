@@ -75,10 +75,10 @@ export function AppConfigsTable({ appConfigs, appsMap }: AppConfigsTableProps) {
           <TableBody>
             {filteredAppConfigs.map((config) => (
               <TableRow key={config.id}>
-                <TableCell>{appsMap[config.app_id]?.display_name}</TableCell>
+                <TableCell>{appsMap[config.app_name]?.display_name}</TableCell>
                 <TableCell>
                   <div className="flex-shrink-0 w-20">
-                    <IdDisplay id={config.app_id} />
+                    <IdDisplay id={appsMap[config.app_name]?.id} />
                   </div>
                 </TableCell>
                 <TableCell>
@@ -89,7 +89,7 @@ export function AppConfigsTable({ appConfigs, appsMap }: AppConfigsTableProps) {
                   <Switch checked={config.enabled} />
                 </TableCell>
                 <TableCell className="space-x-2 flex">
-                  <Link href={`/appconfig/${config.app_id}`}>
+                  <Link href={`/appconfig/${config.app_name}`}>
                     <Button variant="outline" size="sm">
                       Open
                     </Button>
