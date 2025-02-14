@@ -35,7 +35,7 @@ export function AppConfigsTable({ appConfigs, appsMap }: AppConfigsTableProps) {
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
 
   const filteredAppConfigs = appConfigs.filter((config) =>
-    config.id.toLowerCase().includes(searchQuery.toLowerCase())
+    config.id.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
   return (

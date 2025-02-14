@@ -8,5 +8,5 @@ export default function LinkedAccountsPage() {
         Manage your linked accounts and integrations here.
       </p>
     </div>
-  )
+  );
 }

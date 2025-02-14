@@ -56,7 +56,7 @@ export function ProjectSelector() {
             headers: {
               Authorization: `Bearer ${user.accessToken}`,
             },
-          }
+          },
         );
 
         if (!response.ok) {
@@ -82,7 +82,7 @@ export function ProjectSelector() {
       Array.from(projects.values()).map((p) => ({
         value: p.id,
         label: p.name,
-      }))
+      })),
     );
   }, [projects]);
 
@@ -123,7 +123,9 @@ export function ProjectSelector() {
                   <Check
                     className={cn(
                       "ml-auto",
-                      project?.id === option.value ? "opacity-100" : "opacity-0"
+                      project?.id === option.value
+                        ? "opacity-100"
+                        : "opacity-0",
                     )}
                   />
                 </CommandItem>

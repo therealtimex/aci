@@ -49,7 +49,7 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
             userId,
             accessToken,
           }
-        : null
+        : null,
     );
   }, []);
 

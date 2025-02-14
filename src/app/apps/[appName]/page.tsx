@@ -52,12 +52,12 @@ const AppPage = () => {
             all_functions_enabled: true,
             enabled_functions: [],
           }),
-        }
+        },
       );
 
       if (response.status === 409) {
         toast.error(
-          `App configuration already exists for app: ${app.display_name}`
+          `App configuration already exists for app: ${app.display_name}`,
         );
         return;
       }
@@ -86,7 +86,7 @@ const AppPage = () => {
         headers: {
           "X-API-KEY": apiKey,
         },
-      }
+      },
     );
 
     if (!response.ok) {
@@ -112,7 +112,7 @@ const AppPage = () => {
         headers: {
           "X-API-KEY": apiKey,
         },
-      }
+      },
     );
 
     if (!response.ok) {
@@ -139,7 +139,7 @@ const AppPage = () => {
         headers: {
           "X-API-KEY": apiKey,
         },
-      }
+      },
     );
 
     if (!response.ok) {

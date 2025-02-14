@@ -32,7 +32,7 @@ export function AppFunctionsTable({ functions }: AppFunctionsTableProps) {
   //   new Set(functions.flatMap((func) => func.categories || []))
   // );
   const tags = Array.from(
-    new Set(functions.flatMap((func) => func.tags || []))
+    new Set(functions.flatMap((func) => func.tags || [])),
   );
 
   const filteredFunctions = functions.filter((func) => {

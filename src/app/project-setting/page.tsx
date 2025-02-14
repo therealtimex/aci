@@ -129,9 +129,13 @@ export default function ProjectSettingPage() {
                   <TableHead>ENABLED APPS</TableHead>
                   <TableHead>
                     <Tooltip>
-                      <TooltipTrigger className="text-left">INSTRUCTION FILTER</TooltipTrigger>
+                      <TooltipTrigger className="text-left">
+                        INSTRUCTION FILTER
+                      </TooltipTrigger>
                       <TooltipContent>
-                        <p>Specific instructions for each app to modulate its use</p>
+                        <p>
+                          Specific instructions for each app to modulate its use
+                        </p>
                       </TooltipContent>
                     </Tooltip>
                   </TableHead>

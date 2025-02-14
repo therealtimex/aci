@@ -9,7 +9,7 @@ const nextConfig: NextConfig = {
   // reenable rewrite after we switched to secure http cookie
   // for dev portal authentication
 
-  // rewrite does not forward Authorization header, so it 
+  // rewrite does not forward Authorization header, so it
   // doesn't work with bearer token auth
   // rewrites: async () => {
   //   return [

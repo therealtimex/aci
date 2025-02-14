@@ -70,7 +70,7 @@ export function AddAccountForm({ app, updateLinkedAccounts }: AddAccountProps) {
 
   const fetchOath2LinkURL = async (
     linkedAccountOwnerId: string,
-    afterOAuth2LinkRedirectURL?: string
+    afterOAuth2LinkRedirectURL?: string,
   ): Promise<string> => {
     if (linkedAccountOwnerId === "") {
       throw new Error("Account owner ID is required");
@@ -90,7 +90,10 @@ export function AddAccountForm({ app, updateLinkedAccounts }: AddAccountProps) {
     params.append("app_name", app.name);
     params.append("linked_account_owner_id", linkedAccountOwnerId);
     if (afterOAuth2LinkRedirectURL) {
-      params.append("after_oauth2_link_redirect_url", afterOAuth2LinkRedirectURL);
+      params.append(
+        "after_oauth2_link_redirect_url",
+        afterOAuth2LinkRedirectURL,
+      );
     }
 
     const response = await fetch(
@@ -103,7 +106,7 @@ export function AddAccountForm({ app, updateLinkedAccounts }: AddAccountProps) {
           "Content-Type": "application/json",
           "X-API-KEY": project.agents[0].api_keys[0].key,
         },
-      }
+      },
     );
     const data = await response.json();
     return data.url;
@@ -137,7 +140,7 @@ export function AddAccountForm({ app, updateLinkedAccounts }: AddAccountProps) {
     try {
       oauth2LinkURL = await fetchOath2LinkURL(
         linkedAccountOwnerId,
-        `${process.env.NEXT_PUBLIC_DEV_PORTAL_URL}/appconfig/${app.name}`
+        `${process.env.NEXT_PUBLIC_DEV_PORTAL_URL}/appconfig/${app.name}`,
       );
       window.location.href = oauth2LinkURL;
     } catch (error) {
@@ -169,7 +172,7 @@ export function AddAccountForm({ app, updateLinkedAccounts }: AddAccountProps) {
           app_name: app.name,
           linked_account_owner_id: linkedAccountOwnerId,
         }),
-      }
+      },
     );
 
     if (!response.ok) {

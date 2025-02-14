@@ -31,7 +31,7 @@ export default function AppStorePage() {
           headers: {
             "X-API-KEY": project.agents[0].api_keys[0].key,
           },
-        }
+        },
       );
 
       if (!response.ok) {

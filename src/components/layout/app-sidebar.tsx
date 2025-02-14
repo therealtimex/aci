@@ -23,7 +23,11 @@ import { ProjectSelector } from "./project-selector";
 import { PiStorefront } from "react-icons/pi";
 import { GoHome } from "react-icons/go";
 import { RiSettings4Line } from "react-icons/ri";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 export function AppSidebar() {
   const { state } = useSidebar();
@@ -55,10 +59,12 @@ export function AppSidebar() {
   return (
     <Sidebar variant="inset" collapsible="icon" className="flex flex-col">
       <SidebarHeader>
-        <div className={cn(
-          "flex items-center p-4",
-          isCollapsed ? "justify-center" : "justify-between gap-2"
-        )}>
+        <div
+          className={cn(
+            "flex items-center p-4",
+            isCollapsed ? "justify-center" : "justify-between gap-2",
+          )}
+        >
           {!isCollapsed && (
             <div className="h-8 w-auto relative">
               <Image
@@ -74,12 +80,14 @@ export function AppSidebar() {
           <SidebarTrigger />
         </div>
         <Separator />
-        <div className={cn(
-          "transition-all duration-200 overflow-hidden",
-          isCollapsed 
-            ? "max-h-0 opacity-0 scale-95" 
-            : "max-h-[100px] opacity-100 scale-100"
-        )}>
+        <div
+          className={cn(
+            "transition-all duration-200 overflow-hidden",
+            isCollapsed
+              ? "max-h-0 opacity-0 scale-95"
+              : "max-h-[100px] opacity-100 scale-100",
+          )}
+        >
           <div className="w-full p-4">
             <ProjectSelector />
           </div>
@@ -96,11 +104,11 @@ export function AppSidebar() {
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <SidebarMenuButton asChild>
-                        <Link 
-                          href={item.url} 
+                        <Link
+                          href={item.url}
                           className={cn(
                             "flex items-center gap-3 px-4 py-2",
-                            isCollapsed && "justify-center"
+                            isCollapsed && "justify-center",
                           )}
                         >
                           <item.icon className="h-5 w-5 flex-shrink-0" />
@@ -109,9 +117,7 @@ export function AppSidebar() {
                       </SidebarMenuButton>
                     </TooltipTrigger>
                     {isCollapsed && (
-                      <TooltipContent side="right">
-                        {item.title}
-                      </TooltipContent>
+                      <TooltipContent side="right">{item.title}</TooltipContent>
                     )}
                   </Tooltip>
                 </SidebarMenuItem>
@@ -124,10 +130,10 @@ export function AppSidebar() {
       <SidebarFooter>
         <Separator />
         <Link
-          href="/account" 
+          href="/account"
           className={cn(
             "flex items-center gap-3 p-4",
-            isCollapsed && "justify-center"
+            isCollapsed && "justify-center",
           )}
         >
           <RiSettings4Line className="h-5 w-5 flex-shrink-0" />

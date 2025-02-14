@@ -30,9 +30,7 @@ export function AppCard({ app }: AppCardProps) {
                   className="object-cover"
                 />
               </div>
-              <CardTitle className="truncate">
-                {app.display_name}
-              </CardTitle>
+              <CardTitle className="truncate">{app.display_name}</CardTitle>
             </div>
             <div className="flex-shrink-0 w-20">
               <IdDisplay id={app.id} />

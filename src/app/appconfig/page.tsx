@@ -34,7 +34,7 @@ export default function AppConfigPage() {
           headers: {
             "X-API-KEY": project.agents[0].api_keys[0].key,
           },
-        }
+        },
       );
 
       if (!response.ok) {
@@ -72,7 +72,7 @@ export default function AppConfigPage() {
           headers: {
             "X-API-KEY": project.agents[0].api_keys[0].key,
           },
-        }
+        },
       );
 
       if (!response.ok) {
@@ -82,10 +82,13 @@ export default function AppConfigPage() {
 
       const retrievedApps: App[] = await response.json();
       setAppsMap(
-        retrievedApps.reduce((acc, app) => {
-          acc[app.name] = app;
-          return acc;
-        }, {} as Record<string, App>)
+        retrievedApps.reduce(
+          (acc, app) => {
+            acc[app.name] = app;
+            return acc;
+          },
+          {} as Record<string, App>,
+        ),
       );
     } catch (error) {
       console.error("Error fetching apps:", error);

@@ -21,7 +21,7 @@ export function AppGrid({ apps }: AppGridProps) {
   const [selectedCategory, setSelectedCategory] = useState("all");
   // const [selectedTag, setSelectedTag] = useState("all");
 
-  const categories = Array.from(new Set(apps.flatMap(app => app.categories)));
+  const categories = Array.from(new Set(apps.flatMap((app) => app.categories)));
   // const tags = Array.from(new Set(apps.flatMap(app => app.tags)));
 
   const filteredApps = apps.filter((app) => {
@@ -30,8 +30,7 @@ export function AppGrid({ apps }: AppGridProps) {
       app.description.toLowerCase().includes(searchQuery.toLowerCase());
 
     const matchesCategory =
-      selectedCategory === "all" ||
-      app.categories.includes(selectedCategory);
+      selectedCategory === "all" || app.categories.includes(selectedCategory);
 
     // const matchesTag =
     //   selectedTag === "all" ||

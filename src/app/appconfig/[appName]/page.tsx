@@ -53,7 +53,7 @@ export default function AppConfigDetailPage() {
         headers: {
           "X-API-KEY": apiKey,
         },
-      }
+      },
     );
 
     if (!response.ok) {
@@ -81,7 +81,7 @@ export default function AppConfigDetailPage() {
         headers: {
           "X-API-KEY": apiKey,
         },
-      }
+      },
     );
 
     if (!response.ok) {
