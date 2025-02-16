@@ -15,7 +15,7 @@ from aipolabs.common.schemas.security_scheme import (
 )
 
 
-class AppCreate(BaseModel):
+class AppUpsert(BaseModel):
     name: str
     display_name: str
     provider: str
@@ -30,13 +30,40 @@ class AppCreate(BaseModel):
         SecurityScheme, APIKeySchemeCredentials | OAuth2SchemeCredentials
     ]
 
-    @field_validator("name")
+    @field_validator("name", check_fields=False)
     def validate_name(cls, v: str) -> str:
         if not re.match(r"^[A-Z_]+$", v) or "__" in v:
             raise ValueError(
                 "name must be uppercase, contain only letters and underscores, and not have consecutive underscores"
             )
         return v
+
+    @field_validator("security_schemes", check_fields=False)
+    def validate_security_schemes(
+        cls, v: dict[SecurityScheme, APIKeyScheme | OAuth2Scheme]
+    ) -> dict[SecurityScheme, APIKeyScheme | OAuth2Scheme]:
+        for scheme_type, scheme_config in v.items():
+            if scheme_type == SecurityScheme.API_KEY and not isinstance(
+                scheme_config, APIKeyScheme
+            ):
+                raise ValueError(f"Invalid configuration for API_KEY scheme: {scheme_config}")
+            elif scheme_type == SecurityScheme.OAUTH2 and not isinstance(
+                scheme_config, OAuth2Scheme
+            ):
+                raise ValueError(f"Invalid configuration for OAUTH2 scheme: {scheme_config}")
+        return v
+
+
+class AppEmbeddingFields(BaseModel):
+    """
+    Fields used to generate app embedding.
+    """
+
+    name: str
+    display_name: str
+    provider: str
+    description: str
+    categories: list[str]
 
 
 class AppsSearch(BaseModel):
