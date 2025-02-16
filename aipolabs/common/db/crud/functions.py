@@ -6,61 +6,66 @@ from aipolabs.common.db import crud
 from aipolabs.common.db.sql_models import App, Function
 from aipolabs.common.enums import Visibility
 from aipolabs.common.logging import get_logger
-from aipolabs.common.schemas.function import FunctionCreate
+from aipolabs.common.schemas.function import FunctionUpsert
 
 logger = get_logger(__name__)
 
 
-# TODO: move logic check to schema validation or caller
-# - pass app id
-# - app exists
-# - app is active
-# - function names are unique
-# - all functions belong to the same app
-# - function names are valid etc
 def create_functions(
     db_session: Session,
-    functions_create: list[FunctionCreate],
+    functions_upsert: list[FunctionUpsert],
     functions_embeddings: list[list[float]],
 ) -> list[Function]:
-    """Create functions of the same app"""
-    logger.debug(f"upserting functions: {functions_create}")
-    # each function name must be unique
-    if len(functions_create) != len(
-        set(function_create.name for function_create in functions_create)
-    ):
-        raise ValueError("Function names must be unique")
-    # all functions must belong to the same app
-    app_names = set(
-        [
-            utils.parse_app_name_from_function_name(function_create.name)
-            for function_create in functions_create
-        ]
-    )
-    if len(app_names) != 1:
-        raise ValueError("All functions must belong to the same app")
-    app_name = app_names.pop()
-    # check if the app exists: allow creating even if app is inactive
-    app = crud.apps.get_app(db_session, app_name, False, False)
-    if not app:
-        raise ValueError(f"App {app_name} does not exist")
+    """
+    Create functions.
+    Note: each function might be of different app.
+    """
+    logger.debug(f"creating functions: {functions_upsert}")
 
     functions = []
-    for i, function_create in enumerate(functions_create):
+    for i, function_upsert in enumerate(functions_upsert):
+        app_name = utils.parse_app_name_from_function_name(function_upsert.name)
+        app = crud.apps.get_app(db_session, app_name, False, False)
+        if not app:
+            logger.error(f"App={app_name} does not exist for function={function_upsert.name}")
+            raise ValueError(f"App={app_name} does not exist for function={function_upsert.name}")
+        function_data = function_upsert.model_dump(mode="json", exclude_none=True)
         function = Function(
             app_id=app.id,
-            name=function_create.name,
-            description=function_create.description,
-            tags=function_create.tags,
-            visibility=function_create.visibility,
-            active=function_create.active,
-            protocol=function_create.protocol,
-            protocol_data=function_create.protocol_data.model_dump(),
-            parameters=function_create.parameters,
-            response=function_create.response,
+            **function_data,
             embedding=functions_embeddings[i],
         )
         db_session.add(function)
+        functions.append(function)
+
+    db_session.flush()
+
+    return functions
+
+
+def update_functions(
+    db_session: Session,
+    functions_upsert: list[FunctionUpsert],
+    functions_embeddings: list[list[float] | None],
+) -> list[Function]:
+    """
+    Update functions.
+    Note: each function might be of different app.
+    With the option to update the function embedding. (needed if FunctionEmbeddingFields are updated)
+    """
+    logger.debug(f"updating functions: {functions_upsert}")
+    functions = []
+    for i, function_upsert in enumerate(functions_upsert):
+        function = crud.functions.get_function(db_session, function_upsert.name, False, False)
+        if not function:
+            logger.error(f"Function={function_upsert.name} does not exist")
+            raise ValueError(f"Function={function_upsert.name} does not exist")
+
+        function_data = function_upsert.model_dump(mode="json", exclude_unset=True)
+        for field, value in function_data.items():
+            setattr(function, field, value)
+        if functions_embeddings[i] is not None:
+            function.embedding = functions_embeddings[i]
         functions.append(function)
 
     db_session.flush()

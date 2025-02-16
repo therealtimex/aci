@@ -26,14 +26,15 @@ docker compose exec runner python -m aipolabs.cli.aipolabs create-app --app-file
 </details>
 
 <details>
-  <summary>Create Functions</summary>
+  <summary>Upsert Functions</summary>
   
-  - Create functions for an app in the database, based on the functions json file provided.
-  - Note that the app must already exist in the database.
+  - Create functions or update existing functions for an app in the database, based on the functions json file provided.
+  - The functions json file must contain functions for the same app.
+  - The app must already exist in the database.
   - Example files: [`google_calendar`](../../apps/google_calendar/functions.json).
 
   ```bash
-  python -m aipolabs.cli.aipolabs create-functions --functions-file ./apps/google_calendar/functions.json
+  python -m aipolabs.cli.aipolabs upsert-functions --functions-file ./apps/google_calendar/functions.json
   ```
 </details>
 

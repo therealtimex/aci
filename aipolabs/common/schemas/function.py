@@ -26,7 +26,7 @@ class GraphQLMetadata(BaseModel):
     pass
 
 
-class FunctionCreate(BaseModel):
+class FunctionUpsert(BaseModel):
     name: str
     description: str
     tags: list[str]
@@ -39,7 +39,7 @@ class FunctionCreate(BaseModel):
 
     # validate parameters json schema
     @model_validator(mode="after")
-    def validate_parameters(self) -> "FunctionCreate":
+    def validate_parameters(self) -> "FunctionUpsert":
 
         # Validate that parameters schema itself is a valid JSON Schema
         jsonschema.validate(instance=self.parameters, schema=jsonschema.Draft7Validator.META_SCHEMA)
@@ -61,7 +61,7 @@ class FunctionCreate(BaseModel):
 
     # validate protocol_data against protocol type
     @model_validator(mode="after")
-    def validate_metadata_by_protocol(self) -> "FunctionCreate":
+    def validate_metadata_by_protocol(self) -> "FunctionUpsert":
         protocol_to_class = {Protocol.REST: RestMetadata}
 
         expected_class = protocol_to_class[self.protocol]
@@ -71,6 +71,17 @@ class FunctionCreate(BaseModel):
                 f"but got {type(self.protocol_data).__name__}"
             )
         return self
+
+
+class FunctionEmbeddingFields(BaseModel):
+    """
+    Fields used to generate function embedding.
+    """
+
+    # TODO: more relevant fields?
+    name: str
+    description: str
+    parameters: dict
 
 
 class FunctionsList(BaseModel):
