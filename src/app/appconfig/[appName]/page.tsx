@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { LinkedAccount } from "@/lib/types/linkedaccount";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
@@ -20,6 +20,9 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { App } from "@/lib/types/app";
 import { useProject } from "@/components/context/project";
 import { AddAccountForm } from "@/components/appconfig/add-account";
+import { getApiKey } from "@/lib/api/util";
+import { getApp } from "@/lib/api/app";
+import { getLinkedAccounts } from "@/lib/api/linkedaccount";
 
 export default function AppConfigDetailPage() {
   const { appName } = useParams<{ appName: string }>();
@@ -27,75 +30,22 @@ export default function AppConfigDetailPage() {
   const [app, setApp] = useState<App | null>(null);
   const [linkedAccounts, setLinkedAccounts] = useState<LinkedAccount[]>([]);
 
-  const getApiKey = useCallback(() => {
-    if (
-      !project ||
-      !project.agents ||
-      project.agents.length === 0 ||
-      !project.agents[0].api_keys ||
-      project.agents[0].api_keys.length === 0
-    ) {
-      return null;
-    }
-    return project.agents[0].api_keys[0].key;
-  }, [project]);
-
-  const updateApp = useCallback(async () => {
-    const apiKey = getApiKey();
-    if (!apiKey) return null;
-    const params = new URLSearchParams();
-    params.append("app_names", appName);
-
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/v1/apps/?${params.toString()}`,
-      {
-        method: "GET",
-        headers: {
-          "X-API-KEY": apiKey,
-        },
-      },
-    );
-
-    if (!response.ok) {
-      throw new Error(`Failed to fetch app`);
-    }
-
-    const apps = await response.json();
-    const app = apps[0];
-    setApp(app);
-    return app;
-  }, [appName, getApiKey]);
-
-  const updateLinkedAccounts = useCallback(async () => {
-    const apiKey = getApiKey();
-    if (!apiKey) return null;
-    const params = new URLSearchParams();
-    params.append("app_name", appName);
-
-    const response = await fetch(
-      `${
-        process.env.NEXT_PUBLIC_API_URL
-      }/v1/linked-accounts/?${params.toString()}`,
-      {
-        method: "GET",
-        headers: {
-          "X-API-KEY": apiKey,
-        },
-      },
-    );
-
-    if (!response.ok) {
-      throw new Error(`Failed to fetch linked accounts`);
-    }
-
-    const linkedAccounts = await response.json();
-    setLinkedAccounts(linkedAccounts);
-  }, [appName, getApiKey]);
-
   useEffect(() => {
-    updateApp();
-    updateLinkedAccounts();
-  }, [updateApp, updateLinkedAccounts]);
+    async function loadAppAndLinkedAccounts() {
+      if (!project) {
+        console.warn("No active project");
+        return;
+      }
+      const apiKey = getApiKey(project);
+
+      const app = await getApp(appName, apiKey);
+      setApp(app);
+
+      const linkedAccounts = await getLinkedAccounts(appName, apiKey);
+      setLinkedAccounts(linkedAccounts);
+    }
+    loadAppAndLinkedAccounts();
+  }, [project, appName]);
 
   return (
     <div className="p-6">
@@ -119,7 +69,16 @@ export default function AppConfigDetailPage() {
         {app && (
           <AddAccountForm
             app={app}
-            updateLinkedAccounts={updateLinkedAccounts}
+            updateLinkedAccounts={async () => {
+              if (!project) {
+                console.warn("No active project");
+                return;
+              }
+              const apiKey = getApiKey(project);
+
+              const linkedAccounts = await getLinkedAccounts(appName, apiKey);
+              setLinkedAccounts(linkedAccounts);
+            }}
           />
         )}
       </div>

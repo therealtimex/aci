@@ -26,6 +26,7 @@ import { RiSettings3Line } from "react-icons/ri";
 import { useUser } from "@/components/context/user";
 import { Project } from "@/lib/types/project";
 import Link from "next/link";
+import { getProjects } from "@/lib/api/project";
 
 interface ProjectSelectOption {
   value: string; // project id
@@ -43,27 +44,13 @@ export function ProjectSelector() {
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
-    async function fetchProjects() {
+    async function loadProjects() {
       if (!user) {
         return;
       }
 
       try {
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/v1/projects/`,
-          {
-            method: "GET",
-            headers: {
-              Authorization: `Bearer ${user.accessToken}`,
-            },
-          },
-        );
-
-        if (!response.ok) {
-          console.log(response);
-          throw new Error(`Failed to fetch projects`);
-        }
-        const retrievedProjects: Project[] = await response.json();
+        const retrievedProjects = await getProjects(user.accessToken);
 
         setProjects(new Map(retrievedProjects.map((p) => [p.id, p])));
         if (!project && retrievedProjects.length > 0) {
@@ -74,7 +61,7 @@ export function ProjectSelector() {
       }
     }
 
-    fetchProjects();
+    loadProjects();
   }, [user, project, setProject, setProjects]);
 
   useEffect(() => {
