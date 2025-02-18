@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { type AppConfig } from "@/lib/types/appconfig";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Select,
   SelectContent,
@@ -18,44 +18,134 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
+// import { Switch } from "@/components/ui/switch";
 import Link from "next/link";
 import { Input } from "@/components/ui/input";
 import { IdDisplay } from "../apps/id-display";
 import { GoTrash } from "react-icons/go";
 import { App } from "@/lib/types/app";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { deleteAppConfig } from "@/lib/api/appconfig";
+import { useProject } from "@/components/context/project";
+import { getApiKey } from "@/lib/api/util";
+import { getLinkedAccounts } from "@/lib/api/linkedaccount";
+import { getApps } from "@/lib/api/app";
 
 interface AppConfigsTableProps {
   appConfigs: AppConfig[];
-  appsMap: Record<string, App>;
+  updateAppConfigs: () => void;
 }
 
-export function AppConfigsTable({ appConfigs, appsMap }: AppConfigsTableProps) {
+export function AppConfigsTable({
+  appConfigs,
+  updateAppConfigs,
+}: AppConfigsTableProps) {
+  const { project } = useProject();
+
+  const [appsMap, setAppsMap] = useState<Record<string, App>>({});
+  const [linkedAccountsCountMap, setLinkedAccountsCountMap] = useState<
+    Record<string, number>
+  >({});
+
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
 
-  const filteredAppConfigs = appConfigs.filter((config) =>
-    config.id.toLowerCase().includes(searchQuery.toLowerCase()),
+  const categories = Array.from(
+    new Set(Object.values(appsMap).flatMap((app) => app.categories)),
   );
+
+  const filteredAppConfigs = appConfigs.filter((config) => {
+    const matchesNameAndCategory =
+      config.app_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      appsMap[config.app_name].categories.some((c) =>
+        c.toLowerCase().includes(searchQuery.toLowerCase()),
+      );
+
+    const matchesCategory =
+      selectedCategory === "all" ||
+      appsMap[config.app_name].categories.includes(selectedCategory);
+
+    return matchesNameAndCategory && matchesCategory;
+  });
+
+  useEffect(() => {
+    async function loadAppMaps() {
+      if (!appConfigs) {
+        return;
+      }
+
+      if (!project) {
+        console.warn("No active project");
+        return;
+      }
+      const apiKey = getApiKey(project);
+
+      const apps = await getApps(
+        appConfigs.map((config) => config.app_name),
+        apiKey,
+      );
+      setAppsMap(
+        apps.reduce(
+          (acc, app) => {
+            acc[app.name] = app;
+            return acc;
+          },
+          {} as Record<string, App>,
+        ),
+      );
+    }
+    loadAppMaps();
+  }, [project, appConfigs]);
+
+  useEffect(() => {
+    async function loadLinkedAccountsCountMap() {
+      if (!project) {
+        console.warn("No active project");
+        return;
+      }
+      const apiKey = getApiKey(project);
+
+      appConfigs.forEach(async (config) => {
+        const linkedAccounts = await getLinkedAccounts(config.app_name, apiKey);
+        setLinkedAccountsCountMap((prev) => ({
+          ...prev,
+          [config.app_name]: linkedAccounts.length,
+        }));
+      });
+    }
+    loadLinkedAccountsCountMap();
+  }, [project, appConfigs]);
 
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
         <div className="flex-1 flex items-center space-x-4">
           <Input
-            placeholder="Search keyword, category, etc."
+            placeholder="Search by app name or category"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="max-w-sm"
           />
           <Select value={selectedCategory} onValueChange={setSelectedCategory}>
             <SelectTrigger className="w-[120px]">
-              <SelectValue placeholder="Category" />
+              <SelectValue placeholder="all" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All</SelectItem>
-              <SelectItem value="development">Development</SelectItem>
-              <SelectItem value="productivity">Productivity</SelectItem>
+              {["all", ...categories].map((category) => (
+                <SelectItem key={category} value={category}>
+                  {category}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
@@ -66,37 +156,71 @@ export function AppConfigsTable({ appConfigs, appsMap }: AppConfigsTableProps) {
           <TableHeader className="bg-gray-100">
             <TableRow>
               <TableHead>APP NAME</TableHead>
-              <TableHead>APP ID</TableHead>
               <TableHead>LINKED ACCOUNTS</TableHead>
-              <TableHead>ENABLED</TableHead>
+              {/* <TableHead>ENABLED</TableHead> */}
               <TableHead></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {filteredAppConfigs.map((config) => (
               <TableRow key={config.id}>
-                <TableCell>{appsMap[config.app_name]?.display_name}</TableCell>
                 <TableCell>
-                  <div className="flex-shrink-0 w-20">
-                    <IdDisplay id={appsMap[config.app_name]?.id} />
-                  </div>
+                  <IdDisplay id={config.app_name} dim={false} />
                 </TableCell>
                 <TableCell>
-                  10
-                  {/* TODO: query backend to display read linked accounts number */}
+                  {linkedAccountsCountMap[config.app_name] || 0}
                 </TableCell>
-                <TableCell>
+                {/* <TableCell>
                   <Switch checked={config.enabled} />
-                </TableCell>
+                </TableCell> */}
                 <TableCell className="space-x-2 flex">
                   <Link href={`/appconfig/${config.app_name}`}>
                     <Button variant="outline" size="sm">
                       Open
                     </Button>
                   </Link>
-                  <Button variant="ghost" size="sm" className="text-red-600">
-                    <GoTrash />
-                  </Button>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-red-600"
+                      >
+                        <GoTrash />
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Confirm Deletion?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          This action cannot be undone. This will permanently
+                          delete this app configuration and remove all the
+                          linked accounts for this app.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={async () => {
+                            try {
+                              if (!project) {
+                                console.warn("No active project");
+                                return;
+                              }
+                              const apiKey = getApiKey(project);
+
+                              await deleteAppConfig(config.app_name, apiKey);
+                              updateAppConfigs();
+                            } catch (error) {
+                              console.error(error);
+                            }
+                          }}
+                        >
+                          Delete
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </TableCell>
               </TableRow>
             ))}

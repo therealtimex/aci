@@ -21,7 +21,7 @@ import {
 import { useEffect, useState } from "react";
 import { useProject } from "@/components/context/project";
 import { Skeleton } from "../ui/skeleton";
-import { GoPlus } from "react-icons/go";
+// import { GoPlus } from "react-icons/go";
 import { RiSettings3Line } from "react-icons/ri";
 import { useUser } from "@/components/context/user";
 import { Project } from "@/lib/types/project";
@@ -120,10 +120,10 @@ export function ProjectSelector() {
             </CommandGroup>
             <CommandSeparator />
             <CommandGroup>
-              <CommandItem>
+              {/* <CommandItem>
                 <GoPlus />
                 <span>Create Project</span>
-              </CommandItem>
+              </CommandItem> */}
               <Link href="/project-setting">
                 <CommandItem>
                   <RiSettings3Line />

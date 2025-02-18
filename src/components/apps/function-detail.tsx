@@ -12,7 +12,6 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { type AppFunction } from "@/lib/types/appfunction";
-import { IdDisplay } from "@/components/apps/id-display";
 import { ScrollArea } from "../ui/scroll-area";
 
 interface FunctionDetailProps {
@@ -43,14 +42,6 @@ export function FunctionDetail({ func }: FunctionDetailProps) {
             </div>
             <div className="space-y-1">
               <div className="text-sm font-medium text-muted-foreground">
-                Function ID
-              </div>
-              <div className="font-mono w-fit bg-muted px-2 py-1 rounded-md">
-                <IdDisplay id={func.id} />
-              </div>
-            </div>
-            <div className="space-y-1">
-              <div className="text-sm font-medium text-muted-foreground">
                 Description
               </div>
               <div className="bg-muted px-2 py-1 rounded-md">
@@ -61,14 +52,14 @@ export function FunctionDetail({ func }: FunctionDetailProps) {
           <Tabs defaultValue="request">
             <TabsList>
               <TabsTrigger value="request">Request Schema</TabsTrigger>
-              <TabsTrigger value="response">Response Schema</TabsTrigger>
+              {/* <TabsTrigger value="response">Response Schema</TabsTrigger> */}
             </TabsList>
             <TabsContent value="request" className="mt-4">
               <ScrollArea className="h-96 rounded-md border p-4">
                 <ReactJson name="parameters" src={func.parameters} />
               </ScrollArea>
             </TabsContent>
-            <TabsContent value="response" className="mt-4"></TabsContent>
+            {/* <TabsContent value="response" className="mt-4"></TabsContent> */}
           </Tabs>
         </div>
         <DialogFooter>

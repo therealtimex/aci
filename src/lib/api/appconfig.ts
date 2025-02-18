@@ -91,3 +91,19 @@ export async function createAppConfig(
   const appConfig = await response.json();
   return appConfig;
 }
+
+export async function deleteAppConfig(appName: string, apiKey: string): Promise<Response> {
+  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/v1/app-configurations/${appName}`, {
+    method: 'DELETE',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-API-KEY': apiKey,
+    }
+  });
+  
+  if (!response.ok) {
+    throw new Error(`Failed to delete app configuration for ${appName}: ${response.status} ${response.statusText}`);
+  }
+  
+  return response;
+}

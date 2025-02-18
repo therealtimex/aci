@@ -18,7 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { IdDisplay } from "@/components/apps/id-display";
+import { IdDisplay } from "./id-display";
 
 interface AppFunctionsTableProps {
   functions: AppFunction[];
@@ -76,7 +76,6 @@ export function AppFunctionsTable({ functions }: AppFunctionsTableProps) {
           <TableHeader className="bg-gray-100">
             <TableRow>
               <TableHead>FUNCTION NAME</TableHead>
-              <TableHead>FUNCTION ID</TableHead>
               <TableHead className="max-w-[500px]">DESCRIPTION</TableHead>
               <TableHead className="text-center">ACTIONS</TableHead>
             </TableRow>
@@ -84,11 +83,8 @@ export function AppFunctionsTable({ functions }: AppFunctionsTableProps) {
           <TableBody>
             {filteredFunctions.map((func) => (
               <TableRow key={func.id}>
-                <TableCell className="font-medium">{func.name}</TableCell>
-                <TableCell>
-                  <div className="flex-shrink-0 w-24">
-                    <IdDisplay id={func.id} />
-                  </div>
+                <TableCell className="font-medium">
+                  <IdDisplay id={func.name} dim={false} />
                 </TableCell>
                 <TableCell className="max-w-[500px]">
                   {func.description}

@@ -12,9 +12,10 @@ import {
 
 interface IdDisplayProps {
   id: string;
+  dim?: boolean;
 }
 
-export function IdDisplay({ id }: IdDisplayProps) {
+export function IdDisplay({ id, dim = true }: IdDisplayProps) {
   const copyToClipboard = () => {
     if (!navigator.clipboard) {
       console.error("Clipboard API not supported");
@@ -34,11 +35,15 @@ export function IdDisplay({ id }: IdDisplayProps) {
 
   return (
     <TooltipProvider>
-      <div className="flex items-center w-full">
+      <div className="flex items-center w-full gap-1">
         <Tooltip>
           <TooltipTrigger asChild>
-            <span className="text-sm text-gray-500 truncate min-w-0 cursor-default">
-              #{id}
+            <span
+              className={`text-sm ${
+                dim ? "text-gray-500" : "text-gray-800"
+              } truncate min-w-0 cursor-default`}
+            >
+              {id}
             </span>
           </TooltipTrigger>
           <TooltipContent>

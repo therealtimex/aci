@@ -22,7 +22,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { ProjectSelector } from "./project-selector";
 import { PiStorefront } from "react-icons/pi";
-import { GoHome } from "react-icons/go";
+// import { GoHome } from "react-icons/go";
 import { RiSettings4Line } from "react-icons/ri";
 import {
   Tooltip,
@@ -35,11 +35,11 @@ export function AppSidebar() {
   const isCollapsed = state === "collapsed";
 
   const items = [
-    {
-      title: "Home",
-      url: `/`,
-      icon: GoHome,
-    },
+    // {
+    //   title: "Home",
+    //   url: `/`,
+    //   icon: GoHome,
+    // },
     {
       title: "App Store",
       url: `/apps`,

@@ -19,31 +19,26 @@ export function AppGrid({ apps }: AppGridProps) {
   const [searchQuery, setSearchQuery] = useState("");
 
   const [selectedCategory, setSelectedCategory] = useState("all");
-  // const [selectedTag, setSelectedTag] = useState("all");
 
   const categories = Array.from(new Set(apps.flatMap((app) => app.categories)));
-  // const tags = Array.from(new Set(apps.flatMap(app => app.tags)));
 
   const filteredApps = apps.filter((app) => {
-    const matchesNameOrDescription =
+    const matchesNameOrDescriptionOrCategory =
       app.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      app.description.toLowerCase().includes(searchQuery.toLowerCase());
+      app.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      app.categories.some((c) => c.toLowerCase().includes(searchQuery.toLowerCase()));
 
     const matchesCategory =
       selectedCategory === "all" || app.categories.includes(selectedCategory);
 
-    // const matchesTag =
-    //   selectedTag === "all" ||
-    //   app.tags.includes(selectedTag);
-
-    return matchesNameOrDescription && matchesCategory; // && matchesTag;
+    return matchesNameOrDescriptionOrCategory && matchesCategory;
   });
 
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-3">
         <Input
-          placeholder="Search apps..."
+          placeholder="Search apps by name, description, or category..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="max-w-sm"
@@ -51,7 +46,7 @@ export function AppGrid({ apps }: AppGridProps) {
 
         <Select onValueChange={setSelectedCategory}>
           <SelectTrigger className="w-[120px]">
-            <SelectValue placeholder="Category" />
+            <SelectValue placeholder="all" />
           </SelectTrigger>
           <SelectContent>
             {["all", ...categories].map((category) => (

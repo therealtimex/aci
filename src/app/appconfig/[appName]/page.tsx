@@ -63,7 +63,7 @@ export default function AppConfigDetailPage() {
           </div>
           <div>
             <h1 className="text-2xl font-semibold">{app?.display_name}</h1>
-            <IdDisplay id={app?.id ?? ""} />
+            <IdDisplay id={app?.name ?? ""} />
           </div>
         </div>
         {app && (
@@ -95,7 +95,7 @@ export default function AppConfigDetailPage() {
             <Table>
               <TableHeader className="bg-gray-100">
                 <TableRow>
-                  <TableHead>ACCOUNT OWNER ID</TableHead>
+                  <TableHead>LINKED ACCOUNT OWNER ID</TableHead>
                   <TableHead>CREATED AT</TableHead>
                   <TableHead>ENABLED</TableHead>
                   <TableHead></TableHead>

@@ -83,7 +83,7 @@ const AppPage = () => {
           {app && (
             <>
               <h1 className="text-2xl font-bold">{app.display_name}</h1>
-              <IdDisplay id={app.id} />
+              <IdDisplay id={app.name} />
             </>
           )}
         </div>

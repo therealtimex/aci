@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { useUser } from "@/components/context/user";
-import { Input } from "@/components/ui/input";
+// import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 
 export default function AccountPage() {
@@ -18,7 +18,7 @@ export default function AccountPage() {
 
       <div className="container p-4 space-y-4">
         {/* User Details Section */}
-        <div className="flex flex-row">
+        {/* <div className="flex flex-row">
           <div className="flex flex-col items-left w-80">
             <label className="font-semibold">User Name</label>
             <p className="text-sm text-muted-foreground">
@@ -64,10 +64,10 @@ export default function AccountPage() {
           </div>
         </div>
 
-        <Separator />
+        <Separator /> */}
 
         {/* Past Invoices Section */}
-        <div className="flex flex-row">
+        {/* <div className="flex flex-row">
           <div className="flex flex-col items-left w-80">
             <label className="font-semibold">Past Invoices</label>
             <p className="text-sm text-muted-foreground">
@@ -114,10 +114,10 @@ export default function AccountPage() {
           </div>
         </div>
 
-        <Separator />
+        <Separator /> */}
 
         {/* Team Members Section */}
-        <div className="flex flex-row">
+        {/* <div className="flex flex-row">
           <div className="flex flex-col items-left w-80">
             <label className="font-semibold">Team Members</label>
             <p className="text-sm text-muted-foreground">
@@ -166,10 +166,10 @@ export default function AccountPage() {
           </div>
         </div>
 
-        <Separator />
+        <Separator /> */}
 
         {/* Subscription Section */}
-        <div className="flex flex-row">
+        {/* <div className="flex flex-row">
           <div className="flex flex-col items-left w-80">
             <label className="font-semibold">Subscription</label>
             <p className="text-sm text-muted-foreground">
@@ -191,10 +191,10 @@ export default function AccountPage() {
           </div>
         </div>
 
-        <Separator />
+        <Separator /> */}
 
         {/* Payment Method Section */}
-        <div className="flex flex-row">
+        {/* <div className="flex flex-row">
           <div className="flex flex-col items-left w-80">
             <label className="font-semibold">Payment Method</label>
             <p className="text-sm text-muted-foreground">
@@ -216,7 +216,7 @@ export default function AccountPage() {
           </div>
         </div>
 
-        <Separator />
+        <Separator /> */}
 
         {/* Danger Zone */}
         <div className="flex flex-row">

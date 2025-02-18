@@ -182,7 +182,8 @@ export function AddAccountForm({ app, updateLinkedAccounts }: AddAccountProps) {
     >
       <DialogTrigger asChild>
         <Button>
-          <GoPlus className="mr-2" /> Add Account
+          <GoPlus />
+          Add Account
         </Button>
       </DialogTrigger>
       <DialogContent>
@@ -228,9 +229,9 @@ export function AddAccountForm({ app, updateLinkedAccounts }: AddAccountProps) {
               name="linkedAccountOwnerId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Account Owner ID</FormLabel>
+                  <FormLabel>Linked Account Owner ID</FormLabel>
                   <FormControl>
-                    <Input placeholder="account owner id" {...field} />
+                    <Input placeholder="linked account owner id" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

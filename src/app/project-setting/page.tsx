@@ -15,7 +15,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { IdDisplay } from "@/components/apps/id-display";
-import { RiTeamLine } from "react-icons/ri";
+// import { RiTeamLine } from "react-icons/ri";
 import { MdAdd } from "react-icons/md";
 import {
   Tooltip,
@@ -36,12 +36,12 @@ export default function ProjectSettingPage() {
     <div className="w-full">
       <div className="flex items-center justify-between m-4">
         <h1 className="text-2xl font-semibold">Project settings</h1>
-        <Button
+        {/* <Button
           variant="outline"
           className="text-red-500 hover:text-red-600 hover:bg-red-50"
         >
           Delete project
-        </Button>
+        </Button> */}
       </div>
       <Separator />
 
@@ -81,7 +81,7 @@ export default function ProjectSettingPage() {
         <Separator />
 
         {/* Team Section */}
-        <div className="flex flex-row">
+        {/* <div className="flex flex-row">
           <div className="flex flex-col items-left w-80">
             <label className="font-semibold">Team</label>
             <p className="text-sm text-muted-foreground">
@@ -96,7 +96,7 @@ export default function ProjectSettingPage() {
           </div>
         </div>
 
-        <Separator />
+        <Separator /> */}
 
         {/* Agent Section */}
         <div className="flex flex-row">

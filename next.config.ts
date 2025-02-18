@@ -5,6 +5,16 @@ const nextConfig: NextConfig = {
     domains: ["img.icons8.com"],
   },
 
+  async redirects() {
+    return [
+      {
+        source: '/',
+        destination: '/apps',
+        permanent: false, // TODO: remove after we enabled home page
+      },
+    ];
+  },
+
   // TODO: directly sending requests to API URL right now
   // reenable rewrite after we switched to secure http cookie
   // for dev portal authentication

@@ -32,8 +32,8 @@ export function AppCard({ app }: AppCardProps) {
               </div>
               <CardTitle className="truncate">{app.display_name}</CardTitle>
             </div>
-            <div className="flex-shrink-0 w-20">
-              <IdDisplay id={app.id} />
+            <div className="flex-shrink-0 w-24">
+              <IdDisplay id={app.name} />
             </div>
           </div>
           <CardDescription>{app.description}</CardDescription>
