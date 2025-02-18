@@ -10,9 +10,9 @@ from starlette.responses import RedirectResponse
 
 from aipolabs.common.db import crud
 from aipolabs.common.db.sql_models import User
-from aipolabs.common.exceptions import UnexpectedError
+from aipolabs.common.exceptions import AuthenticationError, UnexpectedError
 from aipolabs.common.logging import get_logger
-from aipolabs.common.schemas.user import UserCreate
+from aipolabs.common.schemas.user import IdentityProviderUserInfo, UserCreate
 from aipolabs.server import config
 from aipolabs.server import dependencies as deps
 from aipolabs.server import oauth2
@@ -40,6 +40,9 @@ OAUTH2_CLIENTS: dict[ClientIdentityProvider, StarletteOAuth2App] = {
     ),
 }
 
+LOGIN_CALLBACK_PATH_NAME = "auth_login_callback"
+SIGNUP_CALLBACK_PATH_NAME = "auth_signup_callback"
+
 
 # Function to generate JWT using Authlib
 def create_access_token(user_id: str, expires_delta: timedelta) -> str:
@@ -65,21 +68,105 @@ def create_access_token(user_id: str, expires_delta: timedelta) -> str:
 async def login(request: Request, provider: ClientIdentityProvider) -> RedirectResponse:
     oauth2_client = OAUTH2_CLIENTS[provider]
 
-    path = request.url_for("auth_callback", provider=provider.value).path
+    path = request.url_for(LOGIN_CALLBACK_PATH_NAME, provider=provider.value).path
     redirect_uri = f"{config.AIPOLABS_REDIRECT_URI_BASE}{path}"
     logger.info(f"initiating login for provider={provider}, redirecting to={redirect_uri}")
 
     return await oauth2.authorize_redirect(oauth2_client, request, redirect_uri)
 
 
+@router.get("/signup/{provider}", include_in_schema=True)
+async def signup(
+    request: Request,
+    provider: ClientIdentityProvider,
+    signup_code: str,
+    db_session: Annotated[Session, Depends(deps.yield_db_session)],
+) -> RedirectResponse:
+    _validate_signup(db_session, signup_code)
+    oauth2_client = OAUTH2_CLIENTS[provider]
+
+    path = request.url_for(SIGNUP_CALLBACK_PATH_NAME, provider=provider.value).path
+    redirect_uri = f"{config.AIPOLABS_REDIRECT_URI_BASE}{path}?signup_code={signup_code}"
+    logger.info(
+        f"initiating signup for provider={provider}, signup_code={signup_code}, redirecting to={redirect_uri}"
+    )
+
+    return await oauth2.authorize_redirect(oauth2_client, request, redirect_uri)
+
+
+@router.get(
+    "/signup/callback/{provider}",
+    name=SIGNUP_CALLBACK_PATH_NAME,
+    include_in_schema=True,
+)
+async def signup_callback(
+    request: Request,
+    response: Response,
+    provider: ClientIdentityProvider,
+    signup_code: str,
+    db_session: Annotated[Session, Depends(deps.yield_db_session)],
+) -> RedirectResponse:
+    logger.info(
+        f"signup callback received for identity provider={provider}, signup_code={signup_code}"
+    )
+    # TODO: probably not necessary to check again here, but just in case
+    _validate_signup(db_session, signup_code)
+    # TODO: try/except, retry?
+    auth_response = await oauth2.authorize_access_token(OAUTH2_CLIENTS[provider], request)
+    logger.debug(
+        f"access token requested successfully for provider={provider}, "
+        f"auth_response={auth_response}"
+    )
+
+    if provider == ClientIdentityProvider.GOOGLE:
+        if "userinfo" not in auth_response:
+            logger.error(f"userinfo not found in auth_response={auth_response}")
+            raise UnexpectedError(f"userinfo not found in auth_response={auth_response}")
+        user_info = IdentityProviderUserInfo.model_validate(auth_response["userinfo"])
+    else:
+        # TODO: implement other identity providers if added
+        raise AuthenticationError(f"unsupported identity provider={provider}")
+
+    user = crud.users.get_user(
+        db_session, identity_provider=user_info.iss, user_id_by_provider=user_info.sub
+    )
+    # avoid duplicate signup
+    if user:
+        logger.error(
+            f"user={user.id}, email={user.email} already exists for identity provider={provider}"
+        )
+        raise AuthenticationError(
+            f"user={user.id}, email={user.email} already exists for identity provider={provider}"
+        )
+
+    user = crud.users.create_user(
+        db_session,
+        UserCreate(
+            identity_provider=user_info.iss,
+            user_id_by_provider=user_info.sub,
+            name=user_info.name,
+            email=user_info.email,
+            profile_picture=user_info.picture,
+        ),
+    )
+    _onboard_new_user(db_session, user)
+
+    db_session.commit()
+    logger.info(
+        f"created new user={user.id}, email={user.email}, identity provider={provider}, signup_code={signup_code}"
+    )
+    # redirect to login page
+    return RedirectResponse(url=f"{config.DEV_PORTAL_URL}/login")
+
+
 # callback route for different identity providers
 # TODO: decision between long-lived JWT v.s session based v.s refresh token based auth
 @router.get(
-    "/callback/{provider}",
-    name="auth_callback",
+    "/login/callback/{provider}",
+    name=LOGIN_CALLBACK_PATH_NAME,
     include_in_schema=True,
 )
-async def auth_callback(
+async def login_callback(
     request: Request,
     response: Response,
     provider: ClientIdentityProvider,
@@ -94,37 +181,21 @@ async def auth_callback(
     )
 
     if provider == ClientIdentityProvider.GOOGLE:
-        user_info = auth_response["userinfo"]
+        if "userinfo" not in auth_response:
+            logger.error(f"userinfo not found in auth_response={auth_response}")
+            raise UnexpectedError(f"userinfo not found in auth_response={auth_response}")
+        user_info = IdentityProviderUserInfo.model_validate(auth_response["userinfo"])
     else:
         # TODO: implement other identity providers if added
-        pass
-
-    if not user_info["sub"]:
-        logger.error(
-            f"'sub' not found in user information for identity provider={provider}, "
-            f"user_info={user_info}"
-        )
-        raise UnexpectedError(
-            f"'sub' not found in user information for identity provider={provider}"
-        )
+        raise AuthenticationError(f"unsupported identity provider={provider}")
 
     user = crud.users.get_user(
-        db_session, identity_provider=user_info["iss"], user_id_by_provider=user_info["sub"]
+        db_session, identity_provider=user_info.iss, user_id_by_provider=user_info.sub
     )
+    # redirect to signup page if user doesn't exist
     if not user:
-        user = crud.users.create_user(
-            db_session,
-            UserCreate(
-                identity_provider=user_info["iss"],
-                user_id_by_provider=user_info["sub"],
-                name=user_info["name"],
-                email=user_info["email"],
-                profile_picture=user_info["picture"],
-            ),
-        )
-        _onboard_new_user(db_session, user)
-
-        db_session.commit()
+        logger.error(f"user not found for identity provider={provider}, user_info={user_info}")
+        return RedirectResponse(url=f"{config.DEV_PORTAL_URL}/signup")
 
     # Generate JWT token for the user
     # TODO: try/except, retry?
@@ -136,7 +207,7 @@ async def auth_callback(
         f"JWT generated successfully for user={user.id}, jwt_token={jwt_token[:4]}...{jwt_token[-4:]}"
     )
 
-    response = RedirectResponse(url=f"{config.SERVER_DEV_PORTAL_URL}")
+    response = RedirectResponse(url=f"{config.DEV_PORTAL_URL}")
     response.set_cookie(
         key="accessToken",
         value=jwt_token,
@@ -165,3 +236,18 @@ def _onboard_new_user(db_session: Session, user: User) -> None:
         custom_instructions={},
     )
     logger.info(f"created default agent={agent.id} for project={project.id}")
+
+
+def _validate_signup(db_session: Session, signup_code: str) -> None:
+    if signup_code not in config.PERMITTED_SIGNUP_CODES:
+        logger.error(f"invalid signup code={signup_code}")
+        raise AuthenticationError(f"invalid signup code={signup_code}")
+
+    total_users = crud.users.get_total_number_of_users(db_session)
+    if total_users >= config.MAX_USERS:
+        logger.error(
+            f"max number of users={config.MAX_USERS} reached, signup failed with signup_code={signup_code}"
+        )
+        raise AuthenticationError(
+            "no longer accepting new users, please email us contact@aipolabs.xyz if you still like to access"
+        )
