@@ -19,6 +19,7 @@ export interface User {
 interface UserContextType {
   user: User | null;
   setUser: React.Dispatch<React.SetStateAction<User | null>>;
+  signup: (signup_code: string) => void;
   login: () => void;
   logout: () => void;
 }
@@ -57,14 +58,18 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
     window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/v1/auth/login/google/`;
   }, []);
 
+  const signup = useCallback((signup_code: string) => {
+    window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/v1/auth/signup/google?signup_code=${encodeURIComponent(signup_code)}`;
+  }, []);
+
   const logout = useCallback(() => {
     Cookies.remove("accessToken");
     setUser(null);
-    // TODO: redirect to home page
+    window.location.href = "/";
   }, [setUser]);
 
   return (
-    <UserContext.Provider value={{ user, setUser, login, logout }}>
+    <UserContext.Provider value={{ user, setUser, login, logout, signup }}>
       {children}
     </UserContext.Provider>
   );
