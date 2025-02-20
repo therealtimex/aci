@@ -2,24 +2,28 @@ import logging
 import shutil
 from logging.handlers import RotatingFileHandler
 
-# from logging.handlers import RotatingFileHandler
-
 
 # the setup is called once at the start of the app
 def setup_logging(
+    formatter: logging.Formatter | None = None,
+    level: int = logging.INFO,
+    filters: list[logging.Filter] = [],
     include_file_handler: bool = False,
     file_path: str | None = None,
-    level: int = logging.INFO,
 ) -> None:
+    if formatter is None:
+        formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 
-    # Define log format for both console and file output
-    log_format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-    formatter = logging.Formatter(log_format)
+    root_logger = logging.getLogger()
+    root_logger.setLevel(level)  # Set the root logger level
 
     # Create a console handler (for output to console)
     console_handler = logging.StreamHandler()
     console_handler.setFormatter(formatter)
-    console_handler.setLevel(logging.INFO)
+    console_handler.setLevel(level)
+    for filter in filters:
+        console_handler.addFilter(filter)
+    root_logger.addHandler(console_handler)
 
     if include_file_handler:
         if file_path is None:
@@ -27,12 +31,8 @@ def setup_logging(
         file_handler = RotatingFileHandler(file_path, maxBytes=10485760, backupCount=10)
         file_handler.setFormatter(formatter)
         file_handler.setLevel(level)
-
-    # Get the root logger and configure it
-    root_logger = logging.getLogger()
-    root_logger.setLevel(level)  # Set the root logger level
-    root_logger.addHandler(console_handler)
-    if include_file_handler:
+        for filter in filters:
+            file_handler.addFilter(filter)
         root_logger.addHandler(file_handler)
 
     # Set up module-specific loggers if necessary (e.g., with different levels)
