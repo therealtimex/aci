@@ -54,6 +54,7 @@ export function ProjectSelector() {
 
         setProjects(new Map(retrievedProjects.map((p) => [p.id, p])));
         if (!project && retrievedProjects.length > 0) {
+          // TODO: there will be multiple projects in a future release
           setProject(retrievedProjects[0]);
         }
       } catch (error) {
@@ -124,7 +125,7 @@ export function ProjectSelector() {
                 <GoPlus />
                 <span>Create Project</span>
               </CommandItem> */}
-              <Link href="/project-setting">
+              <Link href="/project-setting" onClick={() => setOpen(false)}>
                 <CommandItem>
                   <RiSettings3Line />
                   <span>Manage Project</span>

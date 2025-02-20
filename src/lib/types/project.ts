@@ -18,6 +18,7 @@ export interface Agent {
   description: string;
   excluded_apps: string[];
   excluded_functions: string[];
+  custom_instructions: Record<string, string>;
   created_at: string;
   updated_at: string;
   api_keys: APIKey[];
