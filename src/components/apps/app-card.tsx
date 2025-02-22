@@ -24,7 +24,7 @@ export function AppCard({ app }: AppCardProps) {
             <div className="flex items-center gap-3 min-w-0 flex-1 mr-4">
               <div className="relative h-12 w-12 flex-shrink-0 overflow-hidden rounded-lg">
                 <Image
-                  src={`/apps/${app.name}.svg`}
+                  src={app.logo}
                   alt={`${app.name} logo`}
                   fill
                   className="object-contain"
