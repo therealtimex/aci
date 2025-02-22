@@ -55,6 +55,7 @@ The Dev Portal enables developers to create and manage their projects efficientl
    ```sh
    NEXT_PUBLIC_API_URL=http://localhost:8000
    NEXT_PUBLIC_DEV_PORTAL_URL=http://localhost:3000
+   NEXT_PUBLIC_ENVIRONMENT=local
    ```
 
 4. **Start the application:**
@@ -65,7 +66,7 @@ The Dev Portal enables developers to create and manage their projects efficientl
 
 ## Directory Structure
 
-```
+```text
 src
 ├── app (Next.js App Router folder)
 │   ├── ... (different pages of the dev portal)
@@ -82,7 +83,7 @@ src
 
 ## Conventions
 
-* All functions calling the backend API directly should be put in the [src/lib/api](./src/lib/api/) folder.
+- All functions calling the backend API directly should be put in the [src/lib/api](./src/lib/api/) folder.
 
 ## Deployment
 
@@ -94,7 +95,8 @@ For example, for the Vercel production environment, we set the following environ
 
 ```sh
 NEXT_PUBLIC_API_URL=https://api.aipolabs.xyz
-NEXT_PUBLIC_DEV_PORTAL_URL=https://aipolabs-dev-portal.vercel.app
+NEXT_PUBLIC_DEV_PORTAL_URL=https://platform.aipotheosis.xyz
+NEXT_PUBLIC_ENVIRONMENT=production
 ```
 
 ## Additional Links
