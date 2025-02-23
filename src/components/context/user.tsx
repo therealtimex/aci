@@ -66,9 +66,17 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
   const logout = useCallback(async () => {
     try {
       await logoutSession();
+
+      const response = await fetch("/api/delete-cookie");
+      if (response.ok) {
+        console.log("Next.js cookie deleted successfully");
+      } else {
+        console.error("Failed to delete Next.js cookie");
+      }
+
       Cookies.remove("accessToken");
       setUser(null);
-      // window.location.href = "/";
+      window.location.href = "/";
     } catch (error) {
       console.error("Failed to logout:", error);
     }
