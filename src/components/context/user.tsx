@@ -10,6 +10,7 @@ import React, {
 } from "react";
 import Cookies from "js-cookie";
 import { jwtDecode } from "jwt-decode";
+import { logoutSession } from "@/lib/api/user";
 
 export interface User {
   userId: string;
@@ -62,10 +63,15 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
     window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/v1/auth/signup/google?signup_code=${encodeURIComponent(signup_code)}`;
   }, []);
 
-  const logout = useCallback(() => {
-    Cookies.remove("accessToken");
-    setUser(null);
-    window.location.href = "/";
+  const logout = useCallback(async () => {
+    try {
+      await logoutSession();
+      Cookies.remove("accessToken");
+      setUser(null);
+      window.location.href = "/";
+    } catch (error) {
+      console.error("Failed to logout:", error);
+    }
   }, [setUser]);
 
   return (
