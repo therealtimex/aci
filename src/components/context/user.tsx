@@ -68,7 +68,7 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
       await logoutSession();
       Cookies.remove("accessToken");
       setUser(null);
-      window.location.href = "/";
+      // window.location.href = "/";
     } catch (error) {
       console.error("Failed to logout:", error);
     }
