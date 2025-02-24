@@ -67,14 +67,6 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
     try {
       await logoutSession();
       Cookies.remove("accessToken");
-
-      const response = await fetch("/api/delete-cookie");
-      if (response.ok) {
-        console.log("Next.js cookie deleted successfully");
-      } else {
-        console.error("Failed to delete Next.js cookie");
-      }
-
       setUser(null);
       // window.location.href = "/";
     } catch (error) {
