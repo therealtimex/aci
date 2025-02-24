@@ -2,7 +2,7 @@ import { Project } from "@/lib/types/project";
 
 export async function getProjects(accessToken: string): Promise<Project[]> {
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/v1/projects/`,
+    `${process.env.NEXT_PUBLIC_API_URL}/v1/projects`,
     {
       method: "GET",
       headers: {

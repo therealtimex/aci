@@ -56,7 +56,7 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
   }, []);
 
   const login = useCallback(() => {
-    window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/v1/auth/login/google/`;
+    window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/v1/auth/login/google`;
   }, []);
 
   const signup = useCallback((signup_code: string) => {

@@ -8,7 +8,7 @@ export async function getFunctionsForApp(
   params.append("app_names", appName);
 
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/v1/functions/?${params.toString()}`,
+    `${process.env.NEXT_PUBLIC_API_URL}/v1/functions?${params.toString()}`,
     {
       method: "GET",
       headers: {

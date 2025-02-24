@@ -1,7 +1,7 @@
 import { App } from "@/lib/types/app";
 
 export async function getAllApps(apiKey: string): Promise<App[]> {
-  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/v1/apps/`, {
+  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/v1/apps`, {
     method: "GET",
     headers: {
       "X-API-KEY": apiKey,
@@ -28,7 +28,7 @@ export async function getApps(
   });
 
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/v1/apps/?${params.toString()}`,
+    `${process.env.NEXT_PUBLIC_API_URL}/v1/apps?${params.toString()}`,
     {
       method: "GET",
       headers: {

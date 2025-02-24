@@ -1,6 +1,6 @@
 export async function checkSignUpCode(signup_code: string): Promise<boolean> {
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/v1/auth/validate-signup-code/`,
+    `${process.env.NEXT_PUBLIC_API_URL}/v1/auth/validate-signup-code`,
     {
       method: "POST",
       headers: {
@@ -15,7 +15,7 @@ export async function checkSignUpCode(signup_code: string): Promise<boolean> {
 
 export async function logoutSession(): Promise<void> {
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/v1/auth/logout/`,
+    `${process.env.NEXT_PUBLIC_API_URL}/v1/auth/logout`,
     {
       method: "POST",
       headers: {

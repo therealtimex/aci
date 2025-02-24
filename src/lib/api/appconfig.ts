@@ -10,7 +10,7 @@ export async function getAppConfig(
   const response = await fetch(
     `${
       process.env.NEXT_PUBLIC_API_URL
-    }/v1/app-configurations/?${params.toString()}`,
+    }/v1/app-configurations?${params.toString()}`,
     {
       method: "GET",
       headers: {
@@ -29,7 +29,7 @@ export async function getAppConfig(
 
 export async function getAllAppConfigs(apiKey: string): Promise<AppConfig[]> {
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/v1/app-configurations/`,
+    `${process.env.NEXT_PUBLIC_API_URL}/v1/app-configurations`,
     {
       method: "GET",
       headers: {
@@ -62,7 +62,7 @@ export async function createAppConfig(
   apiKey: string,
 ): Promise<AppConfig> {
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/v1/app-configurations/`,
+    `${process.env.NEXT_PUBLIC_API_URL}/v1/app-configurations`,
     {
       method: "POST",
       headers: {
@@ -100,7 +100,7 @@ export async function deleteAppConfig(
   apiKey: string,
 ): Promise<Response> {
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/v1/app-configurations/${appName}/`,
+    `${process.env.NEXT_PUBLIC_API_URL}/v1/app-configurations/${appName}`,
     {
       method: "DELETE",
       headers: {
