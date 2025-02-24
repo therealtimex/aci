@@ -26,7 +26,9 @@ export function AppGrid({ apps }: AppGridProps) {
     const matchesNameOrDescriptionOrCategory =
       app.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       app.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      app.categories.some((c) => c.toLowerCase().includes(searchQuery.toLowerCase()));
+      app.categories.some((c) =>
+        c.toLowerCase().includes(searchQuery.toLowerCase()),
+      );
 
     const matchesCategory =
       selectedCategory === "all" || app.categories.includes(selectedCategory);

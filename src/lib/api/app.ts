@@ -9,14 +9,19 @@ export async function getAllApps(apiKey: string): Promise<App[]> {
   });
 
   if (!response.ok) {
-    throw new Error(`Failed to fetch app: ${response.status} ${response.statusText}`);
+    throw new Error(
+      `Failed to fetch app: ${response.status} ${response.statusText}`,
+    );
   }
 
   const apps = await response.json();
   return apps;
 }
 
-export async function getApps(appNames: string[], apiKey: string): Promise<App[]> {
+export async function getApps(
+  appNames: string[],
+  apiKey: string,
+): Promise<App[]> {
   const params = new URLSearchParams();
   appNames.forEach((name) => {
     params.append("app_names", name);
@@ -40,7 +45,10 @@ export async function getApps(appNames: string[], apiKey: string): Promise<App[]
   return apps;
 }
 
-export async function getApp(appName: string, apiKey: string): Promise<App | null> {
+export async function getApp(
+  appName: string,
+  apiKey: string,
+): Promise<App | null> {
   const apps = await getApps([appName], apiKey);
   return apps.length > 0 ? apps[0] : null;
 }

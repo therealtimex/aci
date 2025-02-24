@@ -18,7 +18,9 @@ export async function getFunctionsForApp(
   );
 
   if (!response.ok) {
-    throw new Error(`Failed to fetch functions: ${response.status} ${response.statusText}`);
+    throw new Error(
+      `Failed to fetch functions: ${response.status} ${response.statusText}`,
+    );
   }
 
   const functions = await response.json();

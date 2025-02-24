@@ -81,13 +81,13 @@ export function AgentForm({
     try {
       // Validate custom_instructions keys against validAppNames
       const invalidKeys = Object.keys(values.custom_instructions).filter(
-        (key) => !validAppNames.includes(key)
+        (key) => !validAppNames.includes(key),
       );
 
       if (invalidKeys.length > 0) {
-        form.setError('custom_instructions', {
-          type: 'manual',
-          message: `Invalid app names in custom instructions: ${invalidKeys.join(', ')}. Must be one of: ${validAppNames.join(', ')}`
+        form.setError("custom_instructions", {
+          type: "manual",
+          message: `Invalid app names in custom instructions: ${invalidKeys.join(", ")}. Must be one of: ${validAppNames.join(", ")}`,
         });
         return;
       }
@@ -189,8 +189,8 @@ export function AgentForm({
                 <FormItem>
                   <FormLabel>Custom Instructions</FormLabel>
                   <FormDescription>
-                    Custom instructions are in the &#123;app_name: instruction&#125;.
-                    Valid app names are:
+                    Custom instructions are in the &#123;app_name:
+                    instruction&#125;. Valid app names are:
                     {validAppNames.map((name) => (
                       <IdDisplay key={name} id={name} />
                     ))}

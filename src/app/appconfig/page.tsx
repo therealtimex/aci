@@ -30,7 +30,6 @@ export default function AppConfigPage() {
     loadAppConfigs();
   }, [project, loadAppConfigs]);
 
-
   return (
     <div>
       <div className="m-4 flex items-center justify-between">

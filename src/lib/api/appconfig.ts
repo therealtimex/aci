@@ -8,7 +8,8 @@ export async function getAppConfig(
   params.append("app_names", appName);
 
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL
+    `${
+      process.env.NEXT_PUBLIC_API_URL
     }/v1/app-configurations/?${params.toString()}`,
     {
       method: "GET",
@@ -26,9 +27,7 @@ export async function getAppConfig(
   return configs.length > 0 ? configs[0] : null;
 }
 
-export async function getAllAppConfigs(
-  apiKey: string,
-): Promise<AppConfig[]> {
+export async function getAllAppConfigs(apiKey: string): Promise<AppConfig[]> {
   const response = await fetch(
     `${process.env.NEXT_PUBLIC_API_URL}/v1/app-configurations`,
     {
@@ -40,7 +39,9 @@ export async function getAllAppConfigs(
   );
 
   if (!response.ok) {
-    throw new Error(`Failed to fetch app configurations: ${response.status} ${response.statusText}`);
+    throw new Error(
+      `Failed to fetch app configurations: ${response.status} ${response.statusText}`,
+    );
   }
 
   const appConfigs = await response.json();
@@ -50,7 +51,7 @@ export async function getAllAppConfigs(
 export class AppAlreadyConfiguredError extends Error {
   constructor(message: string) {
     super(message);
-    this.name = 'AppAlreadyConfiguredError';
+    this.name = "AppAlreadyConfiguredError";
     Object.setPrototypeOf(this, new.target.prototype); // Restore prototype chain
   }
 }
@@ -85,25 +86,35 @@ export async function createAppConfig(
   }
 
   if (!response.ok) {
-    throw new Error(`Failed to configure app: ${response.status} ${response.statusText}`);
+    throw new Error(
+      `Failed to configure app: ${response.status} ${response.statusText}`,
+    );
   }
 
   const appConfig = await response.json();
   return appConfig;
 }
 
-export async function deleteAppConfig(appName: string, apiKey: string): Promise<Response> {
-  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/v1/app-configurations/${appName}`, {
-    method: 'DELETE',
-    headers: {
-      'Content-Type': 'application/json',
-      'X-API-KEY': apiKey,
-    }
-  });
-  
+export async function deleteAppConfig(
+  appName: string,
+  apiKey: string,
+): Promise<Response> {
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/v1/app-configurations/${appName}`,
+    {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        "X-API-KEY": apiKey,
+      },
+    },
+  );
+
   if (!response.ok) {
-    throw new Error(`Failed to delete app configuration for ${appName}: ${response.status} ${response.statusText}`);
+    throw new Error(
+      `Failed to delete app configuration for ${appName}: ${response.status} ${response.statusText}`,
+    );
   }
-  
+
   return response;
 }

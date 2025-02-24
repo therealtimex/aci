@@ -2,7 +2,13 @@
 
 // import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 // import { GoBell } from "react-icons/go";
 import { BsQuestionCircle } from "react-icons/bs";
 import { Separator } from "@/components/ui/separator";
@@ -37,7 +43,10 @@ export const Header = () => {
               <DialogHeader>
                 <DialogTitle>Support</DialogTitle>
               </DialogHeader>
-              <p>For support or to report a bug, please email us at support@aipolabs.xyz</p>
+              <p>
+                For support or to report a bug, please email us at
+                support@aipolabs.xyz
+              </p>
             </DialogContent>
           </Dialog>
         </div>
