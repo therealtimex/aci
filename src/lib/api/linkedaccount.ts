@@ -35,7 +35,7 @@ export async function createAPILinkedAccount(
   apiKey: string,
 ): Promise<LinkedAccount> {
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/v1/linked-accounts/default`,
+    `${process.env.NEXT_PUBLIC_API_URL}/v1/linked-accounts/default/`,
     {
       method: "POST",
       headers: {

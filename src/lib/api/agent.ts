@@ -10,7 +10,7 @@ export async function createAgent(
   custom_instructions: Record<string, string> = {},
 ): Promise<Agent> {
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/v1/projects/${projectId}/agents`,
+    `${process.env.NEXT_PUBLIC_API_URL}/v1/projects/${projectId}/agents/`,
     {
       method: "POST",
       headers: {
@@ -55,10 +55,8 @@ export async function updateAgent(
       .filter(([_, value]) => value !== undefined),
   );
 
-  // TODO: custom_instructions bug
-
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/v1/projects/${projectId}/agents/${agentId}`,
+    `${process.env.NEXT_PUBLIC_API_URL}/v1/projects/${projectId}/agents/${agentId}/`,
     {
       method: "PATCH",
       headers: {
