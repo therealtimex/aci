@@ -52,8 +52,8 @@ const Protected = ({ children }: Readonly<{ children: React.ReactNode }>) => {
       ) : (
         <div className="w-full flex flex-col items-center justify-center h-screen">
           <Image
-            src="/logo.svg"
-            alt="Aipotheosis Labs Logo"
+            src="/aci-dev-full-logo.svg"
+            alt="ACI Dev Logo"
             width={200}
             height={40}
             priority

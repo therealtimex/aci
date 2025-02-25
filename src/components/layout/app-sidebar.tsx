@@ -70,10 +70,10 @@ export function AppSidebar() {
           )}
         >
           {!isCollapsed && (
-            <div className="h-8 w-auto relative">
+            <div className="h-8 w-auto relative flex items-center justify-center">
               <Image
-                src="/logo.svg"
-                alt="Aipotheosis Labs Logo"
+                src="/aci-dev-full-logo.svg"
+                alt="ACI Dev Logo"
                 width={150}
                 height={30}
                 priority
