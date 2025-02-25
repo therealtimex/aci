@@ -10,7 +10,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 // import { GoBell } from "react-icons/go";
-import { BsQuestionCircle } from "react-icons/bs";
+import { BsQuestionCircle, BsGithub, BsBook } from "react-icons/bs";
 import { Separator } from "@/components/ui/separator";
 import { BreadcrumbLinks } from "./BreadcrumbLinks";
 import { usePathname } from "next/navigation";
@@ -28,7 +28,29 @@ export const Header = () => {
           className="mx-2 w-80"
         /> */}
 
-        <div className="flex items-center">
+        <div className="flex items-center gap-1">
+          <a
+            href="https://github.com/aipotheosis-labs/aipolabs-python"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <Button variant="outline" className="px-2">
+              <BsGithub />
+              <span>GitHub</span>
+            </Button>
+          </a>
+
+          <a
+            href="https://docs.aci.dev"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <Button variant="outline" className="px-2">
+              <BsBook />
+              <span>Docs</span>
+            </Button>
+          </a>
+
           {/* <Button variant="outline" className="px-2 mx-2">
             <GoBell />
           </Button> */}

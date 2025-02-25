@@ -59,6 +59,9 @@ export function AppSidebar() {
 
   return (
     <Sidebar variant="inset" collapsible="icon" className="flex flex-col">
+      <div className="w-full bg-black text-white text-center py-1 text-xs font-bold rounded-md">
+        In Closed Beta
+      </div>
       <SidebarHeader>
         <div
           className={cn(

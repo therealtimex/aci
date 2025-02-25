@@ -18,6 +18,7 @@ import {
 import { IdDisplay } from "@/components/apps/id-display";
 // import { RiTeamLine } from "react-icons/ri";
 import { MdAdd } from "react-icons/md";
+import { BsQuestionCircle } from "react-icons/bs";
 import {
   Tooltip,
   TooltipContent,
@@ -110,7 +111,19 @@ export default function ProjectSettingPage() {
         {/* Project ID Section */}
         <div className="flex flex-row">
           <div className="flex flex-col items-left w-80">
-            <label className="font-semibold">Project ID</label>
+            <div className="flex items-center gap-2">
+              <label className="font-semibold">Project ID</label>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className="cursor-pointer">
+                    <BsQuestionCircle className="h-4 w-4 text-muted-foreground" />
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent side="top">
+                  <p className="text-xs">A project can have multiple agents.</p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
             <p className="text-sm text-muted-foreground">
               Change the project ID
             </p>
@@ -147,7 +160,22 @@ export default function ProjectSettingPage() {
         {/* Agent Section */}
         <div className="flex flex-row">
           <div className="flex flex-col items-left w-80">
-            <label className="font-semibold">Agent</label>
+            <div className="flex items-center gap-2">
+              <label className="font-semibold">Agent</label>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className="cursor-pointer">
+                    <BsQuestionCircle className="h-4 w-4 text-muted-foreground" />
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent side="top">
+                  <p className="text-xs">
+                    Each agent has a unique API key that can be used to access a
+                    different set of tools/apps configured for the project.
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
             <p className="text-sm text-muted-foreground">
               Add and manage agents
             </p>
@@ -157,32 +185,47 @@ export default function ProjectSettingPage() {
               <Switch checked={hasAgents} />
               <span className="text-sm">Enable</span>
             </div> */}
-            <AgentForm
-              title="Create Agent"
-              validAppNames={apps.map((app) => app.name)}
-              onSubmit={async (values) => {
-                if (!project) return;
-                try {
-                  await createAgent(
-                    project.id,
-                    user!.accessToken,
-                    values.name,
-                    values.description,
-                    values.excluded_apps,
-                    values.excluded_functions,
-                    values.custom_instructions,
-                  );
-                  await loadProject();
-                } catch (error) {
-                  console.error("Error creating agent:", error);
-                }
-              }}
-            >
-              <Button variant="outline">
-                <MdAdd />
-                Create Agent
-              </Button>
-            </AgentForm>
+            <div className="flex items-center gap-2">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className="cursor-pointer">
+                    <BsQuestionCircle className="h-4 w-4 text-muted-foreground" />
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent side="top">
+                  <p className="text-xs">
+                    Create a new agent API key to access applications configured
+                    for this project.
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+              <AgentForm
+                title="Create Agent"
+                validAppNames={apps.map((app) => app.name)}
+                onSubmit={async (values) => {
+                  if (!project) return;
+                  try {
+                    await createAgent(
+                      project.id,
+                      user!.accessToken,
+                      values.name,
+                      values.description,
+                      values.excluded_apps,
+                      values.excluded_functions,
+                      values.custom_instructions,
+                    );
+                    await loadProject();
+                  } catch (error) {
+                    console.error("Error creating agent:", error);
+                  }
+                }}
+              >
+                <Button variant="outline">
+                  <MdAdd />
+                  Create Agent
+                </Button>
+              </AgentForm>
+            </div>
           </div>
         </div>
 
@@ -198,12 +241,14 @@ export default function ProjectSettingPage() {
                   {/* <TableHead>ENABLED APPS</TableHead> */}
                   <TableHead>
                     <Tooltip>
-                      <TooltipTrigger className="text-left">
+                      <TooltipTrigger className="flex text-left items-center gap-2">
+                        <BsQuestionCircle className="h-4 w-4 text-muted-foreground" />
                         INSTRUCTION FILTER
                       </TooltipTrigger>
                       <TooltipContent>
                         <p>
-                          Specific instructions for each app to modulate its use
+                          Outline in natural language when an API execution
+                          request from agents should be blocked.
                         </p>
                       </TooltipContent>
                     </Tooltip>

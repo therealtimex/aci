@@ -20,6 +20,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { BsQuestionCircle } from "react-icons/bs";
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from "@/components/ui/tooltip";
 import { GoCopy, GoPlus } from "react-icons/go";
 import { App } from "@/lib/types/app";
 import { useProject } from "@/components/context/project";
@@ -180,12 +186,24 @@ export function AddAccountForm({ app, updateLinkedAccounts }: AddAccountProps) {
         form.reset();
       }}
     >
-      <DialogTrigger asChild>
-        <Button>
-          <GoPlus />
-          Add Account
-        </Button>
-      </DialogTrigger>
+      <div className="flex items-center gap-2">
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <span className="cursor-pointer">
+              <BsQuestionCircle className="h-4 w-4 text-muted-foreground" />
+            </span>
+          </TooltipTrigger>
+          <TooltipContent side="top">
+            <p className="text-xs">{"Add an end-user account."}</p>
+          </TooltipContent>
+        </Tooltip>
+        <DialogTrigger asChild>
+          <Button>
+            <GoPlus />
+            Add Account
+          </Button>
+        </DialogTrigger>
+      </div>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Add Account</DialogTitle>
@@ -229,7 +247,21 @@ export function AddAccountForm({ app, updateLinkedAccounts }: AddAccountProps) {
               name="linkedAccountOwnerId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Linked Account Owner ID</FormLabel>
+                  <div className="flex items-center gap-2">
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <span className="cursor-pointer">
+                          <BsQuestionCircle className="h-4 w-4 text-muted-foreground" />
+                        </span>
+                      </TooltipTrigger>
+                      <TooltipContent side="top">
+                        <p className="text-xs">
+                          {"Input a name or label for your end user."}
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                    <FormLabel>Linked Account Owner ID</FormLabel>
+                  </div>
                   <FormControl>
                     <Input placeholder="linked account owner id" {...field} />
                   </FormControl>

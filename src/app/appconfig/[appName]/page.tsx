@@ -13,6 +13,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { BsQuestionCircle } from "react-icons/bs";
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from "@/components/ui/tooltip";
 import { Switch } from "@/components/ui/switch";
 import { GoTrash } from "react-icons/go";
 import { useParams } from "next/navigation";
@@ -85,7 +91,25 @@ export default function AppConfigDetailPage() {
 
       <Tabs defaultValue={"linked"} className="w-full">
         <TabsList className="mb-6">
-          <TabsTrigger value="linked">Linked Accounts</TabsTrigger>
+          <TabsTrigger value="linked">
+            <div className="mr-2">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className="cursor-pointer">
+                    <BsQuestionCircle className="h-4 w-4 text-muted-foreground" />
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent side="top">
+                  <p className="text-xs">
+                    {
+                      "This shows a list of end-users who have connected their account in this application to your agent."
+                    }
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
+            Linked Accounts
+          </TabsTrigger>
           {/* <TabsTrigger value="logs">Logs</TabsTrigger>
           <TabsTrigger value="settings">Settings</TabsTrigger> */}
         </TabsList>

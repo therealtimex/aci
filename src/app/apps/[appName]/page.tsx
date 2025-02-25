@@ -7,6 +7,12 @@ import { useParams } from "next/navigation";
 import { IdDisplay } from "@/components/apps/id-display";
 import { Button } from "@/components/ui/button";
 import { useProject } from "@/components/context/project";
+import { BsQuestionCircle } from "react-icons/bs";
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from "@/components/ui/tooltip";
 import { type AppFunction } from "@/lib/types/appfunction";
 import { type App } from "@/lib/types/app";
 import { toast } from "sonner";
@@ -87,22 +93,38 @@ const AppPage = () => {
             </>
           )}
         </div>
-        <Button
-          className="bg-primary text-white hover:bg-primary/90"
-          onClick={async () => {
-            await configureApp();
-            if (!project) {
-              throw new Error("No active project");
-            }
+        <div className="flex items-center gap-2">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span className="cursor-pointer">
+                <BsQuestionCircle className="h-4 w-4 text-muted-foreground" />
+              </span>
+            </TooltipTrigger>
+            <TooltipContent side="top">
+              <p className="text-xs">
+                {appConfig
+                  ? "The app has already been configured. It is ready for your agents to use."
+                  : "Click to configure the application. This will add the application to your project, allowing your agents to use it."}
+              </p>
+            </TooltipContent>
+          </Tooltip>
+          <Button
+            className="bg-primary text-white hover:bg-primary/90"
+            onClick={async () => {
+              await configureApp();
+              if (!project) {
+                throw new Error("No active project");
+              }
 
-            const apiKey = getApiKey(project);
-            const appConfig = await getAppConfig(appName, apiKey);
-            setAppConfig(appConfig);
-          }}
-          disabled={appConfig !== null}
-        >
-          {appConfig ? "Configured" : "Configure App"}
-        </Button>
+              const apiKey = getApiKey(project);
+              const appConfig = await getAppConfig(appName, apiKey);
+              setAppConfig(appConfig);
+            }}
+            disabled={appConfig !== null}
+          >
+            {appConfig ? "Configured" : "Configure App"}
+          </Button>
+        </div>
       </div>
       <Separator />
 
