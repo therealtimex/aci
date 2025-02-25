@@ -41,7 +41,7 @@ export const Header = () => {
           </a>
 
           <a
-            href="https://docs.aci.dev"
+            href="https://aci.dev/docs"
             target="_blank"
             rel="noopener noreferrer"
           >
