@@ -17,6 +17,8 @@ import {
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import { Card } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 
 const formSchema = z.object({
   signUpCode: z.string().min(1, "Sign Up Code is required"),
@@ -25,6 +27,8 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 const Protected = ({ children }: Readonly<{ children: React.ReactNode }>) => {
+  const [isLogin, setIsLogin] = React.useState(true);
+  const toggleLogin = () => setIsLogin(!isLogin);
   // TODO: make this loads faster
   const { user, login, signup } = useUser();
 
@@ -50,38 +54,111 @@ const Protected = ({ children }: Readonly<{ children: React.ReactNode }>) => {
       {user ? (
         <div>{children}</div>
       ) : (
-        <div className="w-full flex flex-col items-center justify-center h-screen">
-          <Image
-            src="/aci-dev-full-logo.svg"
-            alt="ACI Dev Logo"
-            width={200}
-            height={40}
-            priority
-            className="object-contain m-4"
-          />
-          <h1 className="text-2xl font-bold">Authentication Required</h1>
-          <p className="mb-4">Please sign up or log in to access this page</p>
-
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="flex gap-2">
-              <FormField
-                control={form.control}
-                name="signUpCode"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormControl>
-                      <Input placeholder="Sign Up Code" {...field} />
-                    </FormControl>
-                    <FormDescription></FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
+        <div className="w-full flex flex-col items-center justify-center h-screen border">
+          <Card
+            className={
+              "bg-[#F6F9F7] flex flex-col items-center justify-center w-96"
+            }
+          >
+            <div className="flex items-center flex-col justify-center px-12 pt-8 pb-8">
+              <Image
+                src="/aci-dev-full-logo.svg"
+                alt="ACI Dev Logo"
+                width={200}
+                height={40}
+                priority
+                className="object-contain m-4"
               />
-              <Button type="submit">Sign Up</Button>
-            </form>
-          </Form>
+              {isLogin ? (
+                <>
+                  <h1 className="text-xl font-bold pt-8">Login to ACE.DEV</h1>
+                  <h4 className="text py-6">
+                    Welcome back! Please login to continue
+                  </h4>
+                  <Button
+                    className="mx-12 w-full bg-[#0EB092] text-white font-bold flex items-center justify-center hover:bg-[#0EB092] hover:shadow-md"
+                    onClick={login}
+                  >
+                    <Image
+                      src="/icon/google.svg"
+                      alt="Google Icon"
+                      width={20}
+                      height={20}
+                      className="mr-2"
+                    />
+                    Log in with Google
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <h1 className="text-xl font-bold pt-8">Sign Up to ACE.DEV</h1>
+                  <h4 className="text py-6 text-center">
+                    Welcome! Please enter your sign up code
+                  </h4>
+                  <Form {...form}>
+                    <form
+                      onSubmit={form.handleSubmit(onSubmit)}
+                      className="flex flex-col gap-2 mx-0 px-0 w-full"
+                    >
+                      <FormField
+                        control={form.control}
+                        name="signUpCode"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormControl>
+                              <Input placeholder="Sign Up Code" {...field} />
+                            </FormControl>
+                            <FormDescription></FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <Button
+                        className="w-full bg-[#0EB092] text-white font-bold flex items-center justify-center hover:bg-[#0EB092] hover:shadow-md"
+                        type="submit"
+                      >
+                        <Image
+                          src="/icon/google.svg"
+                          alt="Google Icon"
+                          width={20}
+                          height={20}
+                          className="mr-2"
+                        />
+                        Sign Up with Google
+                      </Button>
+                    </form>
+                  </Form>
+                </>
+              )}
+            </div>
+            <Separator orientation="horizontal" />
 
-          <Button onClick={login}>Log in</Button>
+            <div className="w-full h8 text-center p-1">
+              {isLogin ? (
+                <>
+                  Don&apos;t have an account?
+                  <Button
+                    variant="link"
+                    className="text-[#0EB092] hover:underline"
+                    onClick={toggleLogin}
+                  >
+                    Sign Up
+                  </Button>
+                </>
+              ) : (
+                <>
+                  Already have an account?
+                  <Button
+                    variant="link"
+                    className="text-[#0EB092] hover:underline"
+                    onClick={toggleLogin}
+                  >
+                    Log In
+                  </Button>
+                </>
+              )}
+            </div>
+          </Card>
         </div>
       )}
     </>

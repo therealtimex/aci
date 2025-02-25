@@ -46,3 +46,4 @@ tmp/
 .env.sentry-build-plugin
 
 .vscode
+.idea
