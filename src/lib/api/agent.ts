@@ -72,3 +72,23 @@ export async function updateAgent(
   }
   return response.json();
 }
+
+export async function deleteAgent(
+  projectId: string,
+  agentId: string,
+  accessToken: string,
+): Promise<void> {
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/v1/projects/${projectId}/agents/${agentId}`,
+    {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(`Failed to delete agent. Status: ${response.status}`);
+  }
+}

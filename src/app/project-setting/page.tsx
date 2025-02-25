@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 // import { Switch } from "@/components/ui/switch";
 import { AgentForm } from "@/components/project/agent-form";
-import { createAgent, updateAgent } from "@/lib/api/agent";
+import { createAgent, updateAgent, deleteAgent } from "@/lib/api/agent";
 import { useProject } from "@/components/context/project";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -31,6 +31,18 @@ import { getProjects } from "@/lib/api/project";
 import ReactJson from "react-json-view";
 import { App } from "@/lib/types/app";
 import { getAllApps } from "@/lib/api/app";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { GoTrash } from "react-icons/go";
 
 export default function ProjectSettingPage() {
   const { user } = useUser();
@@ -296,7 +308,7 @@ export default function ProjectSettingPage() {
                           // enableClipboard={false}
                         />
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="space-x-6 flex">
                         <AgentForm
                           title="Edit Agent"
                           validAppNames={apps.map((app) => app.name)}
@@ -331,6 +343,73 @@ export default function ProjectSettingPage() {
                             Edit
                           </Button>
                         </AgentForm>
+
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="text-red-600"
+                            >
+                              <GoTrash />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>
+                                {project.agents.length <= 1
+                                  ? "Cannot Delete Agent"
+                                  : "Delete Agent?"}
+                              </AlertDialogTitle>
+                              <AlertDialogDescription>
+                                {project.agents.length <= 1 ? (
+                                  "You must keep at least one agent in the project. This agent cannot be deleted."
+                                ) : (
+                                  <>
+                                    This action cannot be undone. This will
+                                    permanently delete the agent &quot;
+                                    {agent.name}
+                                    &quot; and remove all its associated data.
+                                  </>
+                                )}
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>
+                                {project.agents.length <= 1
+                                  ? "Close"
+                                  : "Cancel"}
+                              </AlertDialogCancel>
+                              {project.agents.length > 1 && (
+                                <AlertDialogAction
+                                  onClick={async () => {
+                                    try {
+                                      if (!project || !user) {
+                                        console.warn(
+                                          "No active project or user",
+                                        );
+                                        return;
+                                      }
+                                      await deleteAgent(
+                                        project.id,
+                                        agent.id,
+                                        user.accessToken,
+                                      );
+                                      await loadProject();
+                                    } catch (error) {
+                                      console.error(
+                                        "Error deleting agent:",
+                                        error,
+                                      );
+                                    }
+                                  }}
+                                >
+                                  Delete
+                                </AlertDialogAction>
+                              )}
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
                       </TableCell>
                     </TableRow>
                   );

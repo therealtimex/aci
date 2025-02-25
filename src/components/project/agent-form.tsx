@@ -191,6 +191,7 @@ export function AgentForm({
                   <FormDescription>
                     Custom instructions are in the &#123;app_name:
                     instruction&#125;. Valid app names are:
+                    {/* TODO: fix the div cannot be inside of p warning when we refactor the agent edit UI */}
                     {validAppNames.map((name) => (
                       <IdDisplay key={name} id={name} />
                     ))}

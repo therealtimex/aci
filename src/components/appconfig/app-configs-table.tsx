@@ -194,8 +194,9 @@ export function AppConfigsTable({
                         <AlertDialogTitle>Confirm Deletion?</AlertDialogTitle>
                         <AlertDialogDescription>
                           This action cannot be undone. This will permanently
-                          delete this app configuration and remove all the
-                          linked accounts for this app.
+                          delete the app configuration for &quot;
+                          {config.app_name}&quot; and remove all the linked
+                          accounts for this app.
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>
