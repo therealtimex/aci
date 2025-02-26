@@ -72,7 +72,7 @@ const Protected = ({ children }: Readonly<{ children: React.ReactNode }>) => {
             <div className="flex items-center flex-col justify-center pb-8">
               {isLogin ? (
                 <>
-                  <h1 className="text-xl font-bold pt-8">Login to ACE.DEV</h1>
+                  <h1 className="text-xl font-bold pt-8">Login to ACI.DEV</h1>
                   <h4 className="text py-6 ">
                     Welcome back! Please login to continue
                   </h4>
@@ -93,7 +93,7 @@ const Protected = ({ children }: Readonly<{ children: React.ReactNode }>) => {
                 </>
               ) : (
                 <>
-                  <h1 className="text-xl font-bold pt-8">Sign Up to ACE.DEV</h1>
+                  <h1 className="text-xl font-bold pt-8">Sign Up to ACI.DEV</h1>
                   <h4 className="text py-6 text-center">
                     Welcome! Please enter your sign up code
                   </h4>
