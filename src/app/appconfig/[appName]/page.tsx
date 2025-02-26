@@ -28,7 +28,21 @@ import { useProject } from "@/components/context/project";
 import { AddAccountForm } from "@/components/appconfig/add-account";
 import { getApiKey } from "@/lib/api/util";
 import { getApp } from "@/lib/api/app";
-import { getLinkedAccounts } from "@/lib/api/linkedaccount";
+import {
+  getLinkedAccounts,
+  deleteLinkedAccount,
+} from "@/lib/api/linkedaccount";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 export default function AppConfigDetailPage() {
   const { appName } = useParams<{ appName: string }>();
@@ -138,13 +152,54 @@ export default function AppConfigDetailPage() {
                       <Switch checked={account.enabled} />
                     </TableCell>
                     <TableCell>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="text-red-600"
-                      >
-                        <GoTrash />
-                      </Button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-red-600"
+                          >
+                            <GoTrash />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>
+                              Confirm Deletion?
+                            </AlertDialogTitle>
+                            <AlertDialogDescription>
+                              This action cannot be undone. This will
+                              permanently delete the linked account for owner ID
+                              &quot;
+                              {account.linked_account_owner_id}&quot;.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={async () => {
+                                try {
+                                  if (!project) {
+                                    console.warn("No active project");
+                                    return;
+                                  }
+                                  const apiKey = getApiKey(project);
+
+                                  await deleteLinkedAccount(account.id, apiKey);
+                                  // Refresh the linked accounts list after deletion
+                                  const linkedAccounts =
+                                    await getLinkedAccounts(appName, apiKey);
+                                  setLinkedAccounts(linkedAccounts);
+                                } catch (error) {
+                                  console.error(error);
+                                }
+                              }}
+                            >
+                              Delete
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                     </TableCell>
                   </TableRow>
                 ))}

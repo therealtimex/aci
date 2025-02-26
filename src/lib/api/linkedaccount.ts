@@ -97,3 +97,24 @@ export async function getOauth2LinkURL(
   }
   return data.url;
 }
+
+export async function deleteLinkedAccount(
+  linkedAccountId: string,
+  apiKey: string,
+): Promise<void> {
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/v1/linked-accounts/${linkedAccountId}`,
+    {
+      method: "DELETE",
+      headers: {
+        "X-API-KEY": apiKey,
+      },
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      `Failed to delete linked account: ${response.status} ${response.statusText}`,
+    );
+  }
+}
