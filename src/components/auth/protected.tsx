@@ -57,26 +57,28 @@ const Protected = ({ children }: Readonly<{ children: React.ReactNode }>) => {
         <div className="w-full flex flex-col items-center justify-center h-screen border">
           <Card
             className={
-              "bg-[#F6F9F7] flex flex-col items-center justify-center w-96"
+              " flex flex-col items-center justify-center w-96 border shadow-lg"
             }
           >
-            <div className="flex items-center flex-col justify-center px-12 pt-8 pb-8">
-              <Image
-                src="/aci-dev-full-logo.svg"
-                alt="ACI Dev Logo"
-                width={200}
-                height={40}
-                priority
-                className="object-contain m-4"
-              />
+            <Image
+              src="/aci-dev-full-logo.svg"
+              alt="ACI Dev Logo"
+              width={200}
+              height={40}
+              priority
+              className="object-contain my-6"
+            />
+            <Separator orientation="horizontal" />
+            <div className="flex items-center flex-col justify-center pb-8">
               {isLogin ? (
                 <>
                   <h1 className="text-xl font-bold pt-8">Login to ACE.DEV</h1>
-                  <h4 className="text py-6">
+                  <h4 className="text py-6 ">
                     Welcome back! Please login to continue
                   </h4>
                   <Button
-                    className="mx-12 w-full bg-[#0EB092] text-white font-bold flex items-center justify-center hover:bg-[#0EB092] hover:shadow-md"
+                    variant={"outline"}
+                    className="w-full font-bold flex items-center justify-center select-none"
                     onClick={login}
                   >
                     <Image
@@ -114,7 +116,8 @@ const Protected = ({ children }: Readonly<{ children: React.ReactNode }>) => {
                         )}
                       />
                       <Button
-                        className="w-full bg-[#0EB092] text-white font-bold flex items-center justify-center hover:bg-[#0EB092] hover:shadow-md"
+                        variant={"outline"}
+                        className="w-full font-bold flex items-center justify-center select-none"
                         type="submit"
                       >
                         <Image
@@ -139,7 +142,7 @@ const Protected = ({ children }: Readonly<{ children: React.ReactNode }>) => {
                   Don&apos;t have an account?
                   <Button
                     variant="link"
-                    className="text-[#0EB092] hover:underline"
+                    className="text-[#6269D2] hover:underline font-bold"
                     onClick={toggleLogin}
                   >
                     Sign Up
@@ -150,7 +153,7 @@ const Protected = ({ children }: Readonly<{ children: React.ReactNode }>) => {
                   Already have an account?
                   <Button
                     variant="link"
-                    className="text-[#0EB092] hover:underline"
+                    className="text-[#6269D2] hover:underline font-bold"
                     onClick={toggleLogin}
                   >
                     Log In
