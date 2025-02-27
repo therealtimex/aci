@@ -32,10 +32,11 @@ export async function getLinkedAccounts(
 export async function createAPILinkedAccount(
   appName: string,
   linkedAccountOwnerId: string,
+  linkedAPIKey: string,
   apiKey: string,
 ): Promise<LinkedAccount> {
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/v1/linked-accounts/default`,
+    `${process.env.NEXT_PUBLIC_API_URL}/v1/linked-accounts/api-key`,
     {
       method: "POST",
       headers: {
@@ -45,6 +46,7 @@ export async function createAPILinkedAccount(
       body: JSON.stringify({
         app_name: appName,
         linked_account_owner_id: linkedAccountOwnerId,
+        api_key: linkedAPIKey,
       }),
     },
   );

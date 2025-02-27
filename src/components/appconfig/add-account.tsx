@@ -45,12 +45,21 @@ import {
 } from "@/lib/api/linkedaccount";
 import { getApiKey } from "@/lib/api/util";
 
-const formSchema = z.object({
-  appName: z.string().min(1, "App name is required"),
-  authType: z.enum(["api_key", "oauth2"]),
-  linkedAccountOwnerId: z.string().min(1, "Account owner ID is required"),
-  //   apiKey: z.string().min(0, "API Key is required"),
-});
+const formSchema = z
+  .object({
+    appName: z.string().min(1, "App name is required"),
+    authType: z.enum(["api_key", "oauth2"]),
+    linkedAccountOwnerId: z.string().min(1, "Account owner ID is required"),
+    apiKey: z.string().optional(),
+  })
+  .refine(
+    (data) =>
+      data.authType !== "api_key" || (data.apiKey && data.apiKey.length > 0),
+    {
+      message: "API Key is required",
+      path: ["apiKey"],
+    },
+  );
 
 type FormValues = z.infer<typeof formSchema>;
 
@@ -73,7 +82,7 @@ export function AddAccountForm({ app, updateLinkedAccounts }: AddAccountProps) {
       appName: app.display_name,
       authType: app.security_schemes[0] as "api_key" | "oauth2",
       linkedAccountOwnerId: "",
-      //   apiKey: "",
+      apiKey: "",
     },
   });
 
@@ -138,7 +147,10 @@ export function AddAccountForm({ app, updateLinkedAccounts }: AddAccountProps) {
     }
   };
 
-  const linkAPIAccount = async (linkedAccountOwnerId: string) => {
+  const linkAPIAccount = async (
+    linkedAccountOwnerId: string,
+    linkedAPIKey: string,
+  ) => {
     if (!project) {
       throw new Error("No API key available");
     }
@@ -146,7 +158,12 @@ export function AddAccountForm({ app, updateLinkedAccounts }: AddAccountProps) {
     const apiKey = getApiKey(project);
 
     try {
-      await createAPILinkedAccount(app.name, linkedAccountOwnerId, apiKey);
+      await createAPILinkedAccount(
+        app.name,
+        linkedAccountOwnerId,
+        linkedAPIKey,
+        apiKey,
+      );
       toast.success("Account linked successfully");
       form.reset();
       setOpen(false);
@@ -173,7 +190,10 @@ export function AddAccountForm({ app, updateLinkedAccounts }: AddAccountProps) {
         await linkOauth2Account(values.linkedAccountOwnerId);
         break;
       case FORM_SUBMIT_API_KEY:
-        await linkAPIAccount(values.linkedAccountOwnerId);
+        await linkAPIAccount(
+          values.linkedAccountOwnerId,
+          values.apiKey as string,
+        );
         break;
     }
   };
@@ -248,6 +268,7 @@ export function AddAccountForm({ app, updateLinkedAccounts }: AddAccountProps) {
               render={({ field }) => (
                 <FormItem>
                   <div className="flex items-center gap-2">
+                    <FormLabel>Linked Account Owner ID</FormLabel>
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <span className="cursor-pointer">
@@ -260,7 +281,6 @@ export function AddAccountForm({ app, updateLinkedAccounts }: AddAccountProps) {
                         </p>
                       </TooltipContent>
                     </Tooltip>
-                    <FormLabel>Linked Account Owner ID</FormLabel>
                   </div>
                   <FormControl>
                     <Input placeholder="linked account owner id" {...field} />
@@ -297,6 +317,22 @@ export function AddAccountForm({ app, updateLinkedAccounts }: AddAccountProps) {
                 </FormItem>
               )}
             />
+
+            {authType === "api_key" && (
+              <FormField
+                control={form.control}
+                name="apiKey"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>API Key</FormLabel>
+                    <FormControl>
+                      <Input placeholder="api key" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
 
             <DialogFooter>
               <Button
