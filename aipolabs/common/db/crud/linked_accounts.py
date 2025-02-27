@@ -73,6 +73,9 @@ def create_linked_account(
     security_credentials: OAuth2SchemeCredentials | APIKeySchemeCredentials | None = None,
     enabled: bool = True,
 ) -> LinkedAccount:
+    """Create a linked account
+    when security_credentials is None, the linked account will be using App's default security credentials if exists
+    """
     app_id = db_session.execute(select(App.id).filter_by(name=app_name)).scalar_one()
     linked_account = LinkedAccount(
         project_id=project_id,
@@ -90,23 +93,22 @@ def create_linked_account(
     return linked_account
 
 
-# TODO: caller might pass inconsistent security_scheme and security_credentials
-# e.g., caller passes security_scheme=APIKeyScheme but security_credentials is OAuth2SchemeCredentials
-def update_linked_account(
+def update_linked_account_credentials(
     db_session: Session,
     linked_account: LinkedAccount,
-    security_scheme: SecurityScheme | None = None,
-    security_credentials: dict | None = None,
+    security_credentials: OAuth2SchemeCredentials | APIKeySchemeCredentials,
 ) -> LinkedAccount:
-    logger.info(
-        f"updating linked account={linked_account.id}, security_scheme={security_scheme}, "
-        f"security_credentials={security_credentials}"
-    )
-    if security_scheme:
-        linked_account.security_scheme = security_scheme
-    if security_credentials:
-        linked_account.security_credentials = security_credentials
+    """
+    Update the security credentials of a linked account.
+    Removing the security credentials (setting it to empty dict) is not handled here.
+    """
+    if security_credentials is not None:
+        linked_account.security_credentials = security_credentials.model_dump(mode="json")
 
+    # Technically we don't need to call the flush() and refresh() here, but it's more robust to do so
+    # in case there are other dependencies on the linked account object that need to be updated in the future
+    db_session.flush()
+    db_session.refresh(linked_account)
     return linked_account
 
 
