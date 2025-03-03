@@ -8,6 +8,7 @@ The developer portal for Aipolabs, a platform for developers to manage and confi
   - [Table of Contents](#table-of-contents)
   - [Description](#description)
   - [Development Setup](#development-setup)
+  - [Linting \& Testing](#linting--testing)
   - [Directory Structure](#directory-structure)
   - [Conventions](#conventions)
   - [Deployment](#deployment)
@@ -32,7 +33,7 @@ The Dev Portal enables developers to create and manage their projects efficientl
    cd aipolabs-dev-portal
    ```
 
-2. **Install dependencies:**  
+2. **Install dependencies:**
    If you're using npm:
 
    ```bash
@@ -44,7 +45,7 @@ The Dev Portal enables developers to create and manage their projects efficientl
    Some libraries are stilling upgrading to React 19, so we need to use the
    `--legacy-peer-deps` flag in the mean time.)
 
-3. **Configure Environment Variables:**  
+3. **Configure Environment Variables:**
    Create a `.env` file with the following variables in it:
 
    - NEXT_PUBLIC_API_URL: The URL of the Aipolabs backend API server
@@ -64,6 +65,41 @@ The Dev Portal enables developers to create and manage their projects efficientl
    npm run dev
    ```
 
+## Linting & Testing
+
+This repo uses prettier for formatting, next lint for linting, and vitest for unit tests.
+
+- **Format code:**
+
+  ```bash
+  npm run format
+  ```
+
+- **Run linters:**
+
+  ```bash
+  npm run lint
+  ```
+
+- **Run vitest in watch mode:**
+
+  ```bash
+  npm run test
+  ```
+
+- **Get test coverage:**
+
+  ```bash
+  npm run test:coverage
+  ```
+
+You can also setup pre-commit hook to run format, lint, and tests when you
+commit your code by running (make sure you have [pre-commit](https://pre-commit.com/) installed):
+
+```bash
+pre-commit install
+```
+
 ## Directory Structure
 
 ```text
@@ -76,9 +112,14 @@ src
 ├── hooks
 │   └── use-mobile.tsx
 └── lib
-    ├── api          (functions for interacting with the Aipolabs backend API)
-    ├── types        (types of the Aipolabs backend API response)
-    └── utils.ts
+│   ├── api          (functions for interacting with the Aipolabs backend API)
+│   ├── types        (types of the Aipolabs backend API response)
+│   └── utils.ts
+└── __test__ (test files, the structure of this folder should be the same as the structure of the src/app folder)
+    ├── apps
+    ├── linked-accounts
+    ├── project-setting
+    └── ...
 ```
 
 ## Conventions
@@ -89,7 +130,7 @@ src
 
 The Dev Portal is deployed on Vercel: [obnoxiousproxys-projects/aipolabs-dev-portal](https://vercel.com/obnoxiousproxys-projects/aipolabs-dev-portal)
 
-The environment variables need to be set correctly on Vercel: https://vercel.com/obnoxiousproxys-projects/aipolabs-dev-portal/settings/environment-variables.
+The environment variables need to be set correctly on Vercel: <https://vercel.com/obnoxiousproxys-projects/aipolabs-dev-portal/settings/environment-variables>.
 
 For example, for the Vercel production environment, we set the following environment variables:
 
