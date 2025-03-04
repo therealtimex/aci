@@ -2,6 +2,8 @@ import logging
 import shutil
 from logging.handlers import RotatingFileHandler
 
+import logfire
+
 
 # the setup is called once at the start of the app
 def setup_logging(
@@ -10,9 +12,12 @@ def setup_logging(
     filters: list[logging.Filter] = [],
     include_file_handler: bool = False,
     file_path: str | None = None,
+    environment: str = "local",
 ) -> None:
     if formatter is None:
-        formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+        formatter = logging.Formatter(
+            "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+        )
 
     root_logger = logging.getLogger()
     root_logger.setLevel(level)  # Set the root logger level
@@ -27,13 +32,18 @@ def setup_logging(
 
     if include_file_handler:
         if file_path is None:
-            raise ValueError("file_path must be provided if include_file_handler is True")
+            raise ValueError(
+                "file_path must be provided if include_file_handler is True"
+            )
         file_handler = RotatingFileHandler(file_path, maxBytes=10485760, backupCount=10)
         file_handler.setFormatter(formatter)
         file_handler.setLevel(level)
         for filter in filters:
             file_handler.addFilter(filter)
         root_logger.addHandler(file_handler)
+
+    if environment != "local":
+        root_logger.addHandler(logfire.LogfireLoggingHandler())
 
     # Set up module-specific loggers if necessary (e.g., with different levels)
     logging.getLogger("httpx").setLevel(logging.WARNING)

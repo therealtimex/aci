@@ -25,6 +25,7 @@ from aipolabs.server.routes import (
     linked_accounts,
     projects,
 )
+import logfire
 
 
 def custom_generate_unique_id(route: APIRoute) -> str:
@@ -43,6 +44,7 @@ setup_logging(
         rename_fields={"asctime": "timestamp", "name": "file", "levelname": "level"},
     ),
     filters=[RequestIDLogFilter()],
+    environment=config.ENVIRONMENT,
 )
 
 # TODO: move to config
@@ -54,6 +56,21 @@ app = FastAPI(
     openapi_url=config.APP_OPENAPI_URL,
     generate_unique_id_function=custom_generate_unique_id,
 )
+
+
+def scrubbing_callback(m: logfire.ScrubMatch):
+    if m.path == ("attributes", "api_key_id"):
+        return m.value
+
+
+if config.ENVIRONMENT != "local":
+    logfire.configure(
+        token=config.LOGFIRE_WRITE_TOKEN,
+        environment=config.ENVIRONMENT,
+        scrubbing=logfire.ScrubbingOptions(callback=scrubbing_callback),
+    )
+    logfire.instrument_fastapi(app, capture_headers=True)
+    logfire.instrument_sqlalchemy()
 
 """middlewares are executed in the reverse order"""
 app.add_middleware(RateLimitMiddleware)
@@ -79,14 +96,18 @@ app.add_middleware(
     allow_headers=["Authorization", "X-API-KEY"],
 )
 app.add_middleware(InterceptorMiddleware)
-app.add_middleware(ProxyHeadersMiddleware, trusted_hosts=[config.APPLICATION_LOAD_BALANCER_DNS])
+app.add_middleware(
+    ProxyHeadersMiddleware, trusted_hosts=[config.APPLICATION_LOAD_BALANCER_DNS]
+)
 
 
 # NOTE: generic exception handler (type Exception) for all exceptions doesn't work
 # https://github.com/fastapi/fastapi/discussions/9478
 # That's why we have another catch-all in the interceptor middleware
 @app.exception_handler(AipolabsException)
-async def global_exception_handler(request: Request, exc: AipolabsException) -> JSONResponse:
+async def global_exception_handler(
+    request: Request, exc: AipolabsException
+) -> JSONResponse:
     return JSONResponse(
         status_code=exc.error_code,
         content={"error": f"{exc.title}, {exc.message}" if exc.message else exc.title},
