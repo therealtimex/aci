@@ -145,7 +145,7 @@ def search_apps(
     if intent_embedding:
         return [(app, score) for app, score in results]
     else:
-        return [(app, None) for app, in results]
+        return [(app, None) for (app,) in results]
 
 
 def set_app_active_status(db_session: Session, app_name: str, active: bool) -> None:

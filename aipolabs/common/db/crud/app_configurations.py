@@ -80,7 +80,11 @@ def delete_app_configuration(db_session: Session, project_id: UUID, app_name: st
 
 
 def get_app_configurations(
-    db_session: Session, project_id: UUID, app_names: list[str] | None, limit: int, offset: int
+    db_session: Session,
+    project_id: UUID,
+    app_names: list[str] | None,
+    limit: int,
+    offset: int,
 ) -> list[AppConfiguration]:
     """Get all app configurations for a project, optionally filtered by app names"""
     statement = select(AppConfiguration).filter_by(project_id=project_id)

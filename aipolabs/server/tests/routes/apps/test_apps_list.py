@@ -45,7 +45,9 @@ def test_list_apps_pagination(
     }
 
     response = test_client.get(
-        f"{config.ROUTER_PREFIX_APPS}", params=query_params, headers={"x-api-key": dummy_api_key_1}
+        f"{config.ROUTER_PREFIX_APPS}",
+        params=query_params,
+        headers={"x-api-key": dummy_api_key_1},
     )
 
     assert response.status_code == status.HTTP_200_OK

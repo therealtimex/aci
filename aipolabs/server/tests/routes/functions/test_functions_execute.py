@@ -192,7 +192,11 @@ def test_execute_function_with_custom_instructions_rejected(
     function_execute = FunctionExecute(
         linked_account_owner_id=dummy_linked_account_api_key_github_project_1.linked_account_owner_id,
         function_input={
-            "body": {"name": "apple-test-repo", "description": "Test repository", "private": True}
+            "body": {
+                "name": "apple-test-repo",
+                "description": "Test repository",
+                "private": True,
+            }
         },
     )
     response = test_client.post(

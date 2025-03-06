@@ -63,7 +63,10 @@ async def create_app_configuration(
     if app.security_schemes.get(body.security_scheme) is None:
         logger.error(
             "app does not support specified security scheme",
-            extra={"app_name": body.app_name, "security_scheme": body.security_scheme.value},
+            extra={
+                "app_name": body.app_name,
+                "security_scheme": body.security_scheme.value,
+            },
         )
         raise AppSecuritySchemeNotSupported(
             f"app={body.app_name} does not support security_scheme={body.security_scheme.value}"

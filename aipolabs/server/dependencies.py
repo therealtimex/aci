@@ -1,5 +1,6 @@
-from datetime import datetime, timedelta, timezone
-from typing import Annotated, Generator
+from collections.abc import Generator
+from datetime import UTC, datetime, timedelta
+from typing import Annotated
 from uuid import UUID
 
 from authlib.jose import JoseError, jwt
@@ -67,16 +68,17 @@ def validate_http_bearer(
         user = crud.users.get_user_by_id(db_session, UUID(user_id))
         if not user:
             logger.error(
-                "user decoded from http bearer token not found", extra={"user_id": user_id}
+                "user decoded from http bearer token not found",
+                extra={"user_id": user_id},
             )
             raise UserNotFound(f"user={user_id} not found")
 
         logger.info("http bearer token validation successful", extra={"user_id": user_id})
         return user
 
-    except JoseError:
+    except JoseError as e:
         logger.exception("http bearer token validation failed")
-        raise InvalidBearerToken("token validation failed")
+        raise InvalidBearerToken("token validation failed") from e
 
 
 def validate_api_key(
@@ -120,10 +122,8 @@ def validate_project_quota(
         logger.error("project not found", extra={"api_key_id": api_key_id})
         raise ProjectNotFound(f"project not found for api_key_id={api_key_id}")
 
-    now: datetime = datetime.now(timezone.utc)
-    need_reset = now >= project.daily_quota_reset_at.replace(tzinfo=timezone.utc) + timedelta(
-        days=1
-    )
+    now: datetime = datetime.now(UTC)
+    need_reset = now >= project.daily_quota_reset_at.replace(tzinfo=UTC) + timedelta(days=1)
 
     if not need_reset and project.daily_quota_used >= config.PROJECT_DAILY_QUOTA:
         logger.warning(

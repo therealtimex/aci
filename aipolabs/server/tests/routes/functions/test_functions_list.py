@@ -91,7 +91,9 @@ def test_list_functions_with_private_functions(
     db_session.commit()
 
     response = test_client.get(
-        f"{config.ROUTER_PREFIX_FUNCTIONS}", params={}, headers={"x-api-key": dummy_api_key_1}
+        f"{config.ROUTER_PREFIX_FUNCTIONS}",
+        params={},
+        headers={"x-api-key": dummy_api_key_1},
     )
     assert response.status_code == status.HTTP_200_OK
     functions = [FunctionDetails.model_validate(func) for func in response.json()]
@@ -102,7 +104,9 @@ def test_list_functions_with_private_functions(
     db_session.commit()
 
     response = test_client.get(
-        f"{config.ROUTER_PREFIX_FUNCTIONS}", params={}, headers={"x-api-key": dummy_api_key_1}
+        f"{config.ROUTER_PREFIX_FUNCTIONS}",
+        params={},
+        headers={"x-api-key": dummy_api_key_1},
     )
     assert response.status_code == status.HTTP_200_OK
     functions = [FunctionDetails.model_validate(func) for func in response.json()]
@@ -116,12 +120,15 @@ def test_list_functions_with_private_apps(
     dummy_functions: list[Function],
     dummy_api_key_1: str,
 ) -> None:
-    # all functions (public and private) under private apps should not be reachable for project with only public access
+    # all functions (public and private) under private apps should not be reachable
+    # for project with only public access
     crud.apps.set_app_visibility(db_session, dummy_functions[0].app.name, Visibility.PRIVATE)
     db_session.commit()
 
     response = test_client.get(
-        f"{config.ROUTER_PREFIX_FUNCTIONS}", params={}, headers={"x-api-key": dummy_api_key_1}
+        f"{config.ROUTER_PREFIX_FUNCTIONS}",
+        params={},
+        headers={"x-api-key": dummy_api_key_1},
     )
     assert response.status_code == status.HTTP_200_OK
     functions = [FunctionDetails.model_validate(func) for func in response.json()]
@@ -130,16 +137,19 @@ def test_list_functions_with_private_apps(
         function.app.name == dummy_functions[0].app.name for function in dummy_functions
     )
     assert private_functions_count > 0, "there should be at least one private function"
-    assert (
-        len(functions) == len(dummy_functions) - private_functions_count
-    ), "all functions under private apps should not be returned"
+    assert len(functions) == len(dummy_functions) - private_functions_count, (
+        "all functions under private apps should not be returned"
+    )
 
-    # all functions (public and private) under private apps should be reachable for project with private access
+    # all functions (public and private) under private apps should be reachable
+    # for project with private access
     crud.projects.set_project_visibility_access(db_session, dummy_project_1.id, Visibility.PRIVATE)
     db_session.commit()
 
     response = test_client.get(
-        f"{config.ROUTER_PREFIX_FUNCTIONS}", params={}, headers={"x-api-key": dummy_api_key_1}
+        f"{config.ROUTER_PREFIX_FUNCTIONS}",
+        params={},
+        headers={"x-api-key": dummy_api_key_1},
     )
     assert response.status_code == status.HTTP_200_OK
     functions = [FunctionDetails.model_validate(func) for func in response.json()]

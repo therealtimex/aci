@@ -157,7 +157,9 @@ def test_search_apps_with_inactive_apps(
 
     # inactive app should not be returned
     response = test_client.get(
-        f"{config.ROUTER_PREFIX_APPS}/search", params={}, headers={"x-api-key": dummy_api_key_1}
+        f"{config.ROUTER_PREFIX_APPS}/search",
+        params={},
+        headers={"x-api-key": dummy_api_key_1},
     )
     assert response.status_code == status.HTTP_200_OK
     apps = [AppBasic.model_validate(response_app) for response_app in response.json()]
@@ -206,7 +208,6 @@ def test_search_apps_configured_only(
     dummy_app_configuration_oauth2_google_project_1: AppConfigurationPublic,
     dummy_api_key_1: str,
 ) -> None:
-
     # Test with configured_only=True
     search_params = {
         "configured_only": True,

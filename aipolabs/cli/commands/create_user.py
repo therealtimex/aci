@@ -64,7 +64,13 @@ def create_user(
 ) -> UUID:
     """Create a user in db."""
     return create_user_helper(
-        identity_provider, user_id_by_provider, name, email, profile_picture, plan, skip_dry_run
+        identity_provider,
+        user_id_by_provider,
+        name,
+        email,
+        profile_picture,
+        plan,
+        skip_dry_run,
     )
 
 

@@ -297,7 +297,8 @@ def test_delete_agent_unauthorized(
     dummy_agent_1: Agent,
 ) -> None:
     """
-    user2 with access to dummy_project_2 should not be able to delete dummy_agent_1 (belongs to dummy_project_1)
+    user2 with access to dummy_project_2 should not be able to delete
+    dummy_agent_1 (belongs to dummy_project_1)
     """
     response = test_client.delete(
         f"{config.ROUTER_PREFIX_PROJECTS}/{dummy_project_2.id}/agents/{dummy_agent_1.id}",

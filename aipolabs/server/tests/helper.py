@@ -13,9 +13,9 @@ openai_service = OpenAIService(config.OPENAI_API_KEY)
 DUMMY_APPS_DIR = Path(__file__).parent / "dummy_apps"
 
 
-def prepare_dummy_apps_and_functions() -> (
-    list[tuple[AppUpsert, list[FunctionUpsert], list[float], list[list[float]]]]
-):
+def prepare_dummy_apps_and_functions() -> list[
+    tuple[AppUpsert, list[FunctionUpsert], list[float], list[list[float]]]
+]:
     results: list[tuple[AppUpsert, list[FunctionUpsert], list[float], list[list[float]]]] = []
     """
     Prepare dummy apps and functions for testing.
@@ -28,10 +28,10 @@ def prepare_dummy_apps_and_functions() -> (
     for app_dir in DUMMY_APPS_DIR.glob("*"):
         app_file = app_dir / "app.json"
         functions_file = app_dir / "functions.json"
-        with open(app_file, "r") as f:
+        with open(app_file) as f:
             app_upsert: AppUpsert = AppUpsert.model_validate(json.load(f))
             app_embedding_fields = AppEmbeddingFields.model_validate(app_upsert.model_dump())
-        with open(functions_file, "r") as f:
+        with open(functions_file) as f:
             functions_upsert: list[FunctionUpsert] = [
                 FunctionUpsert.model_validate(function) for function in json.load(f)
             ]

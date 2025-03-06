@@ -15,7 +15,10 @@ logger = get_logger(__name__)
 
 
 def get_linked_accounts(
-    db_session: Session, project_id: UUID, app_name: str | None, linked_account_owner_id: str | None
+    db_session: Session,
+    project_id: UUID,
+    app_name: str | None,
+    linked_account_owner_id: str | None,
 ) -> list[LinkedAccount]:
     """Get all linked accounts under a project, with optional filters"""
     statement = select(LinkedAccount).filter_by(project_id=project_id)

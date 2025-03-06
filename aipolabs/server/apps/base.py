@@ -1,6 +1,5 @@
 import importlib
 from abc import ABC
-from typing import Type
 
 from jsonschema import ValidationError, validate
 
@@ -24,7 +23,7 @@ def parse_function_name(function_name: str) -> tuple[str, str, str]:
     return module_name, class_name, method_name
 
 
-class AppBase(ABC):
+class AppBase(ABC):  # noqa: B024
     # TODO: init with end user account credentials
 
     # TODO: retry?
@@ -34,7 +33,10 @@ class AppBase(ABC):
         if not method:
             logger.error(
                 "method not found",
-                extra={"method_name": method_name, "class_name": self.__class__.__name__},
+                extra={
+                    "method_name": method_name,
+                    "class_name": self.__class__.__name__,
+                },
             )
             raise NoImplementationFound(
                 f"method={method_name} not found in class={self.__class__.__name__}"
@@ -77,29 +79,28 @@ class AppBase(ABC):
                     "function_parameters_schema": function_parameters_schema,
                 },
             )
-            raise InvalidFunctionInput(f"invalid function input: {e.message}")
+            raise InvalidFunctionInput(f"invalid function input: {e.message}") from e
 
 
 class AppFactory:
     # TODO: caching? singleton per app per enduser account? executing in a thread pool?
 
     def get_app_instance(self, function_name: str) -> AppBase:
-
         module_name, class_name, _ = parse_function_name(function_name)
 
         try:
-            app_class: Type[AppBase] = getattr(importlib.import_module(module_name), class_name)
+            app_class: type[AppBase] = getattr(importlib.import_module(module_name), class_name)
             logger.debug(
                 "found app class for function_name",
                 extra={"function_name": function_name, "app_class": app_class},
             )
             app_instance: AppBase = app_class()
             return app_instance
-        except (ModuleNotFoundError, AttributeError):
+        except (ModuleNotFoundError, AttributeError) as e:
             logger.exception(
                 f"failed to find app class for function_name={function_name}",
                 extra={"function_name": function_name},
             )
             raise NoImplementationFound(
                 f"failed to find app class for function_name={function_name}"
-            )
+            ) from e

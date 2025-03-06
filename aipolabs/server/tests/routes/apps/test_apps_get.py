@@ -30,7 +30,8 @@ def test_get_app(
 
 def test_get_non_existent_app(test_client: TestClient, dummy_api_key_1: str) -> None:
     response = test_client.get(
-        f"{config.ROUTER_PREFIX_APPS}/{NON_EXISTENT_APP_ID}", headers={"x-api-key": dummy_api_key_1}
+        f"{config.ROUTER_PREFIX_APPS}/{NON_EXISTENT_APP_ID}",
+        headers={"x-api-key": dummy_api_key_1},
     )
     assert response.status_code == status.HTTP_404_NOT_FOUND
 
@@ -47,7 +48,8 @@ def test_get_inactive_app(
     app_name = dummy_apps[0].name
     # inactive app should not be returned
     response = test_client.get(
-        f"{config.ROUTER_PREFIX_APPS}/{app_name}", headers={"x-api-key": dummy_api_key_1}
+        f"{config.ROUTER_PREFIX_APPS}/{app_name}",
+        headers={"x-api-key": dummy_api_key_1},
     )
     assert response.status_code == status.HTTP_404_NOT_FOUND
 

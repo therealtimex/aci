@@ -47,9 +47,9 @@ def test_create_project_reached_max_projects_per_user(
             json=body.model_dump(mode="json"),
             headers={"Authorization": f"Bearer {dummy_user_bearer_token}"},
         )
-        assert (
-            response.status_code == status.HTTP_200_OK
-        ), f"should be able to create {config.MAX_PROJECTS_PER_USER} projects"
+        assert response.status_code == status.HTTP_200_OK, (
+            f"should be able to create {config.MAX_PROJECTS_PER_USER} projects"
+        )
 
     # try to create one more project under the user
     body = ProjectCreate(name=f"project_{config.MAX_PROJECTS_PER_USER}")
@@ -62,7 +62,10 @@ def test_create_project_reached_max_projects_per_user(
 
 
 def test_get_projects_under_user(
-    test_client: TestClient, db_session: Session, dummy_user_bearer_token: str, dummy_user: User
+    test_client: TestClient,
+    db_session: Session,
+    dummy_user_bearer_token: str,
+    dummy_user: User,
 ) -> None:
     # create projects and agents under the user
     number_of_projects = 3
@@ -79,7 +82,8 @@ def test_get_projects_under_user(
 
         for j in range(number_of_agents_per_project):
             body = AgentCreate(
-                name=f"project_{i}_agent_{j}", description=f"project_{i}_agent_{j} description"
+                name=f"project_{i}_agent_{j}",
+                description=f"project_{i}_agent_{j} description",
             )
             response = test_client.post(
                 f"{config.ROUTER_PREFIX_PROJECTS}/{project_public.id}/agents",

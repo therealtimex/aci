@@ -40,9 +40,9 @@ def test_execute_function_with_linked_account_api_key(
     assert function_execution_response.success
     assert function_execution_response.data == response_data
     assert mock_request.called, "Request should be made"
-    assert (
-        mock_request.calls.last.request.headers["X-Test-API-Key"] != "default-shared-api-key"
-    ), "API key used should NOT be the default shared API key"
+    assert mock_request.calls.last.request.headers["X-Test-API-Key"] != "default-shared-api-key", (
+        "API key used should NOT be the default shared API key"
+    )
 
     linked_account_api_key = APIKeySchemeCredentials.model_validate(
         dummy_linked_account_api_key_aipolabs_test_project_1.security_credentials

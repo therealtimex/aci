@@ -16,12 +16,10 @@ def test_get_linked_account(
     dummy_linked_account_oauth2_google_project_2: LinkedAccount,
 ) -> None:
     ENDPOINT_1 = (
-        f"{config.ROUTER_PREFIX_LINKED_ACCOUNTS}/"
-        f"{dummy_linked_account_oauth2_google_project_1.id}"
+        f"{config.ROUTER_PREFIX_LINKED_ACCOUNTS}/{dummy_linked_account_oauth2_google_project_1.id}"
     )
     ENDPOINT_2 = (
-        f"{config.ROUTER_PREFIX_LINKED_ACCOUNTS}/"
-        f"{dummy_linked_account_oauth2_google_project_2.id}"
+        f"{config.ROUTER_PREFIX_LINKED_ACCOUNTS}/{dummy_linked_account_oauth2_google_project_2.id}"
     )
 
     response = test_client.get(ENDPOINT_1, headers={"x-api-key": dummy_api_key_1})
@@ -56,8 +54,7 @@ def test_get_linked_account_not_belong_to_project(
     dummy_linked_account_oauth2_google_project_2: LinkedAccount,
 ) -> None:
     ENDPOINT = (
-        f"{config.ROUTER_PREFIX_LINKED_ACCOUNTS}/"
-        f"{dummy_linked_account_oauth2_google_project_2.id}"
+        f"{config.ROUTER_PREFIX_LINKED_ACCOUNTS}/{dummy_linked_account_oauth2_google_project_2.id}"
     )
 
     response = test_client.get(ENDPOINT, headers={"x-api-key": dummy_api_key_1})

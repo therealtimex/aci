@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from unittest.mock import MagicMock, patch
 from uuid import uuid4
 
@@ -18,13 +18,16 @@ need to mock some object otherwise the other tests might fail because of we set 
 
 def test_validate_project_quota_valid(test_client: TestClient, dummy_api_key_1: str) -> None:
     project = MagicMock()
-    project.daily_quota_reset_at = datetime.now(timezone.utc)
+    project.daily_quota_reset_at = datetime.now(UTC)
     project.daily_quota_used = config.PROJECT_DAILY_QUOTA - 1
     project.id = uuid4()
-    with patch(
-        "aipolabs.server.dependencies.crud.projects.get_project_by_api_key_id",
-        return_value=project,
-    ), patch("aipolabs.server.dependencies.crud.projects.increase_project_quota_usage"):
+    with (
+        patch(
+            "aipolabs.server.dependencies.crud.projects.get_project_by_api_key_id",
+            return_value=project,
+        ),
+        patch("aipolabs.server.dependencies.crud.projects.increase_project_quota_usage"),
+    ):
         response = test_client.get(
             f"{config.ROUTER_PREFIX_APPS}/search",
             params={"limit": 1},
@@ -35,7 +38,7 @@ def test_validate_project_quota_valid(test_client: TestClient, dummy_api_key_1: 
 
 def test_validate_project_quota_exceeded(test_client: TestClient, dummy_api_key_1: str) -> None:
     project = MagicMock()
-    project.daily_quota_reset_at = datetime.now(timezone.utc)
+    project.daily_quota_reset_at = datetime.now(UTC)
     project.daily_quota_used = config.PROJECT_DAILY_QUOTA
 
     with patch(

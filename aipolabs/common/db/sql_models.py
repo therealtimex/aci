@@ -19,9 +19,18 @@ from datetime import datetime
 from uuid import UUID, uuid4
 
 from pgvector.sqlalchemy import Vector
-from sqlalchemy import JSON, Boolean, DateTime
+from sqlalchemy import (
+    JSON,
+    Boolean,
+    DateTime,
+    ForeignKey,
+    Integer,
+    String,
+    Text,
+    UniqueConstraint,
+    func,
+)
 from sqlalchemy import Enum as SqlEnum
-from sqlalchemy import ForeignKey, Integer, String, Text, UniqueConstraint, func
 
 # Note: need to use postgresqlr ARRAY in order to use overlap operator
 from sqlalchemy.dialects.postgresql import ARRAY
@@ -120,7 +129,10 @@ class User(Entity):
     @declared_attr
     def id(cls) -> Mapped[UUID]:
         return mapped_column(
-            PGUUID(as_uuid=True), ForeignKey("entities.id"), primary_key=True, init=False
+            PGUUID(as_uuid=True),
+            ForeignKey("entities.id"),
+            primary_key=True,
+            init=False,
         )
 
     # google, github, email, etc
@@ -151,7 +163,10 @@ class Organization(Entity):
     @declared_attr
     def id(cls) -> Mapped[UUID]:
         return mapped_column(
-            PGUUID(as_uuid=True), ForeignKey("entities.id"), primary_key=True, init=False
+            PGUUID(as_uuid=True),
+            ForeignKey("entities.id"),
+            primary_key=True,
+            init=False,
         )
 
     memberships: Mapped[list[Membership]] = relationship(
@@ -461,7 +476,11 @@ class App(Base):
 
     # deleting app will delete all functions under the app
     functions: Mapped[list[Function]] = relationship(
-        "Function", lazy="select", cascade="all, delete-orphan", back_populates="app", init=False
+        "Function",
+        lazy="select",
+        cascade="all, delete-orphan",
+        back_populates="app",
+        init=False,
     )
 
 

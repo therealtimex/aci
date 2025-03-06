@@ -55,7 +55,6 @@ def create_project_helper(
     skip_dry_run: bool,
 ) -> UUID:
     with utils.create_db_session(config.DB_FULL_URL) as db_session:
-
         project = crud.projects.create_project(db_session, owner_id, name, visibility_access)
         if not skip_dry_run:
             click.echo(create_headline(f"will create new project {project.name}"))

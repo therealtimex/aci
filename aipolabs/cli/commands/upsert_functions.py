@@ -45,7 +45,7 @@ def upsert_functions(functions_file: Path, skip_dry_run: bool) -> list[UUID]:
 
 def upsert_functions_helper(functions_file: Path, skip_dry_run: bool) -> list[UUID]:
     with utils.create_db_session(config.DB_FULL_URL) as db_session:
-        with open(functions_file, "r") as f:
+        with open(functions_file) as f:
             functions_data = json.load(f)
 
         # Validate and parse each function record
@@ -188,10 +188,10 @@ def _validate_app_exists(db_session: Session, app_name: str) -> None:
         raise click.ClickException(f"App={app_name} does not exist")
 
 
-def _validate_all_functions_belong_to_the_app(functions_upsert: list[FunctionUpsert]) -> str:
-    app_names = set(
-        [utils.parse_app_name_from_function_name(func.name) for func in functions_upsert]
-    )
+def _validate_all_functions_belong_to_the_app(
+    functions_upsert: list[FunctionUpsert],
+) -> str:
+    app_names = {utils.parse_app_name_from_function_name(func.name) for func in functions_upsert}
     if len(app_names) != 1:
         raise click.ClickException(
             f"All functions must belong to the same app, instead found multiple apps={app_names}"

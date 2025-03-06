@@ -136,7 +136,7 @@ async def search_functions(
 async def get_function_definition(
     context: Annotated[deps.RequestContext, Depends(deps.get_request_context)],
     function_name: str,
-    inference_provider: InferenceProvider = Query(
+    inference_provider: InferenceProvider = Query(  # noqa: B008 # TODO: need to fix this later
         default=InferenceProvider.OPENAI,
         description="The inference provider, which determines the format of the function definition.",
     ),
@@ -147,7 +147,10 @@ async def get_function_definition(
     """
     logger.info(
         "get function definition",
-        extra={"function_name": function_name, "inference_provider": inference_provider.value},
+        extra={
+            "function_name": function_name,
+            "inference_provider": inference_provider.value,
+        },
     )
     function: Function | None = crud.functions.get_function(
         context.db_session,
@@ -265,7 +268,10 @@ async def execute(
 
     # check if the linked account status (configured, enabled, etc.)
     linked_account = crud.linked_accounts.get_linked_account(
-        context.db_session, context.project.id, function.app.name, body.linked_account_owner_id
+        context.db_session,
+        context.project.id,
+        function.app.name,
+        body.linked_account_owner_id,
     )
     if not linked_account:
         logger.error(

@@ -12,7 +12,6 @@ def filter_function_call(
     function_input: dict,
     custom_instructions: str,
 ) -> FilterResponse:
-
     args = {
         "model": "gpt-4o-mini",
         "messages": [

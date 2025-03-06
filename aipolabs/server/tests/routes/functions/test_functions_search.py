@@ -56,9 +56,9 @@ def test_search_functions_with_inactive_apps(
         function.app.name == dummy_functions[0].app.name for function in dummy_functions
     )
     assert inactive_functions_count > 0, "there should be at least one inactive function"
-    assert (
-        len(functions) == len(dummy_functions) - inactive_functions_count
-    ), "no functions should be returned under inactive apps"
+    assert len(functions) == len(dummy_functions) - inactive_functions_count, (
+        "no functions should be returned under inactive apps"
+    )
 
 
 def test_search_functions_with_private_functions(
@@ -106,7 +106,8 @@ def test_search_functions_with_private_apps(
     dummy_functions: list[Function],
     dummy_api_key_1: str,
 ) -> None:
-    # all functions (public and private) under private apps should not be reachable for project with only public access
+    # all functions (public and private) under private apps should not be
+    # reachable for project with only public access
     crud.apps.set_app_visibility(db_session, dummy_functions[0].app.name, Visibility.PRIVATE)
     db_session.commit()
 
@@ -124,11 +125,12 @@ def test_search_functions_with_private_apps(
         function.app.name == dummy_functions[0].app.name for function in dummy_functions
     )
     assert private_functions_count > 0, "there should be at least one private function"
-    assert (
-        len(functions) == len(dummy_functions) - private_functions_count
-    ), "all functions under private apps should not be returned"
+    assert len(functions) == len(dummy_functions) - private_functions_count, (
+        "all functions under private apps should not be returned"
+    )
 
-    # all functions (public and private) under private apps should be reachable for project with private access
+    # all functions (public and private) under private apps should be reachable
+    # for project with private access
     crud.projects.set_project_visibility_access(db_session, dummy_project_1.id, Visibility.PRIVATE)
     db_session.commit()
 
@@ -181,7 +183,6 @@ def test_search_functions_with_intent(
     dummy_function_google__calendar_create_event: Function,
     dummy_api_key_1: str,
 ) -> None:
-
     # intent1: create repo
     search_param = {
         "intent": "i want to create a new code repo for my project",
