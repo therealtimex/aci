@@ -1,5 +1,7 @@
 # Aipolabs Developer Portal
 
+![CI](https://github.com/aipotheosis-labs/aipolabs-dev-portal/actions/workflows/ci.yml/badge.svg)
+
 The developer portal for Aipolabs, a platform for developers to manage and configure the apps and functions used by their agents.
 
 ## Table of Contents
