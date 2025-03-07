@@ -40,6 +40,7 @@ import { useProject } from "@/components/context/project";
 import { getApiKey } from "@/lib/api/util";
 import { getLinkedAccounts } from "@/lib/api/linkedaccount";
 import { getApps } from "@/lib/api/app";
+import Image from "next/image";
 
 interface AppConfigsTableProps {
   appConfigs: AppConfig[];
@@ -165,7 +166,17 @@ export function AppConfigsTable({
             {filteredAppConfigs.map((config) => (
               <TableRow key={config.id}>
                 <TableCell>
-                  <IdDisplay id={config.app_name} dim={false} />
+                  <div className="flex items-center gap-3">
+                    <div className="relative h-5 w-5 flex-shrink-0 overflow-hidden">
+                      <Image
+                        src={appsMap[config.app_name]?.logo || ""}
+                        alt={`${config.app_name} logo`}
+                        fill
+                        className="object-contain"
+                      />
+                    </div>
+                    <IdDisplay id={config.app_name} dim={false} />
+                  </div>
                 </TableCell>
                 <TableCell>
                   {linkedAccountsCountMap[config.app_name] || 0}
