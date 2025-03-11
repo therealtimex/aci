@@ -7,7 +7,7 @@ import secrets
 from datetime import UTC, datetime, timedelta
 from uuid import UUID
 
-from sqlalchemy import select, update
+from sqlalchemy import func, select, update
 from sqlalchemy.orm import Session
 
 from aipolabs.common.db.sql_models import Agent, APIKey, Project
@@ -117,8 +117,7 @@ def create_agent(
     project_id: UUID,
     name: str,
     description: str,
-    excluded_apps: list[str],
-    excluded_functions: list[str],
+    allowed_apps: list[str],
     custom_instructions: dict[str, ValidInstruction],
 ) -> Agent:
     """
@@ -129,8 +128,7 @@ def create_agent(
         project_id=project_id,
         name=name,
         description=description,
-        excluded_apps=excluded_apps,
-        excluded_functions=excluded_functions,
+        allowed_apps=allowed_apps,
         custom_instructions=custom_instructions,
     )
     db_session.add(agent)
@@ -158,10 +156,8 @@ def update_agent(
         agent.name = update.name
     if update.description is not None:
         agent.description = update.description
-    if update.excluded_apps is not None:
-        agent.excluded_apps = update.excluded_apps
-    if update.excluded_functions is not None:
-        agent.excluded_functions = update.excluded_functions
+    if update.allowed_apps is not None:
+        agent.allowed_apps = update.allowed_apps
     if update.custom_instructions is not None:
         agent.custom_instructions = update.custom_instructions
 
@@ -174,6 +170,17 @@ def update_agent(
 def delete_agent(db_session: Session, agent: Agent) -> None:
     db_session.delete(agent)
     db_session.flush()
+
+
+def delete_app_from_agents_allowed_apps(
+    db_session: Session, project_id: UUID, app_name: str
+) -> None:
+    statement = (
+        update(Agent)
+        .where(Agent.project_id == project_id)
+        .values(allowed_apps=func.array_remove(Agent.allowed_apps, app_name))
+    )
+    db_session.execute(statement)
 
 
 def get_agents_by_project(db_session: Session, project_id: UUID) -> list[Agent]:

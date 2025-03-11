@@ -326,6 +326,19 @@ class AgentNotFound(AipolabsException):
         )
 
 
+class AppNotAllowedForThisAgent(AipolabsException):
+    """
+    Exception raised when an app is not allowed to be used by an agent
+    """
+
+    def __init__(self, message: str | None = None):
+        super().__init__(
+            title="App not allowed for this agent",
+            message=message,
+            error_code=status.HTTP_401_UNAUTHORIZED,
+        )
+
+
 class CustomInstructionViolation(AipolabsException):
     """
     Exception raised when a function execution is reject due to a custom instruction

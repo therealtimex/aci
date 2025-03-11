@@ -6,31 +6,34 @@ from pydantic import BaseModel, BeforeValidator, ConfigDict, Field
 
 from aipolabs.common.schemas.apikey import APIKeyPublic
 
+MAX_INSTRUCTION_LENGTH = 5000
+
 
 # Custom type with validation
-# TODO: add more restrictions like max length, etc?
 def validate_instruction(v: str) -> str:
     if not v.strip():
         raise ValueError("Instructions cannot be empty strings")
+    if len(v) > MAX_INSTRUCTION_LENGTH:
+        raise ValueError(f"Instructions cannot be longer than {MAX_INSTRUCTION_LENGTH} characters")
     return v
 
 
 ValidInstruction = Annotated[str, BeforeValidator(validate_instruction)]
 
 
+# TODO: validate when creating or updating agent that allowed_apps only contains apps that are configured
+# for the project
 class AgentCreate(BaseModel):
     name: str
     description: str
-    excluded_apps: list[str] = []
-    excluded_functions: list[str] = []
+    allowed_apps: list[str] = []
     custom_instructions: dict[str, ValidInstruction] = Field(default_factory=dict)
 
 
 class AgentUpdate(BaseModel):
     name: str | None = None
     description: str | None = None
-    excluded_apps: list[str] | None = None
-    excluded_functions: list[str] | None = None
+    allowed_apps: list[str] | None = None
     custom_instructions: dict[str, ValidInstruction] | None = None
 
 
@@ -39,8 +42,7 @@ class AgentPublic(BaseModel):
     project_id: UUID
     name: str
     description: str
-    excluded_apps: list[str] = []
-    excluded_functions: list[str] = []
+    allowed_apps: list[str] = []
     custom_instructions: dict[str, ValidInstruction] = Field(default_factory=dict)
 
     created_at: datetime

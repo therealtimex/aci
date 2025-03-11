@@ -91,8 +91,7 @@ async def create_agent(
         project_id,
         body.name,
         body.description,
-        body.excluded_apps,
-        body.excluded_functions,
+        body.allowed_apps,
         body.custom_instructions,
     )
     db_session.commit()

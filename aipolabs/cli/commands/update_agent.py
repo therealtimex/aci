@@ -27,18 +27,11 @@ from aipolabs.common.schemas.agent import AgentUpdate
     help="new agent description",
 )
 @click.option(
-    "--excluded-apps",
-    "excluded_apps",
+    "--allowed-apps",
+    "allowed_apps",
     required=False,
     type=list[str],
-    help="new list of app names to exclude from the agent",
-)
-@click.option(
-    "--excluded-functions",
-    "excluded_functions",
-    required=False,
-    type=list[str],
-    help="new list of function names to exclude from the agent",
+    help="new list of app names to allow the agent to access",
 )
 @click.option(
     "--custom-instructions",
@@ -56,8 +49,7 @@ def update_agent(
     agent_id: UUID,
     name: str | None,
     description: str | None,
-    excluded_apps: list[str] | None,
-    excluded_functions: list[str] | None,
+    allowed_apps: list[str] | None,
     custom_instructions: str | None,
     skip_dry_run: bool,
 ) -> UUID:
@@ -68,8 +60,7 @@ def update_agent(
         agent_id,
         name,
         description,
-        excluded_apps,
-        excluded_functions,
+        allowed_apps,
         json.loads(custom_instructions) if custom_instructions else None,
         skip_dry_run,
     )
@@ -79,8 +70,7 @@ def update_agent_helper(
     agent_id: UUID,
     name: str | None,
     description: str | None,
-    excluded_apps: list[str] | None,
-    excluded_functions: list[str] | None,
+    allowed_apps: list[str] | None,
     custom_instructions: dict[str, str] | None,
     skip_dry_run: bool,
 ) -> UUID:
@@ -92,8 +82,7 @@ def update_agent_helper(
         update = AgentUpdate(
             name=name,
             description=description,
-            excluded_apps=excluded_apps,
-            excluded_functions=excluded_functions,
+            allowed_apps=allowed_apps,
             custom_instructions=custom_instructions,
         )
 
