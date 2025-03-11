@@ -31,8 +31,7 @@ import { IdDisplay } from "../apps/id-display";
 const formSchema = z.object({
   name: z.string().min(1, "Name is required"),
   description: z.string().min(1, "Description is required"),
-  excluded_apps: z.array(z.string()).default([]),
-  excluded_functions: z.array(z.string()).default([]),
+  allowed_apps: z.array(z.string()).default([]),
   custom_instructions: z
     .record(z.string())
     .refine((obj) => Object.keys(obj).every((key) => typeof key === "string"), {
@@ -71,8 +70,7 @@ export function AgentForm({
     defaultValues: {
       name: initialValues?.name ?? "",
       description: initialValues?.description ?? "",
-      excluded_apps: initialValues?.excluded_apps ?? [],
-      excluded_functions: initialValues?.excluded_functions ?? [],
+      allowed_apps: initialValues?.allowed_apps ?? [],
       custom_instructions: initialValues?.custom_instructions ?? {},
     },
   });
@@ -106,8 +104,7 @@ export function AgentForm({
       form.reset({
         name: initialValues?.name ?? "",
         description: initialValues?.description ?? "",
-        excluded_apps: initialValues?.excluded_apps ?? [],
-        excluded_functions: initialValues?.excluded_functions ?? [],
+        allowed_apps: initialValues?.allowed_apps ?? [],
         custom_instructions: initialValues?.custom_instructions ?? {},
       });
     }
@@ -161,7 +158,7 @@ export function AgentForm({
                 <FormItem>
                   <FormLabel>Excluded Apps</FormLabel>
                   <FormControl>
-                    <Input {...field} placeholder="Enter apps to exclude" /> 
+                    <Input {...field} placeholder="Enter apps to exclude" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

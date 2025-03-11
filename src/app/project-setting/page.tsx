@@ -222,8 +222,8 @@ export default function ProjectSettingPage() {
                       user!.accessToken,
                       values.name,
                       values.description,
-                      values.excluded_apps,
-                      values.excluded_functions,
+                      // TODO: need to create a UI for specifying allowed apps
+                      values.allowed_apps,
                       values.custom_instructions,
                     );
                     await loadProject();
@@ -315,8 +315,7 @@ export default function ProjectSettingPage() {
                           initialValues={{
                             name: agent.name,
                             description: agent.description,
-                            excluded_apps: agent.excluded_apps,
-                            excluded_functions: agent.excluded_functions,
+                            allowed_apps: agent.allowed_apps,
                             custom_instructions: agent.custom_instructions,
                           }}
                           onSubmit={async (values) => {
@@ -328,8 +327,8 @@ export default function ProjectSettingPage() {
                                 user!.accessToken,
                                 values.name,
                                 values.description,
-                                values.excluded_apps,
-                                values.excluded_functions,
+                                // TODO: need to create a UI for specifying allowed apps
+                                values.allowed_apps,
                                 values.custom_instructions,
                               );
 

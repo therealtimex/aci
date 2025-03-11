@@ -5,8 +5,7 @@ export async function createAgent(
   accessToken: string,
   name: string,
   description: string,
-  excluded_apps: string[] = [],
-  excluded_functions: string[] = [],
+  allowed_apps: string[] = [],
   custom_instructions: Record<string, string> = {},
 ): Promise<Agent> {
   const response = await fetch(
@@ -20,8 +19,7 @@ export async function createAgent(
       body: JSON.stringify({
         name,
         description,
-        excluded_apps,
-        excluded_functions,
+        allowed_apps,
         custom_instructions,
       }),
     },
@@ -39,16 +37,14 @@ export async function updateAgent(
   accessToken: string,
   name?: string,
   description?: string,
-  excluded_apps?: string[],
-  excluded_functions?: string[],
+  allowed_apps?: string[],
   custom_instructions?: Record<string, string>,
 ): Promise<Agent> {
   const body = Object.fromEntries(
     Object.entries({
       name,
       description,
-      excluded_apps,
-      excluded_functions,
+      allowed_apps,
       custom_instructions,
     })
       // eslint-disable-next-line @typescript-eslint/no-unused-vars

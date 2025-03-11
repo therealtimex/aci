@@ -16,8 +16,7 @@ export interface Agent {
   project_id: string;
   name: string;
   description: string;
-  excluded_apps: string[];
-  excluded_functions: string[];
+  allowed_apps: string[];
   custom_instructions: Record<string, string>;
   created_at: string;
   updated_at: string;
