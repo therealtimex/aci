@@ -11,12 +11,11 @@ from aipolabs.common.exceptions import AppNotFound
 from aipolabs.common.logging import get_logger
 from aipolabs.common.schemas.app import (
     AppBasic,
-    AppBasicWithFunctions,
     AppDetails,
     AppsList,
     AppsSearch,
 )
-from aipolabs.common.schemas.function import FunctionBasic
+from aipolabs.common.schemas.function import BasicFunctionDefinition, FunctionDetails
 from aipolabs.server import config
 from aipolabs.server import dependencies as deps
 
@@ -51,7 +50,7 @@ async def list_apps(
     )
 
 
-@router.get("/search", response_model=list[AppBasic])
+@router.get("/search", response_model_exclude_none=True)
 async def search_apps(
     context: Annotated[deps.RequestContext, Depends(deps.get_request_context)],
     query_params: Annotated[AppsSearch, Query()],
@@ -98,19 +97,27 @@ async def search_apps(
     )
 
     apps: list[AppBasic] = []
+
     for app, _ in apps_with_scores:
-        apps.append(AppBasic.model_validate(app))
+        if query_params.include_functions:
+            functions = [
+                BasicFunctionDefinition(name=function.name, description=function.description)
+                for function in app.functions
+            ]
+            apps.append(AppBasic(name=app.name, description=app.description, functions=functions))
+        else:
+            apps.append(AppBasic(name=app.name, description=app.description))
 
     logger.info("search apps response", extra={"app_names": [app.name for app in apps]})
 
     return apps
 
 
-@router.get("/{app_name}", response_model=AppBasicWithFunctions)
+@router.get("/{app_name}", response_model=AppDetails)
 async def get_app_details(
     context: Annotated[deps.RequestContext, Depends(deps.get_request_context)],
     app_name: str,
-) -> AppBasicWithFunctions:
+) -> AppDetails:
     """
     Returns an application (name, description, and functions).
     """
@@ -140,10 +147,21 @@ async def get_app_details(
         )
     ]
 
-    app_details: AppBasicWithFunctions = AppBasicWithFunctions(
+    app_details: AppDetails = AppDetails(
+        id=app.id,
         name=app.name,
+        display_name=app.display_name,
+        provider=app.provider,
+        version=app.version,
         description=app.description,
-        functions=[FunctionBasic.model_validate(function) for function in functions],
+        logo=app.logo,
+        categories=app.categories,
+        visibility=app.visibility,
+        active=app.active,
+        security_schemes=list(app.security_schemes.keys()),
+        functions=[FunctionDetails.model_validate(function) for function in functions],
+        created_at=app.created_at,
+        updated_at=app.updated_at,
     )
 
     return app_details
