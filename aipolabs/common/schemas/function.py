@@ -1,5 +1,4 @@
 from datetime import datetime
-from enum import Enum
 from typing import Any, Literal
 from uuid import UUID
 
@@ -54,7 +53,7 @@ class FunctionUpsert(BaseModel):
             validate_function_parameters_schema_rest_protocol(
                 self.parameters,
                 f"{self.name}.parameters",
-                [location.value for location in HttpLocation],
+                [str(location) for location in HttpLocation],
             )
         else:
             pass
@@ -162,11 +161,6 @@ class FunctionDetails(BaseModel):
     updated_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
-
-
-class InferenceProvider(str, Enum):
-    OPENAI = "openai"
-    ANTHROPIC = "anthropic"
 
 
 class OpenAIFunction(BaseModel):

@@ -7,7 +7,7 @@ from aipolabs.common import processor
 from aipolabs.common.db import crud
 from aipolabs.common.db.sql_models import Function
 from aipolabs.common.embeddings import generate_embedding
-from aipolabs.common.enums import Visibility
+from aipolabs.common.enums import FunctionDefinitionFormat, Visibility
 from aipolabs.common.exceptions import (
     AppConfigurationDisabled,
     AppConfigurationNotFound,
@@ -25,7 +25,6 @@ from aipolabs.common.schemas.function import (
     FunctionExecutionResult,
     FunctionsList,
     FunctionsSearch,
-    InferenceProvider,
     OpenAIFunction,
     OpenAIFunctionDefinition,
 )
@@ -132,20 +131,20 @@ async def search_functions(
 async def get_function_definition(
     context: Annotated[deps.RequestContext, Depends(deps.get_request_context)],
     function_name: str,
-    inference_provider: InferenceProvider = Query(  # noqa: B008 # TODO: need to fix this later
-        default=InferenceProvider.OPENAI,
-        description="The inference provider, which determines the format of the function definition.",
+    format: FunctionDefinitionFormat = Query(  # noqa: B008 # TODO: need to fix this later
+        default=FunctionDefinitionFormat.OPENAI,
+        description="The format to use for the function definition (e.g., openai or anthropic).",
     ),
 ) -> OpenAIFunctionDefinition | AnthropicFunctionDefinition:
     """
     Return the function definition that can be used directly by LLM.
-    The actual content depends on the intended model (inference provider, e.g., OpenAI, Anthropic, etc.) and the function itself.
+    The actual content depends on the FunctionDefinitionFormat and the function itself.
     """
     logger.info(
         "get function definition",
         extra={
             "function_name": function_name,
-            "inference_provider": inference_provider.value,
+            "format": format,
         },
     )
     function: Function | None = crud.functions.get_function(
@@ -170,7 +169,7 @@ async def get_function_definition(
         },
     )
 
-    if inference_provider == InferenceProvider.OPENAI:
+    if format == FunctionDefinitionFormat.OPENAI:
         function_definition = OpenAIFunctionDefinition(
             function=OpenAIFunction(
                 name=function.name,
@@ -178,7 +177,7 @@ async def get_function_definition(
                 parameters=visible_parameters,
             )
         )
-    elif inference_provider == InferenceProvider.ANTHROPIC:
+    elif format == FunctionDefinitionFormat.ANTHROPIC:
         function_definition = AnthropicFunctionDefinition(
             name=function.name,
             description=function.description,
@@ -188,7 +187,7 @@ async def get_function_definition(
     logger.info(
         "function definition to return",
         extra={
-            "inference_provider": inference_provider.value,
+            "format": format,
             "function_name": function_name,
             "function_definition": function_definition.model_dump(exclude_none=True),
         },

@@ -9,8 +9,9 @@ import httpx
 from openai import OpenAI
 
 from aipolabs.cli import config
+from aipolabs.common.enums import FunctionDefinitionFormat
 from aipolabs.common.logging import create_headline
-from aipolabs.common.schemas.function import FunctionExecute, InferenceProvider
+from aipolabs.common.schemas.function import FunctionExecute
 
 
 @click.command()
@@ -73,7 +74,7 @@ def fuzzy_test_function_execution_helper(
     # Get function definition
     response = httpx.get(
         f"{config.SERVER_URL}/v1/functions/{function_name}/definition",
-        params={"inference_provider": InferenceProvider.OPENAI.value},
+        params={"format": FunctionDefinitionFormat.OPENAI},
         headers={"x-api-key": aipolabs_api_key},
     )
     if response.status_code != 200:
