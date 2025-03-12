@@ -137,8 +137,8 @@ The environment variables need to be set correctly on Vercel: <https://vercel.co
 For example, for the Vercel production environment, we set the following environment variables:
 
 ```sh
-NEXT_PUBLIC_API_URL=https://api.aipolabs.xyz
-NEXT_PUBLIC_DEV_PORTAL_URL=https://platform.aipotheosis.xyz
+NEXT_PUBLIC_API_URL=https://api.aci.dev
+NEXT_PUBLIC_DEV_PORTAL_URL=https://platform.aci.dev
 NEXT_PUBLIC_ENVIRONMENT=production
 ```
 
