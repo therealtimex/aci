@@ -51,24 +51,23 @@ export function AppEditForm({
 
   useEffect(() => {
     if (!open || !project || !user?.accessToken) return;
+
     const apiKey = getApiKey(project);
-    if (open && projectId && user?.accessToken) {
-      const fetchAppConfigs = async () => {
-        try {
-          setLoading(true);
-          const configs = await getAllAppConfigs(apiKey);
-          console.log("configs", configs);
+    const fetchAppConfigs = async () => {
+      try {
+        setLoading(true);
+        const configs = await getAllAppConfigs(apiKey);
+        console.log("configs", configs);
 
-          setAppConfigs(configs);
-          setLoading(false);
-        } catch (error) {
-          console.error("Failed to fetch app configurations:", error);
-          setLoading(false);
-        }
-      };
+        setAppConfigs(configs);
+        setLoading(false);
+      } catch (error) {
+        console.error("Failed to fetch app configurations:", error);
+        setLoading(false);
+      }
+    };
 
-      fetchAppConfigs();
-    }
+    fetchAppConfigs();
   }, [open, projectId, user, project]);
 
   useEffect(() => {
