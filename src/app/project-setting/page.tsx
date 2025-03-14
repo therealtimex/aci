@@ -28,7 +28,6 @@ import { useCallback, useEffect, useState } from "react";
 import { getApiKey } from "@/lib/api/util";
 import { useUser } from "@/components/context/user";
 import { getProjects } from "@/lib/api/project";
-import ReactJson from "react-json-view";
 import { App } from "@/lib/types/app";
 import { getAllApps } from "@/lib/api/app";
 import {
@@ -43,7 +42,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { GoTrash } from "react-icons/go";
-
+import { AppEditForm } from "@/components/project/app-edit-form";
 export default function ProjectSettingPage() {
   const { user } = useUser();
   const { project, setProject } = useProject();
@@ -250,7 +249,7 @@ export default function ProjectSettingPage() {
                   <TableHead>DESCRIPTION</TableHead>
                   <TableHead>API KEY</TableHead>
                   <TableHead>CREATION DATE AND TIME</TableHead>
-                  {/* <TableHead>ENABLED APPS</TableHead> */}
+                  <TableHead>ENABLED APPS</TableHead>
                   <TableHead>
                     <Tooltip>
                       <TooltipTrigger className="flex text-left items-center gap-2">
@@ -299,14 +298,20 @@ export default function ProjectSettingPage() {
                           ))}
                         </div>
                       </TableCell> */}
-                      <TableCell className="w-[30%]">
-                        <ReactJson
-                          style={{ wordBreak: "break-all" }}
-                          name={false}
-                          src={agent.custom_instructions}
-                          displayDataTypes={false}
-                          // enableClipboard={false}
-                        />
+                      <TableCell className="space-x-2">
+                        <AppEditForm
+                          onSubmit={(selectedApps) => {
+                            console.log("Selected apps:", selectedApps);
+                            loadProject();
+                          }}
+                          projectId={project.id}
+                          agentId={agent.id}
+                          allowedApps={agent.allowed_apps || []}
+                        >
+                          <Button variant="outline" size="sm">
+                            Edit
+                          </Button>
+                        </AppEditForm>
                       </TableCell>
                       <TableCell className="space-x-6 flex">
                         <AgentForm
