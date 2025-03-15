@@ -245,7 +245,7 @@ export default function ProjectSettingPage() {
             <Table>
               <TableHeader className="bg-gray-50">
                 <TableRow>
-                  <TableHead>AGENT NAME & ID</TableHead>
+                  <TableHead>AGENT NAME</TableHead>
                   <TableHead>DESCRIPTION</TableHead>
                   <TableHead>API KEY</TableHead>
                   <TableHead>CREATION DATE AND TIME</TableHead>
@@ -274,9 +274,6 @@ export default function ProjectSettingPage() {
                       <TableCell>
                         <div>
                           <div className="font-medium">{agent.name}</div>
-                          <div className="text-sm text-muted-foreground font-mono w-24">
-                            <IdDisplay id={agent.id} />
-                          </div>
                         </div>
                       </TableCell>
                       <TableCell>{agent.description}</TableCell>

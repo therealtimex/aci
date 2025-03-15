@@ -25,6 +25,7 @@ import {
   createAppConfig,
   getAppConfig,
 } from "@/lib/api/appconfig";
+import Image from "next/image";
 
 const AppPage = () => {
   const { appName } = useParams<{ appName: string }>();
@@ -87,10 +88,20 @@ const AppPage = () => {
       <div className="m-4 flex items-center justify-between">
         <div>
           {app && (
-            <>
-              <h1 className="text-2xl font-bold">{app.display_name}</h1>
-              <IdDisplay id={app.name} />
-            </>
+            <div className="flex items-center gap-4">
+              <div className="relative h-12 w-12 flex-shrink-0 overflow-hidden rounded-lg">
+                <Image
+                  src={app?.logo ?? ""}
+                  alt={`${app?.display_name} logo`}
+                  fill
+                  className="object-cover"
+                />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold">{app.display_name}</h1>
+                <IdDisplay id={app.name} />
+              </div>
+            </div>
           )}
         </div>
         <div className="flex items-center gap-2">

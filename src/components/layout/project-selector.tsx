@@ -11,7 +11,6 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-  CommandSeparator,
 } from "@/components/ui/command";
 import {
   Popover,
@@ -22,10 +21,8 @@ import { useEffect, useState } from "react";
 import { useProject } from "@/components/context/project";
 import { Skeleton } from "../ui/skeleton";
 // import { GoPlus } from "react-icons/go";
-import { RiSettings3Line } from "react-icons/ri";
 import { useUser } from "@/components/context/user";
 import { Project } from "@/lib/types/project";
-import Link from "next/link";
 import { getProjects } from "@/lib/api/project";
 
 interface ProjectSelectOption {
@@ -119,19 +116,13 @@ export function ProjectSelector() {
                 </CommandItem>
               ))}
             </CommandGroup>
-            <CommandSeparator />
+            {/* <CommandSeparator />
             <CommandGroup>
-              {/* <CommandItem>
+              <CommandItem>
                 <GoPlus />
                 <span>Create Project</span>
-              </CommandItem> */}
-              <Link href="/project-setting" onClick={() => setOpen(false)}>
-                <CommandItem>
-                  <RiSettings3Line />
-                  <span>Manage Project</span>
-                </CommandItem>
-              </Link>
-            </CommandGroup>
+              </CommandItem>
+            </CommandGroup> */}
           </CommandList>
         </Command>
       </PopoverContent>

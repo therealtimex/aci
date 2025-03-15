@@ -23,7 +23,7 @@ import { Separator } from "@/components/ui/separator";
 import { ProjectSelector } from "./project-selector";
 import { PiStorefront } from "react-icons/pi";
 // import { GoHome } from "react-icons/go";
-import { RiSettings4Line } from "react-icons/ri";
+import { RiSettings3Line, RiSettings4Line } from "react-icons/ri";
 import {
   Tooltip,
   TooltipContent,
@@ -132,17 +132,55 @@ export function AppSidebar() {
       </SidebarContent>
 
       <SidebarFooter>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <SidebarMenuButton asChild>
+                  <Link
+                    href="/project-setting"
+                    className={cn(
+                      "flex items-center gap-3 p-4",
+                      isCollapsed && "justify-center",
+                    )}
+                  >
+                    <RiSettings3Line className="h-5 w-5 flex-shrink-0" />
+                    {!isCollapsed && <span>Manage Project</span>}
+                  </Link>
+                </SidebarMenuButton>
+              </TooltipTrigger>
+              {isCollapsed && (
+                <TooltipContent side="right">Manage Project</TooltipContent>
+              )}
+            </Tooltip>
+          </SidebarMenuItem>
+        </SidebarMenu>
+
         <Separator />
-        <Link
-          href="/account"
-          className={cn(
-            "flex items-center gap-3 p-4",
-            isCollapsed && "justify-center",
-          )}
-        >
-          <RiSettings4Line className="h-5 w-5 flex-shrink-0" />
-          {!isCollapsed && <span>Account Settings</span>}
-        </Link>
+
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <SidebarMenuButton asChild>
+                  <Link
+                    href="/account"
+                    className={cn(
+                      "flex items-center gap-3 p-4",
+                      isCollapsed && "justify-center",
+                    )}
+                  >
+                    <RiSettings4Line className="h-5 w-5 flex-shrink-0" />
+                    {!isCollapsed && <span>Account Settings</span>}
+                  </Link>
+                </SidebarMenuButton>
+              </TooltipTrigger>
+              {isCollapsed && (
+                <TooltipContent side="right">Account Settings</TooltipContent>
+              )}
+            </Tooltip>
+          </SidebarMenuItem>
+        </SidebarMenu>
       </SidebarFooter>
     </Sidebar>
   );
