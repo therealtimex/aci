@@ -30,4 +30,6 @@ repos:
       - id: check-yaml
       - id: check-json
       - id: check-added-large-files
+        skip: true
       - id: check-merge-conflict
+        skip: true

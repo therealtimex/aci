@@ -10,7 +10,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 // import { GoBell } from "react-icons/go";
-import { BsQuestionCircle, BsGithub, BsBook } from "react-icons/bs";
+import { BsQuestionCircle, BsGithub, BsBook, BsDiscord } from "react-icons/bs";
 import { Separator } from "@/components/ui/separator";
 import { BreadcrumbLinks } from "./BreadcrumbLinks";
 import { usePathname } from "next/navigation";
@@ -29,6 +29,17 @@ export const Header = () => {
         /> */}
 
         <div className="flex items-center gap-1">
+          <a
+            href="https://discord.gg/bT2eQ2m9vm"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <Button variant="outline" className="px-2">
+              <BsDiscord />
+              <span>Discord</span>
+            </Button>
+          </a>
+
           <a
             href="https://github.com/aipotheosis-labs/aipolabs-python"
             target="_blank"
