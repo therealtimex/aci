@@ -77,7 +77,7 @@ export function AppFunctionsTable({ functions }: AppFunctionsTableProps) {
             <TableRow>
               <TableHead>FUNCTION NAME</TableHead>
               <TableHead className="max-w-[500px]">DESCRIPTION</TableHead>
-              <TableHead className="text-center">ACTIONS</TableHead>
+              <TableHead className="text-center">DETAILS</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>

@@ -94,7 +94,7 @@ const AppPage = () => {
                   src={app?.logo ?? ""}
                   alt={`${app?.display_name} logo`}
                   fill
-                  className="object-cover"
+                  className="object-contain"
                 />
               </div>
               <div>

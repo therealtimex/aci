@@ -35,6 +35,7 @@ describe("ProjectSettingPage", () => {
         name: "Test Agent",
         description: "Test Description",
         project_id: "project-123",
+        allowed_apps: [],
         api_keys: [
           {
             id: "key-1",
@@ -103,7 +104,7 @@ describe("ProjectSettingPage", () => {
     expect(screen.getByDisplayValue("Test Project")).toBeInTheDocument();
 
     // Check if project ID is displayed
-    expect(screen.getByDisplayValue("project-123")).toBeInTheDocument();
+    expect(screen.getByText("project-123")).toBeInTheDocument();
   });
 
   it("displays agent information correctly", async () => {

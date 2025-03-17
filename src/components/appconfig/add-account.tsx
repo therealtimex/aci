@@ -239,12 +239,16 @@ export function AddAccountForm({ app, updateLinkedAccounts }: AddAccountProps) {
             <FormField
               control={form.control}
               name="appName"
-              render={({ field }) => (
+              render={({}) => (
                 <FormItem>
                   <FormLabel>App Name</FormLabel>
-                  <Select
+                  <div className="w-fit bg-muted px-2 py-1 rounded-md">
+                    {app.display_name}
+                  </div>
+                  {/* <Select
                     onValueChange={field.onChange}
                     defaultValue={field.value}
+                    disabled
                   >
                     <FormControl>
                       <SelectTrigger>
@@ -256,7 +260,7 @@ export function AddAccountForm({ app, updateLinkedAccounts }: AddAccountProps) {
                         {app.display_name}
                       </SelectItem>
                     </SelectContent>
-                  </Select>
+                  </Select> */}
                   <FormMessage />
                 </FormItem>
               )}

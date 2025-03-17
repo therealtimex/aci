@@ -185,7 +185,7 @@ export function AppConfigsTable({
                   <Switch checked={config.enabled} />
                 </TableCell> */}
                 <TableCell className="space-x-2 flex">
-                  <Link href={`/appconfig/${config.app_name}`}>
+                  <Link href={`/appconfigs/${config.app_name}`}>
                     <Button variant="outline" size="sm">
                       Open
                     </Button>

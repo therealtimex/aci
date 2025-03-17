@@ -77,7 +77,7 @@ export default function AppConfigDetailPage() {
                 src={app?.logo ?? ""}
                 alt={`${app?.display_name} logo`}
                 fill
-                className="object-cover"
+                className="object-contain"
               />
             )}
           </div>
@@ -147,7 +147,12 @@ export default function AppConfigDetailPage() {
                         <IdDisplay id={account.linked_account_owner_id} />
                       </div>
                     </TableCell>
-                    <TableCell>{account.created_at}</TableCell>
+                    <TableCell>
+                      {new Date(account.created_at)
+                        .toISOString()
+                        .replace(/\.\d{3}Z$/, "")
+                        .replace("T", " ")}
+                    </TableCell>
                     <TableCell>
                       <Switch checked={account.enabled} />
                     </TableCell>

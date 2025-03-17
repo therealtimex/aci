@@ -47,7 +47,7 @@ export function AppSidebar() {
     },
     {
       title: "App Configurations",
-      url: `/appconfig`,
+      url: `/appconfigs`,
       icon: GrAppsRounded,
     },
     // {

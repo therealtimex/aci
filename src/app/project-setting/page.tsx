@@ -135,16 +135,9 @@ export default function ProjectSettingPage() {
                 </TooltipContent>
               </Tooltip>
             </div>
-            <p className="text-sm text-muted-foreground">
-              Change the project ID
-            </p>
           </div>
-          <div>
-            <Input
-              defaultValue={project.id}
-              className="w-96 font-mono"
-              readOnly
-            />
+          <div className="flex items-center px-2">
+            <IdDisplay id={project.id} dim={false} />
           </div>
         </div>
 
@@ -249,7 +242,7 @@ export default function ProjectSettingPage() {
                   <TableHead>DESCRIPTION</TableHead>
                   <TableHead>API KEY</TableHead>
                   <TableHead>CREATION DATE AND TIME</TableHead>
-                  <TableHead>ENABLED APPS</TableHead>
+                  <TableHead>ALLOWED APPS</TableHead>
                   <TableHead>
                     <Tooltip>
                       <TooltipTrigger className="flex text-left items-center gap-2">

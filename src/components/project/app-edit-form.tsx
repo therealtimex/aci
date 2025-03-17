@@ -93,14 +93,14 @@ export function AppEditForm({
           selectedApps,
         );
 
-        toast.success("Agent's enabled apps have been updated successfully.");
+        toast.success("Agent's allowed apps have been updated successfully.");
 
         onSubmit(selectedApps);
       }
       setOpen(false);
     } catch (error) {
       console.error("Failed to update agent's allowed apps:", error);
-      toast.error("Failed to update agent's enabled apps.");
+      toast.error("Failed to update agent's allowed apps.");
     }
   };
 
@@ -128,7 +128,7 @@ export function AppEditForm({
       <DialogContent className="sm:max-w-[425px] ">
         <DialogHeader className="space-y-4">
           <div className="flex items-center justify-between">
-            <DialogTitle>Edit Enabled Apps</DialogTitle>
+            <DialogTitle>Edit Allowed Apps</DialogTitle>
           </div>
           <p className="text-sm text-gray-500 mt-2">
             Change what apps agents have access to.
