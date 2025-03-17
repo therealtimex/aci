@@ -41,6 +41,7 @@ import {
 import { useState } from "react";
 import {
   createAPILinkedAccount,
+  createNoAuthLinkedAccount,
   getOauth2LinkURL,
 } from "@/lib/api/linkedaccount";
 import { getApiKey } from "@/lib/api/util";
@@ -48,7 +49,7 @@ import { getApiKey } from "@/lib/api/util";
 const formSchema = z
   .object({
     appName: z.string().min(1, "App name is required"),
-    authType: z.enum(["api_key", "oauth2"]),
+    authType: z.enum(["api_key", "oauth2", "no_auth"]),
     linkedAccountOwnerId: z.string().min(1, "Account owner ID is required"),
     apiKey: z.string().optional(),
   })
@@ -71,6 +72,7 @@ interface AddAccountProps {
 const FORM_SUBMIT_COPY_OAUTH2_LINK_URL = "copyOAuth2LinkURL";
 const FORM_SUBMIT_LINK_OAUTH2_ACCOUNT = "linkOAuth2";
 const FORM_SUBMIT_API_KEY = "apiKey";
+const FORM_SUBMIT_NO_AUTH = "noAuth";
 
 export function AddAccountForm({ app, updateLinkedAccounts }: AddAccountProps) {
   const { project } = useProject();
@@ -80,7 +82,7 @@ export function AddAccountForm({ app, updateLinkedAccounts }: AddAccountProps) {
     resolver: zodResolver(formSchema),
     defaultValues: {
       appName: app.display_name,
-      authType: app.security_schemes[0] as "api_key" | "oauth2",
+      authType: app.security_schemes[0] as "api_key" | "oauth2" | "no_auth",
       linkedAccountOwnerId: "",
       apiKey: "",
     },
@@ -174,6 +176,25 @@ export function AddAccountForm({ app, updateLinkedAccounts }: AddAccountProps) {
     }
   };
 
+  const linkNoAuthAccount = async (linkedAccountOwnerId: string) => {
+    if (!project) {
+      throw new Error("No API key available");
+    }
+
+    const apiKey = getApiKey(project);
+
+    try {
+      await createNoAuthLinkedAccount(app.name, linkedAccountOwnerId, apiKey);
+      toast.success("Account linked successfully");
+      form.reset();
+      setOpen(false);
+      updateLinkedAccounts();
+    } catch (error) {
+      console.error("Error linking no auth account:", error);
+      toast.error("Failed to link account");
+    }
+  };
+
   const onSubmit: SubmitHandler<FormValues> = async (values, e) => {
     if (!e) {
       throw new Error("Form submission event is not available");
@@ -194,6 +215,9 @@ export function AddAccountForm({ app, updateLinkedAccounts }: AddAccountProps) {
           values.linkedAccountOwnerId,
           values.apiKey as string,
         );
+        break;
+      case FORM_SUBMIT_NO_AUTH:
+        await linkNoAuthAccount(values.linkedAccountOwnerId);
         break;
     }
   };
@@ -360,11 +384,18 @@ export function AddAccountForm({ app, updateLinkedAccounts }: AddAccountProps) {
 
               <Button
                 type="submit"
-                name={
-                  authType === "oauth2"
-                    ? FORM_SUBMIT_LINK_OAUTH2_ACCOUNT
-                    : FORM_SUBMIT_API_KEY
-                }
+                name={(() => {
+                  switch (authType) {
+                    case "oauth2":
+                      return FORM_SUBMIT_LINK_OAUTH2_ACCOUNT;
+                    case "no_auth":
+                      return FORM_SUBMIT_NO_AUTH;
+                    case "api_key":
+                      return FORM_SUBMIT_API_KEY;
+                    default:
+                      return FORM_SUBMIT_API_KEY;
+                  }
+                })()}
               >
                 {authType === "oauth2" ? "Start OAuth2 Flow" : "Save"}
               </Button>
