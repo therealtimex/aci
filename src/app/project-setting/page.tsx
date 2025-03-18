@@ -257,26 +257,37 @@ export default function ProjectSettingPage() {
                       </TooltipContent>
                     </Tooltip>
                   </TableHead>
-                  <TableHead></TableHead>
+                  <TableHead>DELETE</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {project.agents.map((agent) => {
-                  return (
-                    <TableRow key={agent.id}>
-                      <TableCell>
-                        <div>
-                          <div className="font-medium">{agent.name}</div>
-                        </div>
-                      </TableCell>
-                      <TableCell>{agent.description}</TableCell>
-                      <TableCell className="font-mono">
-                        <div className="w-24">
-                          <IdDisplay id={agent.api_keys[0].key} />
-                        </div>
-                      </TableCell>
-                      <TableCell>{agent.created_at}</TableCell>
-                      {/* <TableCell>
+                {[...project.agents]
+                  .sort(
+                    (a, b) =>
+                      new Date(b.created_at).getTime() -
+                      new Date(a.created_at).getTime(),
+                  )
+                  .map((agent) => {
+                    return (
+                      <TableRow key={agent.id}>
+                        <TableCell>
+                          <div>
+                            <div className="font-medium">{agent.name}</div>
+                          </div>
+                        </TableCell>
+                        <TableCell>{agent.description}</TableCell>
+                        <TableCell className="font-mono">
+                          <div className="w-24">
+                            <IdDisplay id={agent.api_keys[0].key} />
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          {new Date(agent.created_at)
+                            .toISOString()
+                            .replace(/\.\d{3}Z$/, "")
+                            .replace("T", " ")}
+                        </TableCell>
+                        {/* <TableCell>
                         <div className="flex flex-wrap gap-2">
                           {appConfigs.map((config) => (
                             <span
@@ -288,126 +299,127 @@ export default function ProjectSettingPage() {
                           ))}
                         </div>
                       </TableCell> */}
-                      <TableCell className="space-x-2">
-                        <AppEditForm
-                          onSubmit={(selectedApps) => {
-                            console.log("Selected apps:", selectedApps);
-                            loadProject();
-                          }}
-                          projectId={project.id}
-                          agentId={agent.id}
-                          allowedApps={agent.allowed_apps || []}
-                        >
-                          <Button variant="outline" size="sm">
-                            Edit
-                          </Button>
-                        </AppEditForm>
-                      </TableCell>
-                      <TableCell className="space-x-6 flex">
-                        <AgentForm
-                          title="Edit Agent"
-                          validAppNames={apps.map((app) => app.name)}
-                          initialValues={{
-                            name: agent.name,
-                            description: agent.description,
-                            allowed_apps: agent.allowed_apps,
-                            custom_instructions: agent.custom_instructions,
-                          }}
-                          onSubmit={async (values) => {
-                            if (!project) return;
-                            try {
-                              await updateAgent(
-                                project.id,
-                                agent.id,
-                                user!.accessToken,
-                                values.name,
-                                values.description,
-                                // TODO: need to create a UI for specifying allowed apps
-                                values.allowed_apps,
-                                values.custom_instructions,
-                              );
-
-                              await loadProject();
-                            } catch (error) {
-                              console.error("Error updating agent:", error);
-                            }
-                          }}
-                        >
-                          <Button variant="outline" size="sm">
-                            Edit
-                          </Button>
-                        </AgentForm>
-
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="text-red-600"
-                            >
-                              <GoTrash />
+                        <TableCell className="space-x-2">
+                          <AppEditForm
+                            onSubmit={(selectedApps) => {
+                              console.log("Selected apps:", selectedApps);
+                              loadProject();
+                            }}
+                            projectId={project.id}
+                            agentId={agent.id}
+                            allowedApps={agent.allowed_apps || []}
+                          >
+                            <Button variant="outline" size="sm">
+                              Edit
                             </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>
-                                {project.agents.length <= 1
-                                  ? "Cannot Delete Agent"
-                                  : "Delete Agent?"}
-                              </AlertDialogTitle>
-                              <AlertDialogDescription>
-                                {project.agents.length <= 1 ? (
-                                  "You must keep at least one agent in the project. This agent cannot be deleted."
-                                ) : (
-                                  <>
-                                    This action cannot be undone. This will
-                                    permanently delete the agent &quot;
-                                    {agent.name}
-                                    &quot; and remove all its associated data.
-                                  </>
-                                )}
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>
-                                {project.agents.length <= 1
-                                  ? "Close"
-                                  : "Cancel"}
-                              </AlertDialogCancel>
-                              {project.agents.length > 1 && (
-                                <AlertDialogAction
-                                  onClick={async () => {
-                                    try {
-                                      if (!project || !user) {
-                                        console.warn(
-                                          "No active project or user",
+                          </AppEditForm>
+                        </TableCell>
+                        <TableCell className="space-x-6 flex">
+                          <AgentForm
+                            title="Edit Agent"
+                            validAppNames={apps.map((app) => app.name)}
+                            initialValues={{
+                              name: agent.name,
+                              description: agent.description,
+                              allowed_apps: agent.allowed_apps,
+                              custom_instructions: agent.custom_instructions,
+                            }}
+                            onSubmit={async (values) => {
+                              if (!project) return;
+                              try {
+                                await updateAgent(
+                                  project.id,
+                                  agent.id,
+                                  user!.accessToken,
+                                  values.name,
+                                  values.description,
+                                  // TODO: need to create a UI for specifying allowed apps
+                                  values.allowed_apps,
+                                  values.custom_instructions,
+                                );
+
+                                await loadProject();
+                              } catch (error) {
+                                console.error("Error updating agent:", error);
+                              }
+                            }}
+                          >
+                            <Button variant="outline" size="sm">
+                              Edit
+                            </Button>
+                          </AgentForm>
+                        </TableCell>
+                        <TableCell>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="text-red-600"
+                              >
+                                <GoTrash />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>
+                                  {project.agents.length <= 1
+                                    ? "Cannot Delete Agent"
+                                    : "Delete Agent?"}
+                                </AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  {project.agents.length <= 1 ? (
+                                    "You must keep at least one agent in the project. This agent cannot be deleted."
+                                  ) : (
+                                    <>
+                                      This action cannot be undone. This will
+                                      permanently delete the agent &quot;
+                                      {agent.name}
+                                      &quot; and remove all its associated data.
+                                    </>
+                                  )}
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>
+                                  {project.agents.length <= 1
+                                    ? "Close"
+                                    : "Cancel"}
+                                </AlertDialogCancel>
+                                {project.agents.length > 1 && (
+                                  <AlertDialogAction
+                                    onClick={async () => {
+                                      try {
+                                        if (!project || !user) {
+                                          console.warn(
+                                            "No active project or user",
+                                          );
+                                          return;
+                                        }
+                                        await deleteAgent(
+                                          project.id,
+                                          agent.id,
+                                          user.accessToken,
                                         );
-                                        return;
+                                        await loadProject();
+                                      } catch (error) {
+                                        console.error(
+                                          "Error deleting agent:",
+                                          error,
+                                        );
                                       }
-                                      await deleteAgent(
-                                        project.id,
-                                        agent.id,
-                                        user.accessToken,
-                                      );
-                                      await loadProject();
-                                    } catch (error) {
-                                      console.error(
-                                        "Error deleting agent:",
-                                        error,
-                                      );
-                                    }
-                                  }}
-                                >
-                                  Delete
-                                </AlertDialogAction>
-                              )}
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
+                                    }}
+                                  >
+                                    Delete
+                                  </AlertDialogAction>
+                                )}
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
               </TableBody>
             </Table>
           </div>

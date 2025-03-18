@@ -25,6 +25,8 @@ import { ProjectSelector } from "./project-selector";
 import { PiStorefront } from "react-icons/pi";
 // import { GoHome } from "react-icons/go";
 import { RiSettings3Line, RiSettings4Line } from "react-icons/ri";
+import { AiOutlineExperiment } from "react-icons/ai";
+
 import {
   Tooltip,
   TooltipContent,
@@ -61,13 +63,14 @@ export function AppSidebar() {
 
   return (
     <Sidebar variant="inset" collapsible="icon" className="flex flex-col">
-      <div className="w-full bg-black text-white text-center py-1 text-xs font-bold rounded-md">
+      <div className="w-full text-center py-1 text-xs font-bold flex items-center justify-center border-b-2 border-gray-200">
+        <AiOutlineExperiment className="inline-block mr-2" />
         In Closed Beta
       </div>
       <SidebarHeader>
         <div
           className={cn(
-            "flex items-center p-4",
+            "flex items-center px-4",
             isCollapsed ? "justify-center" : "justify-between gap-2",
           )}
         >

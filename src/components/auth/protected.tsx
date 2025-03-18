@@ -27,7 +27,7 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 const Protected = ({ children }: Readonly<{ children: React.ReactNode }>) => {
-  const [isLogin, setIsLogin] = React.useState(true);
+  const [isLogin, setIsLogin] = React.useState(false);
   const toggleLogin = () => setIsLogin(!isLogin);
   // TODO: make this loads faster
   const { user, login, signup } = useUser();

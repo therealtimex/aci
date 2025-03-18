@@ -45,6 +45,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
+import Link from "next/link";
 
 export default function AppConfigDetailPage() {
   const { appName } = useParams<{ appName: string }>();
@@ -95,7 +96,9 @@ export default function AppConfigDetailPage() {
             )}
           </div>
           <div>
-            <h1 className="text-2xl font-semibold">{app?.display_name}</h1>
+            <Link href={`/apps/${app?.name}`}>
+              <h1 className="text-2xl font-semibold">{app?.display_name}</h1>
+            </Link>
             <IdDisplay id={app?.name ?? ""} />
           </div>
         </div>
@@ -193,7 +196,7 @@ export default function AppConfigDetailPage() {
                               sortLinkedAccountsByCreateTime(linkedAccounts),
                             );
                             toast.success(
-                              "Linked account updated successfully",
+                              `Linked account ${account.linked_account_owner_id} ${checked ? "enabled" : "disabled"}`,
                             );
                           } catch (error) {
                             console.error(
@@ -247,6 +250,10 @@ export default function AppConfigDetailPage() {
                                     sortLinkedAccountsByCreateTime(
                                       linkedAccounts,
                                     ),
+                                  );
+
+                                  toast.success(
+                                    `Linked account ${account.linked_account_owner_id} deleted`,
                                   );
                                 } catch (error) {
                                   console.error(error);
