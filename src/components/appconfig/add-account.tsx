@@ -140,7 +140,7 @@ export function AddAccountForm({ app, updateLinkedAccounts }: AddAccountProps) {
     try {
       oauth2LinkURL = await fetchOath2LinkURL(
         linkedAccountOwnerId,
-        `${process.env.NEXT_PUBLIC_DEV_PORTAL_URL}/appconfig/${app.name}`,
+        `${process.env.NEXT_PUBLIC_DEV_PORTAL_URL}/appconfigs/${app.name}`,
       );
       window.location.href = oauth2LinkURL;
     } catch (error) {
