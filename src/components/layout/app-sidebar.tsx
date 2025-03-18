@@ -5,6 +5,7 @@ import Image from "next/image";
 // import { RiLinkUnlinkM } from "react-icons/ri";
 import { GrAppsRounded } from "react-icons/gr";
 import { cn } from "@/lib/utils";
+import { usePathname } from "next/navigation";
 
 import {
   Sidebar,
@@ -33,6 +34,7 @@ import {
 export function AppSidebar() {
   const { state } = useSidebar();
   const isCollapsed = state === "collapsed";
+  const pathname = usePathname();
 
   const items = [
     // {
@@ -103,29 +105,42 @@ export function AppSidebar() {
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
-              {items.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <SidebarMenuButton asChild>
-                        <Link
-                          href={item.url}
-                          className={cn(
-                            "flex items-center gap-3 px-4 py-2",
-                            isCollapsed && "justify-center",
-                          )}
-                        >
-                          <item.icon className="h-5 w-5 flex-shrink-0" />
-                          {!isCollapsed && <span>{item.title}</span>}
-                        </Link>
-                      </SidebarMenuButton>
-                    </TooltipTrigger>
-                    {isCollapsed && (
-                      <TooltipContent side="right">{item.title}</TooltipContent>
-                    )}
-                  </Tooltip>
-                </SidebarMenuItem>
-              ))}
+              {items.map((item) => {
+                const isActive =
+                  pathname === item.url || pathname.startsWith(item.url);
+                return (
+                  <SidebarMenuItem key={item.title}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <SidebarMenuButton asChild>
+                          <Link
+                            href={item.url}
+                            className={cn(
+                              "flex items-center gap-3 px-4 py-2 transition-colors",
+                              isCollapsed && "justify-center",
+                              isActive &&
+                                "bg-primary/10 text-primary font-medium",
+                            )}
+                          >
+                            <item.icon
+                              className={cn(
+                                "h-5 w-5 flex-shrink-0",
+                                isActive && "text-primary",
+                              )}
+                            />
+                            {!isCollapsed && <span>{item.title}</span>}
+                          </Link>
+                        </SidebarMenuButton>
+                      </TooltipTrigger>
+                      {isCollapsed && (
+                        <TooltipContent side="right">
+                          {item.title}
+                        </TooltipContent>
+                      )}
+                    </Tooltip>
+                  </SidebarMenuItem>
+                );
+              })}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
@@ -140,11 +155,18 @@ export function AppSidebar() {
                   <Link
                     href="/project-setting"
                     className={cn(
-                      "flex items-center gap-3 p-4",
+                      "flex items-center gap-3 p-4 transition-colors",
                       isCollapsed && "justify-center",
+                      pathname === "/project-setting" &&
+                        "bg-primary/10 text-primary font-medium",
                     )}
                   >
-                    <RiSettings3Line className="h-5 w-5 flex-shrink-0" />
+                    <RiSettings3Line
+                      className={cn(
+                        "h-5 w-5 flex-shrink-0",
+                        pathname === "/project-setting" && "text-primary",
+                      )}
+                    />
                     {!isCollapsed && <span>Manage Project</span>}
                   </Link>
                 </SidebarMenuButton>
@@ -166,11 +188,18 @@ export function AppSidebar() {
                   <Link
                     href="/account"
                     className={cn(
-                      "flex items-center gap-3 p-4",
+                      "flex items-center gap-3 p-4 transition-colors",
                       isCollapsed && "justify-center",
+                      pathname === "/account" &&
+                        "bg-primary/10 text-primary font-medium",
                     )}
                   >
-                    <RiSettings4Line className="h-5 w-5 flex-shrink-0" />
+                    <RiSettings4Line
+                      className={cn(
+                        "h-5 w-5 flex-shrink-0",
+                        pathname === "/account" && "text-primary",
+                      )}
+                    />
                     {!isCollapsed && <span>Account Settings</span>}
                   </Link>
                 </SidebarMenuButton>

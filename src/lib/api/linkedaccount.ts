@@ -150,3 +150,32 @@ export async function deleteLinkedAccount(
     );
   }
 }
+
+export async function updateLinkedAccount(
+  linkedAccountId: string,
+  apiKey: string,
+  enabled: boolean,
+): Promise<LinkedAccount> {
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/v1/linked-accounts/${linkedAccountId}`,
+    {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        "X-API-KEY": apiKey,
+      },
+      body: JSON.stringify({
+        enabled,
+      }),
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      `Failed to update linked account: ${response.status} ${response.statusText}`,
+    );
+  }
+
+  const updatedLinkedAccount = await response.json();
+  return updatedLinkedAccount;
+}

@@ -31,6 +31,7 @@ import { getApp } from "@/lib/api/app";
 import {
   getLinkedAccounts,
   deleteLinkedAccount,
+  updateLinkedAccount,
 } from "@/lib/api/linkedaccount";
 import {
   AlertDialog,
@@ -43,12 +44,23 @@ import {
   AlertDialogDescription,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { toast } from "sonner";
 
 export default function AppConfigDetailPage() {
   const { appName } = useParams<{ appName: string }>();
   const { project } = useProject();
   const [app, setApp] = useState<App | null>(null);
   const [linkedAccounts, setLinkedAccounts] = useState<LinkedAccount[]>([]);
+
+  const sortLinkedAccountsByCreateTime = (accounts: LinkedAccount[]) => {
+    return [...accounts].sort((a, b) => {
+      if (!a.created_at) return 1;
+      if (!b.created_at) return -1;
+      return (
+        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      );
+    });
+  };
 
   useEffect(() => {
     async function loadAppAndLinkedAccounts() {
@@ -62,7 +74,8 @@ export default function AppConfigDetailPage() {
       setApp(app);
 
       const linkedAccounts = await getLinkedAccounts(appName, apiKey);
-      setLinkedAccounts(linkedAccounts);
+
+      setLinkedAccounts(sortLinkedAccountsByCreateTime(linkedAccounts));
     }
     loadAppAndLinkedAccounts();
   }, [project, appName]);
@@ -97,7 +110,7 @@ export default function AppConfigDetailPage() {
               const apiKey = getApiKey(project);
 
               const linkedAccounts = await getLinkedAccounts(appName, apiKey);
-              setLinkedAccounts(linkedAccounts);
+              setLinkedAccounts(sortLinkedAccountsByCreateTime(linkedAccounts));
             }}
           />
         )}
@@ -154,7 +167,42 @@ export default function AppConfigDetailPage() {
                         .replace("T", " ")}
                     </TableCell>
                     <TableCell>
-                      <Switch checked={account.enabled} />
+                      <Switch
+                        checked={account.enabled}
+                        className={account.enabled ? "bg-[#1CD1AF]" : ""}
+                        onCheckedChange={async (checked) => {
+                          try {
+                            if (!project) {
+                              console.warn("No active project");
+                              return;
+                            }
+                            const apiKey = getApiKey(project);
+
+                            await updateLinkedAccount(
+                              account.id,
+                              apiKey,
+                              checked,
+                            );
+
+                            // Refresh the linked accounts list after update
+                            const linkedAccounts = await getLinkedAccounts(
+                              appName,
+                              apiKey,
+                            );
+                            setLinkedAccounts(
+                              sortLinkedAccountsByCreateTime(linkedAccounts),
+                            );
+                            toast.success(
+                              "Linked account updated successfully",
+                            );
+                          } catch (error) {
+                            console.error(
+                              "Failed to update linked account:",
+                              error,
+                            );
+                          }
+                        }}
+                      />
                     </TableCell>
                     <TableCell>
                       <AlertDialog>
@@ -191,10 +239,15 @@ export default function AppConfigDetailPage() {
                                   const apiKey = getApiKey(project);
 
                                   await deleteLinkedAccount(account.id, apiKey);
+
                                   // Refresh the linked accounts list after deletion
                                   const linkedAccounts =
                                     await getLinkedAccounts(appName, apiKey);
-                                  setLinkedAccounts(linkedAccounts);
+                                  setLinkedAccounts(
+                                    sortLinkedAccountsByCreateTime(
+                                      linkedAccounts,
+                                    ),
+                                  );
                                 } catch (error) {
                                   console.error(error);
                                 }
