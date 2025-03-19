@@ -86,9 +86,9 @@
                     "type": "object",
                     "properties": {
                         "sessionId": {
-                            "type": ["string", "null"],
+                            "type": "string",
                             "description": "The session ID cookie",
-                            "default": null
+                            "default": "default-session-id"
                         }
                     },
                     "visible": [],
