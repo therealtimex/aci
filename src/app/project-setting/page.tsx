@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 // import { Switch } from "@/components/ui/switch";
 import { AgentForm } from "@/components/project/agent-form";
-import { createAgent, updateAgent, deleteAgent } from "@/lib/api/agent";
+import { createAgent, deleteAgent } from "@/lib/api/agent";
 import { useProject } from "@/components/context/project";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -43,6 +43,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { GoTrash } from "react-icons/go";
 import { AppEditForm } from "@/components/project/app-edit-form";
+import { AgentInstructionFilterForm } from "@/components/project/agent-instruction-filter-form";
 export default function ProjectSettingPage() {
   const { user } = useUser();
   const { project, setProject } = useProject();
@@ -315,39 +316,17 @@ export default function ProjectSettingPage() {
                           </AppEditForm>
                         </TableCell>
                         <TableCell className="space-x-6 flex">
-                          <AgentForm
-                            title="Edit Agent"
-                            validAppNames={apps.map((app) => app.name)}
-                            initialValues={{
-                              name: agent.name,
-                              description: agent.description,
-                              allowed_apps: agent.allowed_apps,
-                              custom_instructions: agent.custom_instructions,
-                            }}
-                            onSubmit={async (values) => {
-                              if (!project) return;
-                              try {
-                                await updateAgent(
-                                  project.id,
-                                  agent.id,
-                                  user!.accessToken,
-                                  values.name,
-                                  values.description,
-                                  // TODO: need to create a UI for specifying allowed apps
-                                  values.allowed_apps,
-                                  values.custom_instructions,
-                                );
-
-                                await loadProject();
-                              } catch (error) {
-                                console.error("Error updating agent:", error);
-                              }
-                            }}
+                          <AgentInstructionFilterForm
+                            projectId={project.id}
+                            agentId={agent.id}
+                            initialInstructions={agent.custom_instructions}
+                            allowedApps={agent.allowed_apps || []}
+                            onSaveSuccess={loadProject}
                           >
                             <Button variant="outline" size="sm">
                               Edit
                             </Button>
-                          </AgentForm>
+                          </AgentInstructionFilterForm>
                         </TableCell>
                         <TableCell>
                           <AlertDialog>
