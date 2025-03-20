@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import Image from "next/image";
-// import { RiLinkUnlinkM } from "react-icons/ri";
 import { GrAppsRounded } from "react-icons/gr";
+import { GoHome } from "react-icons/go";
 import { cn } from "@/lib/utils";
 import { usePathname } from "next/navigation";
 
@@ -23,7 +23,6 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { ProjectSelector } from "./project-selector";
 import { PiStorefront } from "react-icons/pi";
-// import { GoHome } from "react-icons/go";
 import { RiSettings3Line, RiSettings4Line } from "react-icons/ri";
 import { AiOutlineExperiment } from "react-icons/ai";
 
@@ -39,11 +38,11 @@ export function AppSidebar() {
   const pathname = usePathname();
 
   const items = [
-    // {
-    //   title: "Home",
-    //   url: `/`,
-    //   icon: GoHome,
-    // },
+    {
+      title: "Home",
+      url: `/home`,
+      icon: GoHome,
+    },
     {
       title: "App Store",
       url: `/apps`,
