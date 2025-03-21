@@ -38,7 +38,7 @@ import {
 import { deleteAppConfig, updateAppConfig } from "@/lib/api/appconfig";
 import { useProject } from "@/components/context/project";
 import { getApiKey } from "@/lib/api/util";
-import { getLinkedAccounts } from "@/lib/api/linkedaccount";
+import { getAppLinkedAccounts } from "@/lib/api/linkedaccount";
 import { getApps } from "@/lib/api/app";
 import Image from "next/image";
 import { toast } from "sonner";
@@ -128,7 +128,10 @@ export function AppConfigsTable({
       const apiKey = getApiKey(project);
 
       appConfigs.forEach(async (config) => {
-        const linkedAccounts = await getLinkedAccounts(config.app_name, apiKey);
+        const linkedAccounts = await getAppLinkedAccounts(
+          config.app_name,
+          apiKey,
+        );
         setLinkedAccountsCountMap((prev) => ({
           ...prev,
           [config.app_name]: linkedAccounts.length,

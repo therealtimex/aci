@@ -1,6 +1,6 @@
 import { LinkedAccount } from "@/lib/types/linkedaccount";
 
-export async function getLinkedAccounts(
+export async function getAppLinkedAccounts(
   appName: string,
   apiKey: string,
 ): Promise<LinkedAccount[]> {

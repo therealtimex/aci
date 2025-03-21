@@ -29,7 +29,7 @@ import { AddAccountForm } from "@/components/appconfig/add-account";
 import { getApiKey } from "@/lib/api/util";
 import { getApp } from "@/lib/api/app";
 import {
-  getLinkedAccounts,
+  getAppLinkedAccounts,
   deleteLinkedAccount,
   updateLinkedAccount,
 } from "@/lib/api/linkedaccount";
@@ -74,7 +74,7 @@ export default function AppConfigDetailPage() {
       const app = await getApp(appName, apiKey);
       setApp(app);
 
-      const linkedAccounts = await getLinkedAccounts(appName, apiKey);
+      const linkedAccounts = await getAppLinkedAccounts(appName, apiKey);
 
       setLinkedAccounts(sortLinkedAccountsByCreateTime(linkedAccounts));
     }
@@ -112,7 +112,10 @@ export default function AppConfigDetailPage() {
               }
               const apiKey = getApiKey(project);
 
-              const linkedAccounts = await getLinkedAccounts(appName, apiKey);
+              const linkedAccounts = await getAppLinkedAccounts(
+                appName,
+                apiKey,
+              );
               setLinkedAccounts(sortLinkedAccountsByCreateTime(linkedAccounts));
             }}
           />
@@ -188,7 +191,7 @@ export default function AppConfigDetailPage() {
                             );
 
                             // Refresh the linked accounts list after update
-                            const linkedAccounts = await getLinkedAccounts(
+                            const linkedAccounts = await getAppLinkedAccounts(
                               appName,
                               apiKey,
                             );
@@ -245,7 +248,7 @@ export default function AppConfigDetailPage() {
 
                                   // Refresh the linked accounts list after deletion
                                   const linkedAccounts =
-                                    await getLinkedAccounts(appName, apiKey);
+                                    await getAppLinkedAccounts(appName, apiKey);
                                   setLinkedAccounts(
                                     sortLinkedAccountsByCreateTime(
                                       linkedAccounts,
