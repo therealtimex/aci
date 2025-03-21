@@ -95,6 +95,35 @@ export async function createAppConfig(
   return appConfig;
 }
 
+export async function updateAppConfig(
+  appName: string,
+  enabled: boolean,
+  apiKey: string,
+): Promise<AppConfig> {
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/v1/app-configurations/${appName}`,
+    {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        "X-API-KEY": apiKey,
+      },
+      body: JSON.stringify({
+        enabled: enabled,
+      }),
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      `Failed to update app configuration for ${appName}: ${response.status} ${response.statusText}`,
+    );
+  }
+
+  const appConfig = await response.json();
+  return appConfig;
+}
+
 export async function deleteAppConfig(
   appName: string,
   apiKey: string,

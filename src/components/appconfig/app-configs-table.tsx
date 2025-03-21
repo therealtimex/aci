@@ -18,7 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-// import { Switch } from "@/components/ui/switch";
+import { Switch } from "@/components/ui/switch";
 import Link from "next/link";
 import { Input } from "@/components/ui/input";
 import { IdDisplay } from "../apps/id-display";
@@ -35,12 +35,13 @@ import {
   AlertDialogDescription,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { deleteAppConfig } from "@/lib/api/appconfig";
+import { deleteAppConfig, updateAppConfig } from "@/lib/api/appconfig";
 import { useProject } from "@/components/context/project";
 import { getApiKey } from "@/lib/api/util";
 import { getLinkedAccounts } from "@/lib/api/linkedaccount";
 import { getApps } from "@/lib/api/app";
 import Image from "next/image";
+import { toast } from "sonner";
 
 interface AppConfigsTableProps {
   appConfigs: AppConfig[];
@@ -65,16 +66,26 @@ export function AppConfigsTable({
     new Set(Object.values(appsMap).flatMap((app) => app.categories)),
   );
 
-  const filteredAppConfigs = appConfigs.filter((config) => {
+  // Sort app configurations by app name
+  const sortedAppConfigs = [...appConfigs].sort((a, b) =>
+    a.app_name.localeCompare(b.app_name),
+  );
+
+  const filteredAppConfigs = sortedAppConfigs.filter((config) => {
+    // If the app doesn't exist in appsMap, only match by app_name
+    if (!appsMap[config.app_name]) {
+      return config.app_name.toLowerCase().includes(searchQuery.toLowerCase());
+    }
+
     const matchesNameAndCategory =
       config.app_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      appsMap[config.app_name].categories.some((c) =>
+      appsMap[config.app_name]?.categories?.some((c) =>
         c.toLowerCase().includes(searchQuery.toLowerCase()),
       );
 
     const matchesCategory =
       selectedCategory === "all" ||
-      appsMap[config.app_name].categories.includes(selectedCategory);
+      appsMap[config.app_name]?.categories?.includes(selectedCategory);
 
     return matchesNameAndCategory && matchesCategory;
   });
@@ -158,7 +169,7 @@ export function AppConfigsTable({
             <TableRow>
               <TableHead>APP NAME</TableHead>
               <TableHead>LINKED ACCOUNTS</TableHead>
-              {/* <TableHead>ENABLED</TableHead> */}
+              <TableHead>ENABLED</TableHead>
               <TableHead></TableHead>
             </TableRow>
           </TableHeader>
@@ -168,12 +179,18 @@ export function AppConfigsTable({
                 <TableCell>
                   <div className="flex items-center gap-3">
                     <div className="relative h-5 w-5 flex-shrink-0 overflow-hidden">
-                      <Image
-                        src={appsMap[config.app_name]?.logo || ""}
-                        alt={`${config.app_name} logo`}
-                        fill
-                        className="object-contain"
-                      />
+                      {appsMap[config.app_name]?.logo ? (
+                        <Image
+                          src={appsMap[config.app_name]?.logo || ""}
+                          alt={`${config.app_name} logo`}
+                          fill
+                          className="object-contain"
+                        />
+                      ) : (
+                        <div className="h-5 w-5 bg-gray-200 rounded-sm flex items-center justify-center text-xs text-gray-500">
+                          {config.app_name.charAt(0).toUpperCase()}
+                        </div>
+                      )}
                     </div>
                     <IdDisplay id={config.app_name} dim={false} />
                   </div>
@@ -181,9 +198,32 @@ export function AppConfigsTable({
                 <TableCell>
                   {linkedAccountsCountMap[config.app_name] || 0}
                 </TableCell>
-                {/* <TableCell>
-                  <Switch checked={config.enabled} />
-                </TableCell> */}
+                <TableCell>
+                  <Switch
+                    checked={config.enabled}
+                    className={config.enabled ? "bg-[#1CD1AF]" : ""}
+                    onCheckedChange={async (checked) => {
+                      try {
+                        if (!project) {
+                          console.warn("No active project");
+                          return;
+                        }
+                        const apiKey = getApiKey(project);
+                        await updateAppConfig(config.app_name, checked, apiKey);
+                        updateAppConfigs();
+                        toast.success(
+                          `${config.app_name} ${checked ? "enabled" : "disabled"}`,
+                        );
+                      } catch (error) {
+                        console.error(
+                          "Failed to update app configuration:",
+                          error,
+                        );
+                        toast.error("Failed to update app configuration");
+                      }
+                    }}
+                  />
+                </TableCell>
                 <TableCell className="space-x-2 flex">
                   <Link href={`/appconfigs/${config.app_name}`}>
                     <Button variant="outline" size="sm">
