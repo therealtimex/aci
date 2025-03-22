@@ -248,7 +248,7 @@ export default function ProjectSettingPage() {
                     <Tooltip>
                       <TooltipTrigger className="flex text-left items-center gap-2">
                         <BsQuestionCircle className="h-4 w-4 text-muted-foreground" />
-                        INSTRUCTION FILTER
+                        CUSTOM INSTRUCTIONS
                       </TooltipTrigger>
                       <TooltipContent>
                         <p>

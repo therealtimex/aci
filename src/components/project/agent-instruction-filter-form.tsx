@@ -118,14 +118,14 @@ export function AgentInstructionFilterForm({
       // Update local instructions state
       setInstructions(cleanedInstructions);
 
-      toast.success("All instruction filters saved");
+      toast.success("Custom instruction saved");
       setOpen(false);
       if (onSaveSuccess) {
         onSaveSuccess();
       }
     } catch (error) {
-      console.error("Failed to save instructions:", error);
-      toast.error("Failed to save instruction filters");
+      console.error("Failed to save custom instruction:", error);
+      toast.error("Failed to save custom instruction");
     }
   };
 
@@ -246,7 +246,7 @@ export function AgentInstructionFilterForm({
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="max-w-[800px] max-h-[80vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Instruction Filter Configuration</DialogTitle>
+          <DialogTitle>Custom Instruction Configuration</DialogTitle>
         </DialogHeader>
 
         <Separator className="my-4" />
@@ -302,7 +302,7 @@ export function AgentInstructionFilterForm({
                                             e.target.value,
                                           )
                                         }
-                                        placeholder="Enter instruction filter..."
+                                        placeholder="Enter custom instruction..."
                                         className="flex-1 bg-white w-full py-1.5 overflow-y-auto resize-none leading-normal"
                                       />
                                       <div className="flex flex-col gap-1">
