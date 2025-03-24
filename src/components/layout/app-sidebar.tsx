@@ -6,6 +6,7 @@ import { GrAppsRounded } from "react-icons/gr";
 import { GoHome } from "react-icons/go";
 import { cn } from "@/lib/utils";
 import { usePathname } from "next/navigation";
+import React from "react";
 
 import {
   Sidebar,
@@ -32,33 +33,48 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
+// Export sidebar items so they can be used in header
+export const sidebarItems = [
+  {
+    title: "Home",
+    url: `/home`,
+    icon: GoHome,
+  },
+  {
+    title: "App Store",
+    url: `/apps`,
+    icon: PiStorefront,
+  },
+  {
+    title: "App Configurations",
+    url: `/appconfigs`,
+    icon: GrAppsRounded,
+  },
+  // {
+  //   title: "Linked Accounts",
+  //   url: `/linked-accounts`,
+  //   icon: RiLinkUnlinkM,
+  // },
+];
+
+// Add settings routes to be accessible in header
+export const settingsItems = [
+  {
+    title: "Manage Project",
+    url: "/project-setting",
+    icon: RiSettings3Line,
+  },
+  {
+    title: "Account Settings",
+    url: "/account",
+    icon: RiSettings4Line,
+  },
+];
+
 export function AppSidebar() {
   const { state } = useSidebar();
   const isCollapsed = state === "collapsed";
   const pathname = usePathname();
-
-  const items = [
-    {
-      title: "Home",
-      url: `/home`,
-      icon: GoHome,
-    },
-    {
-      title: "App Store",
-      url: `/apps`,
-      icon: PiStorefront,
-    },
-    {
-      title: "App Configurations",
-      url: `/appconfigs`,
-      icon: GrAppsRounded,
-    },
-    // {
-    //   title: "Linked Accounts",
-    //   url: `/linked-accounts`,
-    //   icon: RiLinkUnlinkM,
-    // },
-  ];
 
   return (
     <Sidebar variant="inset" collapsible="icon" className="flex flex-col">
@@ -107,7 +123,7 @@ export function AppSidebar() {
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
-              {items.map((item) => {
+              {sidebarItems.map((item) => {
                 const isActive =
                   pathname === item.url || pathname.startsWith(item.url);
                 return (
@@ -155,26 +171,33 @@ export function AppSidebar() {
               <TooltipTrigger asChild>
                 <SidebarMenuButton asChild>
                   <Link
-                    href="/project-setting"
+                    href={settingsItems[0].url}
                     className={cn(
                       "flex items-center gap-3 p-4 transition-colors",
                       isCollapsed && "justify-center",
-                      pathname === "/project-setting" &&
+                      pathname === settingsItems[0].url &&
                         "bg-primary/10 text-primary font-medium",
                     )}
                   >
-                    <RiSettings3Line
-                      className={cn(
-                        "h-5 w-5 flex-shrink-0",
-                        pathname === "/project-setting" && "text-primary",
-                      )}
-                    />
-                    {!isCollapsed && <span>Manage Project</span>}
+                    {(() => {
+                      const IconComponent = settingsItems[0].icon;
+                      return (
+                        <IconComponent
+                          className={cn(
+                            "h-5 w-5 flex-shrink-0",
+                            pathname === settingsItems[0].url && "text-primary",
+                          )}
+                        />
+                      );
+                    })()}
+                    {!isCollapsed && <span>{settingsItems[0].title}</span>}
                   </Link>
                 </SidebarMenuButton>
               </TooltipTrigger>
               {isCollapsed && (
-                <TooltipContent side="right">Manage Project</TooltipContent>
+                <TooltipContent side="right">
+                  {settingsItems[0].title}
+                </TooltipContent>
               )}
             </Tooltip>
           </SidebarMenuItem>
@@ -188,26 +211,33 @@ export function AppSidebar() {
               <TooltipTrigger asChild>
                 <SidebarMenuButton asChild>
                   <Link
-                    href="/account"
+                    href={settingsItems[1].url}
                     className={cn(
                       "flex items-center gap-3 p-4 transition-colors",
                       isCollapsed && "justify-center",
-                      pathname === "/account" &&
+                      pathname === settingsItems[1].url &&
                         "bg-primary/10 text-primary font-medium",
                     )}
                   >
-                    <RiSettings4Line
-                      className={cn(
-                        "h-5 w-5 flex-shrink-0",
-                        pathname === "/account" && "text-primary",
-                      )}
-                    />
-                    {!isCollapsed && <span>Account Settings</span>}
+                    {(() => {
+                      const IconComponent = settingsItems[1].icon;
+                      return (
+                        <IconComponent
+                          className={cn(
+                            "h-5 w-5 flex-shrink-0",
+                            pathname === settingsItems[1].url && "text-primary",
+                          )}
+                        />
+                      );
+                    })()}
+                    {!isCollapsed && <span>{settingsItems[1].title}</span>}
                   </Link>
                 </SidebarMenuButton>
               </TooltipTrigger>
               {isCollapsed && (
-                <TooltipContent side="right">Account Settings</TooltipContent>
+                <TooltipContent side="right">
+                  {settingsItems[1].title}
+                </TooltipContent>
               )}
             </Tooltip>
           </SidebarMenuItem>

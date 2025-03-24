@@ -8,6 +8,7 @@ import {
   BreadcrumbList,
   BreadcrumbSeparator,
 } from "../ui/breadcrumb";
+import { sidebarItems, settingsItems } from "./app-sidebar";
 
 interface BreadcrumbLinksProps {
   pathname: string;
@@ -16,8 +17,21 @@ interface BreadcrumbLinksProps {
 export const BreadcrumbLinks = ({ pathname }: BreadcrumbLinksProps) => {
   const segments = pathname.split("/").filter(Boolean);
   let cumulativePath = "";
-  const breadcrumbs = segments.map((segment) => {
+  const allRoutes = [...sidebarItems, ...settingsItems];
+  const breadcrumbs = segments.map((segment, index) => {
     cumulativePath += "/" + segment;
+
+    if (index === 0) {
+      const matchingRoute = allRoutes.find(
+        (item) =>
+          item.url === cumulativePath || item.url.startsWith(cumulativePath),
+      );
+
+      if (matchingRoute) {
+        return { label: matchingRoute.title, href: cumulativePath };
+      }
+    }
+
     return { label: segment.toUpperCase(), href: cumulativePath };
   });
 
