@@ -26,6 +26,7 @@ import {
   getAppConfig,
 } from "@/lib/api/appconfig";
 import Image from "next/image";
+import { ConfigureAppPopup } from "@/components/apps/configure-app-popup";
 
 const AppPage = () => {
   const { appName } = useParams<{ appName: string }>();
@@ -34,7 +35,7 @@ const AppPage = () => {
   const [functions, setFunctions] = useState<AppFunction[]>([]);
   const [appConfig, setAppConfig] = useState<AppConfig | null>(null);
 
-  const configureApp = async () => {
+  const configureApp = async (security_scheme: string) => {
     if (!project) {
       throw new Error("No API key available");
     }
@@ -43,7 +44,8 @@ const AppPage = () => {
     if (!app) return;
 
     try {
-      await createAppConfig(appName, app.security_schemes[0], apiKey);
+      const appConfig = await createAppConfig(appName, security_scheme, apiKey);
+      setAppConfig(appConfig);
       toast.success(`Successfully configured app: ${app.display_name}`);
     } catch (error) {
       if (error instanceof AppAlreadyConfiguredError) {
@@ -119,22 +121,20 @@ const AppPage = () => {
               </p>
             </TooltipContent>
           </Tooltip>
-          <Button
-            className="bg-primary text-white hover:bg-primary/90"
-            onClick={async () => {
-              await configureApp();
-              if (!project) {
-                throw new Error("No active project");
-              }
-
-              const apiKey = getApiKey(project);
-              const appConfig = await getAppConfig(appName, apiKey);
-              setAppConfig(appConfig);
-            }}
-            disabled={appConfig !== null}
-          >
-            {appConfig ? "Configured" : "Configure App"}
-          </Button>
+          {app && (
+            <ConfigureAppPopup
+              name={app.name}
+              security_schemes={app.security_schemes}
+              configureApp={configureApp}
+            >
+              <Button
+                className="bg-primary text-white hover:bg-primary/90"
+                disabled={appConfig !== null}
+              >
+                {appConfig ? "Configured" : "Configure App"}
+              </Button>
+            </ConfigureAppPopup>
+          )}
         </div>
       </div>
       <Separator />
