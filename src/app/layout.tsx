@@ -9,6 +9,7 @@ import Protected from "@/components/auth/protected";
 import { UserProvider } from "@/components/context/user";
 import { Toaster } from "@/components/ui/sonner";
 import type { Metadata } from "next";
+import { Analytics } from "@vercel/analytics/next";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -89,6 +90,7 @@ export default function RootLayout({
                   <main className="w-full h-full mr-2 border rounded-lg border-gray-400 border-opacity-30 bg-white">
                     <Header />
                     {children}
+                    <Analytics />
                   </main>
                 </SidebarInset>
               </SidebarProvider>
