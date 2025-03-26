@@ -1,5 +1,28 @@
 import { LinkedAccount } from "@/lib/types/linkedaccount";
 
+export async function getAllLinkedAccounts(
+  apiKey: string,
+): Promise<LinkedAccount[]> {
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/v1/linked-accounts`,
+    {
+      method: "GET",
+      headers: {
+        "X-API-KEY": apiKey,
+      },
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      `Failed to fetch all linked accounts: ${response.status} ${response.statusText}`,
+    );
+  }
+
+  const linkedAccounts = await response.json();
+  return linkedAccounts;
+}
+
 export async function getAppLinkedAccounts(
   appName: string,
   apiKey: string,

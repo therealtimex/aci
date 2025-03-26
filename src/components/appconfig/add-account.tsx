@@ -27,7 +27,6 @@ import {
   TooltipContent,
 } from "@/components/ui/tooltip";
 import { GoCopy, GoPlus } from "react-icons/go";
-import { App } from "@/lib/types/app";
 import { useProject } from "@/components/context/project";
 import { toast } from "sonner";
 import {
@@ -54,8 +53,12 @@ const formSchema = z
     apiKey: z.string().optional(),
   })
   .refine(
-    (data) =>
-      data.authType !== "api_key" || (data.apiKey && data.apiKey.length > 0),
+    (data) => {
+      // If the current app uses api_key auth, then apiKey must be provided
+      return (
+        data.authType !== "api_key" || (data.apiKey && data.apiKey.length > 0)
+      );
+    },
     {
       message: "API Key is required",
       path: ["apiKey"],
@@ -64,33 +67,58 @@ const formSchema = z
 
 type FormValues = z.infer<typeof formSchema>;
 
-interface AddAccountProps {
-  app: App;
-  updateLinkedAccounts: () => void;
-}
-
+// Form submission types
 const FORM_SUBMIT_COPY_OAUTH2_LINK_URL = "copyOAuth2LinkURL";
 const FORM_SUBMIT_LINK_OAUTH2_ACCOUNT = "linkOAuth2";
 const FORM_SUBMIT_API_KEY = "apiKey";
 const FORM_SUBMIT_NO_AUTH = "noAuth";
+export interface AppInfo {
+  name: string;
+  securitySchemes: string[];
+}
+interface AddAccountProps {
+  appInfos: AppInfo[];
+  updateLinkedAccounts: () => void;
+}
 
-export function AddAccountForm({ app, updateLinkedAccounts }: AddAccountProps) {
+export function AddAccountForm({
+  appInfos,
+  updateLinkedAccounts,
+}: AddAccountProps) {
   const { project } = useProject();
   const [open, setOpen] = useState(false);
+
+  if (appInfos.length === 0) {
+    console.error("No app infos provided");
+    throw new Error("No app infos provided");
+  }
+
+  const appInfosDict = appInfos.reduce(
+    (acc, appInfo) => {
+      acc[appInfo.name] = appInfo;
+      return acc;
+    },
+    {} as Record<string, AppInfo>,
+  );
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      appName: app.display_name,
-      authType: app.security_schemes[0] as "api_key" | "oauth2" | "no_auth",
+      appName: appInfos[0].name,
+      authType: appInfos[0].securitySchemes[0] as
+        | "api_key"
+        | "oauth2"
+        | "no_auth",
       linkedAccountOwnerId: "",
       apiKey: "",
     },
   });
 
-  const authType = form.watch("authType");
+  const selectedAppName = form.watch("appName");
+  const selectedAuthType = form.watch("authType");
 
   const fetchOath2LinkURL = async (
+    appName: string,
     linkedAccountOwnerId: string,
     afterOAuth2LinkRedirectURL?: string,
   ): Promise<string> => {
@@ -98,13 +126,17 @@ export function AddAccountForm({ app, updateLinkedAccounts }: AddAccountProps) {
       throw new Error("No API key available");
     }
 
+    if (!appName) {
+      throw new Error("No app selected");
+    }
+
     const apiKey = getApiKey(project);
 
     if (afterOAuth2LinkRedirectURL === undefined) {
-      return await getOauth2LinkURL(app.name, linkedAccountOwnerId, apiKey);
+      return await getOauth2LinkURL(appName, linkedAccountOwnerId, apiKey);
     } else {
       return await getOauth2LinkURL(
-        app.name,
+        appName,
         linkedAccountOwnerId,
         apiKey,
         afterOAuth2LinkRedirectURL,
@@ -112,9 +144,12 @@ export function AddAccountForm({ app, updateLinkedAccounts }: AddAccountProps) {
     }
   };
 
-  const copyOAuth2LinkURL = async (linkedAccountOwnerId: string) => {
+  const copyOAuth2LinkURL = async (
+    appName: string,
+    linkedAccountOwnerId: string,
+  ) => {
     try {
-      const url = await fetchOath2LinkURL(linkedAccountOwnerId);
+      const url = await fetchOath2LinkURL(appName, linkedAccountOwnerId);
       if (!navigator.clipboard) {
         console.error("Clipboard API not supported");
         toast.error("Your browser doesn't support copying to clipboard");
@@ -135,12 +170,20 @@ export function AddAccountForm({ app, updateLinkedAccounts }: AddAccountProps) {
     }
   };
 
-  const linkOauth2Account = async (linkedAccountOwnerId: string) => {
-    let oauth2LinkURL = "";
+  const linkOauth2Account = async (
+    appName: string,
+    linkedAccountOwnerId: string,
+  ) => {
+    if (!appName) {
+      toast.error("No app selected");
+      return;
+    }
+
     try {
-      oauth2LinkURL = await fetchOath2LinkURL(
+      const oauth2LinkURL = await fetchOath2LinkURL(
+        appName,
         linkedAccountOwnerId,
-        `${process.env.NEXT_PUBLIC_DEV_PORTAL_URL}/appconfigs/${app.name}`,
+        `${process.env.NEXT_PUBLIC_DEV_PORTAL_URL}/appconfigs/${appName}`,
       );
       window.location.href = oauth2LinkURL;
     } catch (error) {
@@ -150,6 +193,7 @@ export function AddAccountForm({ app, updateLinkedAccounts }: AddAccountProps) {
   };
 
   const linkAPIAccount = async (
+    appName: string,
     linkedAccountOwnerId: string,
     linkedAPIKey: string,
   ) => {
@@ -157,11 +201,15 @@ export function AddAccountForm({ app, updateLinkedAccounts }: AddAccountProps) {
       throw new Error("No API key available");
     }
 
+    if (!appName) {
+      throw new Error("No app selected");
+    }
+
     const apiKey = getApiKey(project);
 
     try {
       await createAPILinkedAccount(
-        app.name,
+        appName,
         linkedAccountOwnerId,
         linkedAPIKey,
         apiKey,
@@ -176,15 +224,22 @@ export function AddAccountForm({ app, updateLinkedAccounts }: AddAccountProps) {
     }
   };
 
-  const linkNoAuthAccount = async (linkedAccountOwnerId: string) => {
+  const linkNoAuthAccount = async (
+    appName: string,
+    linkedAccountOwnerId: string,
+  ) => {
     if (!project) {
       throw new Error("No API key available");
+    }
+
+    if (!appName) {
+      throw new Error("No app selected");
     }
 
     const apiKey = getApiKey(project);
 
     try {
-      await createNoAuthLinkedAccount(app.name, linkedAccountOwnerId, apiKey);
+      await createNoAuthLinkedAccount(appName, linkedAccountOwnerId, apiKey);
       toast.success("Account linked successfully");
       form.reset();
       setOpen(false);
@@ -205,19 +260,20 @@ export function AddAccountForm({ app, updateLinkedAccounts }: AddAccountProps) {
 
     switch (submitter.name) {
       case FORM_SUBMIT_COPY_OAUTH2_LINK_URL:
-        await copyOAuth2LinkURL(values.linkedAccountOwnerId);
+        await copyOAuth2LinkURL(values.appName, values.linkedAccountOwnerId);
         break;
       case FORM_SUBMIT_LINK_OAUTH2_ACCOUNT:
-        await linkOauth2Account(values.linkedAccountOwnerId);
+        await linkOauth2Account(values.appName, values.linkedAccountOwnerId);
         break;
       case FORM_SUBMIT_API_KEY:
         await linkAPIAccount(
+          values.appName,
           values.linkedAccountOwnerId,
           values.apiKey as string,
         );
         break;
       case FORM_SUBMIT_NO_AUTH:
-        await linkNoAuthAccount(values.linkedAccountOwnerId);
+        await linkNoAuthAccount(values.appName, values.linkedAccountOwnerId);
         break;
     }
   };
@@ -263,28 +319,44 @@ export function AddAccountForm({ app, updateLinkedAccounts }: AddAccountProps) {
             <FormField
               control={form.control}
               name="appName"
-              render={({}) => (
+              render={({ field }) => (
                 <FormItem>
                   <FormLabel>App Name</FormLabel>
-                  <div className="w-fit bg-muted px-2 py-1 rounded-md">
-                    {app.display_name}
-                  </div>
-                  {/* <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                    disabled
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select app" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value={app.display_name}>
-                        {app.display_name}
-                      </SelectItem>
-                    </SelectContent>
-                  </Select> */}
+                  {appInfos.length === 1 ? (
+                    <div className="w-fit bg-muted px-2 py-1 rounded-md">
+                      {selectedAppName}
+                    </div>
+                  ) : (
+                    <Select
+                      onValueChange={(value) => {
+                        field.onChange(value);
+                        form.setValue(
+                          "authType",
+                          appInfosDict[value].securitySchemes[0] as
+                            | "api_key"
+                            | "oauth2"
+                            | "no_auth",
+                          {
+                            shouldValidate: true,
+                          },
+                        );
+                      }}
+                      value={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select app" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {appInfos.map((appInfo) => (
+                          <SelectItem key={appInfo.name} value={appInfo.name}>
+                            {appInfo.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
                   <FormMessage />
                 </FormItem>
               )}
@@ -325,8 +397,12 @@ export function AddAccountForm({ app, updateLinkedAccounts }: AddAccountProps) {
                 <FormItem>
                   <FormLabel>Auth Type</FormLabel>
                   <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
+                    onValueChange={(value) => {
+                      if (value) {
+                        field.onChange(value);
+                      }
+                    }}
+                    value={field.value}
                   >
                     <FormControl>
                       <SelectTrigger>
@@ -334,11 +410,13 @@ export function AddAccountForm({ app, updateLinkedAccounts }: AddAccountProps) {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {app.security_schemes.map((scheme) => (
-                        <SelectItem key={scheme} value={scheme}>
-                          {scheme}
-                        </SelectItem>
-                      ))}
+                      {appInfosDict[selectedAppName].securitySchemes.map(
+                        (scheme) => (
+                          <SelectItem key={scheme} value={scheme}>
+                            {scheme}
+                          </SelectItem>
+                        ),
+                      )}
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -346,7 +424,7 @@ export function AddAccountForm({ app, updateLinkedAccounts }: AddAccountProps) {
               )}
             />
 
-            {authType === "api_key" && (
+            {selectedAuthType === "api_key" && (
               <FormField
                 control={form.control}
                 name="apiKey"
@@ -371,7 +449,7 @@ export function AddAccountForm({ app, updateLinkedAccounts }: AddAccountProps) {
                 Cancel
               </Button>
 
-              {authType === "oauth2" && (
+              {selectedAuthType === "oauth2" && (
                 <Button
                   type="submit"
                   name={FORM_SUBMIT_COPY_OAUTH2_LINK_URL}
@@ -385,7 +463,7 @@ export function AddAccountForm({ app, updateLinkedAccounts }: AddAccountProps) {
               <Button
                 type="submit"
                 name={(() => {
-                  switch (authType) {
+                  switch (selectedAuthType) {
                     case "oauth2":
                       return FORM_SUBMIT_LINK_OAUTH2_ACCOUNT;
                     case "no_auth":
@@ -393,11 +471,12 @@ export function AddAccountForm({ app, updateLinkedAccounts }: AddAccountProps) {
                     case "api_key":
                       return FORM_SUBMIT_API_KEY;
                     default:
-                      return FORM_SUBMIT_API_KEY;
+                      return FORM_SUBMIT_NO_AUTH;
                   }
                 })()}
+                disabled={!selectedAppName}
               >
-                {authType === "oauth2" ? "Start OAuth2 Flow" : "Save"}
+                {selectedAuthType === "oauth2" ? "Start OAuth2 Flow" : "Save"}
               </Button>
             </DialogFooter>
           </form>

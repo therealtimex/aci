@@ -24,7 +24,11 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { ProjectSelector } from "./project-selector";
 import { PiStorefront } from "react-icons/pi";
-import { RiSettings3Line, RiSettings4Line } from "react-icons/ri";
+import {
+  RiSettings3Line,
+  RiSettings4Line,
+  RiLinkUnlinkM,
+} from "react-icons/ri";
 import { AiOutlineExperiment } from "react-icons/ai";
 
 import {
@@ -50,11 +54,11 @@ export const sidebarItems = [
     url: `/appconfigs`,
     icon: GrAppsRounded,
   },
-  // {
-  //   title: "Linked Accounts",
-  //   url: `/linked-accounts`,
-  //   icon: RiLinkUnlinkM,
-  // },
+  {
+    title: "Linked Accounts",
+    url: `/linked-accounts`,
+    icon: RiLinkUnlinkM,
+  },
 ];
 
 // Add settings routes to be accessible in header

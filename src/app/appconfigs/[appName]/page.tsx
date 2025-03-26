@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { LinkedAccount } from "@/lib/types/linkedaccount";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { IdDisplay } from "@/components/apps/id-display";
+import { LinkedAccountDetails } from "@/components/linkedaccount/linked-account-details";
 import {
   Table,
   TableBody,
@@ -19,7 +20,6 @@ import {
   TooltipTrigger,
   TooltipContent,
 } from "@/components/ui/tooltip";
-import { Switch } from "@/components/ui/switch";
 import { GoTrash } from "react-icons/go";
 import { useParams } from "next/navigation";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -46,6 +46,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import Link from "next/link";
+import { EnhancedSwitch } from "@/components/ui-extensions/enhanced-switch";
 
 export default function AppConfigDetailPage() {
   const { appName } = useParams<{ appName: string }>();
@@ -63,6 +64,39 @@ export default function AppConfigDetailPage() {
     });
   };
 
+  const refreshLinkedAccounts = useCallback(async () => {
+    if (!project) {
+      console.warn("No active project");
+      return;
+    }
+    const apiKey = getApiKey(project);
+    const linkedAccounts = await getAppLinkedAccounts(appName, apiKey);
+    setLinkedAccounts(sortLinkedAccountsByCreateTime(linkedAccounts));
+  }, [project, appName]);
+
+  const toggleAccountStatus = useCallback(
+    async (accountId: string, newStatus: boolean) => {
+      try {
+        if (!project) {
+          console.warn("No active project");
+          return false;
+        }
+        const apiKey = getApiKey(project);
+
+        await updateLinkedAccount(accountId, apiKey, newStatus);
+
+        // Refresh the linked accounts list after update
+        await refreshLinkedAccounts();
+
+        return true;
+      } catch (error) {
+        console.error("Failed to update linked account:", error);
+        return false;
+      }
+    },
+    [project, refreshLinkedAccounts],
+  );
+
   useEffect(() => {
     async function loadAppAndLinkedAccounts() {
       if (!project) {
@@ -73,13 +107,10 @@ export default function AppConfigDetailPage() {
 
       const app = await getApp(appName, apiKey);
       setApp(app);
-
-      const linkedAccounts = await getAppLinkedAccounts(appName, apiKey);
-
-      setLinkedAccounts(sortLinkedAccountsByCreateTime(linkedAccounts));
+      await refreshLinkedAccounts();
     }
     loadAppAndLinkedAccounts();
-  }, [project, appName]);
+  }, [project, appName, refreshLinkedAccounts]);
 
   return (
     <div className="p-6">
@@ -104,20 +135,13 @@ export default function AppConfigDetailPage() {
         </div>
         {app && (
           <AddAccountForm
-            app={app}
-            updateLinkedAccounts={async () => {
-              if (!project) {
-                console.warn("No active project");
-                return;
-              }
-              const apiKey = getApiKey(project);
-
-              const linkedAccounts = await getAppLinkedAccounts(
-                appName,
-                apiKey,
-              );
-              setLinkedAccounts(sortLinkedAccountsByCreateTime(linkedAccounts));
-            }}
+            appInfos={[
+              {
+                name: app.name,
+                securitySchemes: app.security_schemes,
+              },
+            ]}
+            updateLinkedAccounts={refreshLinkedAccounts}
           />
         )}
       </div>
@@ -155,6 +179,7 @@ export default function AppConfigDetailPage() {
                   <TableHead>LINKED ACCOUNT OWNER ID</TableHead>
                   <TableHead>CREATED AT</TableHead>
                   <TableHead>ENABLED</TableHead>
+                  <TableHead>DETAILS</TableHead>
                   <TableHead></TableHead>
                 </TableRow>
               </TableHeader>
@@ -173,42 +198,24 @@ export default function AppConfigDetailPage() {
                         .replace("T", " ")}
                     </TableCell>
                     <TableCell>
-                      <Switch
+                      <EnhancedSwitch
                         checked={account.enabled}
-                        className={account.enabled ? "bg-[#1CD1AF]" : ""}
-                        onCheckedChange={async (checked) => {
-                          try {
-                            if (!project) {
-                              console.warn("No active project");
-                              return;
-                            }
-                            const apiKey = getApiKey(project);
-
-                            await updateLinkedAccount(
-                              account.id,
-                              apiKey,
-                              checked,
-                            );
-
-                            // Refresh the linked accounts list after update
-                            const linkedAccounts = await getAppLinkedAccounts(
-                              appName,
-                              apiKey,
-                            );
-                            setLinkedAccounts(
-                              sortLinkedAccountsByCreateTime(linkedAccounts),
-                            );
-                            toast.success(
-                              `Linked account ${account.linked_account_owner_id} ${checked ? "enabled" : "disabled"}`,
-                            );
-                          } catch (error) {
-                            console.error(
-                              "Failed to update linked account:",
-                              error,
-                            );
-                          }
-                        }}
+                        onAsyncChange={(checked) =>
+                          toggleAccountStatus(account.id, checked)
+                        }
+                        successMessage={`Linked account ${account.linked_account_owner_id} ${account.enabled ? "disabled" : "enabled"}`}
+                        errorMessage="Failed to update linked account"
                       />
+                    </TableCell>
+                    <TableCell>
+                      <LinkedAccountDetails
+                        account={account}
+                        toggleAccountStatus={toggleAccountStatus}
+                      >
+                        <Button variant="outline" size="sm">
+                          See Details
+                        </Button>
+                      </LinkedAccountDetails>
                     </TableCell>
                     <TableCell>
                       <AlertDialog>
