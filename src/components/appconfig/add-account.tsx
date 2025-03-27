@@ -287,20 +287,20 @@ export function AddAccountForm({
       }}
     >
       <div className="flex items-center gap-2">
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <span className="cursor-pointer">
-              <BsQuestionCircle className="h-4 w-4 text-muted-foreground" />
-            </span>
-          </TooltipTrigger>
-          <TooltipContent side="top">
-            <p className="text-xs">{"Add an end-user account."}</p>
-          </TooltipContent>
-        </Tooltip>
         <DialogTrigger asChild>
           <Button>
             <GoPlus />
             Add Account
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className="cursor-pointer">
+                  <BsQuestionCircle className="h-4 w-4 " />
+                </span>
+              </TooltipTrigger>
+              <TooltipContent side="top">
+                <p className="text-xs">{"Add an end-user account."}</p>
+              </TooltipContent>
+            </Tooltip>
           </Button>
         </DialogTrigger>
       </div>

@@ -149,7 +149,8 @@ export default function AppConfigDetailPage() {
       <Tabs defaultValue={"linked"} className="w-full">
         <TabsList className="mb-6">
           <TabsTrigger value="linked">
-            <div className="mr-2">
+            Linked Accounts
+            <div className="ml-2">
               <Tooltip>
                 <TooltipTrigger asChild>
                   <span className="cursor-pointer">
@@ -165,7 +166,6 @@ export default function AppConfigDetailPage() {
                 </TooltipContent>
               </Tooltip>
             </div>
-            Linked Accounts
           </TabsTrigger>
           {/* <TabsTrigger value="logs">Logs</TabsTrigger>
           <TabsTrigger value="settings">Settings</TabsTrigger> */}

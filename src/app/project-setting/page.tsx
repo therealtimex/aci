@@ -191,19 +191,6 @@ export default function ProjectSettingPage() {
               <span className="text-sm">Enable</span>
             </div> */}
             <div className="flex items-center gap-2">
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <span className="cursor-pointer">
-                    <BsQuestionCircle className="h-4 w-4 text-muted-foreground" />
-                  </span>
-                </TooltipTrigger>
-                <TooltipContent side="top">
-                  <p className="text-xs">
-                    Create a new agent API key to access applications configured
-                    for this project.
-                  </p>
-                </TooltipContent>
-              </Tooltip>
               <AgentForm
                 title="Create Agent"
                 validAppNames={apps.map((app) => app.name)}
@@ -228,6 +215,19 @@ export default function ProjectSettingPage() {
                 <Button variant="outline">
                   <MdAdd />
                   Create Agent
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span className="cursor-pointer">
+                        <BsQuestionCircle className="h-4 w-4 text-muted-foreground" />
+                      </span>
+                    </TooltipTrigger>
+                    <TooltipContent side="top">
+                      <p className="text-xs">
+                        Create a new agent API key to access applications
+                        configured for this project.
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
                 </Button>
               </AgentForm>
             </div>
@@ -247,8 +247,8 @@ export default function ProjectSettingPage() {
                   <TableHead>
                     <Tooltip>
                       <TooltipTrigger className="flex text-left items-center gap-2">
-                        <BsQuestionCircle className="h-4 w-4 text-muted-foreground" />
                         CUSTOM INSTRUCTIONS
+                        <BsQuestionCircle className="h-4 w-4 text-muted-foreground" />
                       </TooltipTrigger>
                       <TooltipContent>
                         <p>

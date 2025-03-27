@@ -107,20 +107,6 @@ const AppPage = () => {
           )}
         </div>
         <div className="flex items-center gap-2">
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <span className="cursor-pointer">
-                <BsQuestionCircle className="h-4 w-4 text-muted-foreground" />
-              </span>
-            </TooltipTrigger>
-            <TooltipContent side="top">
-              <p className="text-xs">
-                {appConfig
-                  ? "The app has already been configured. It is ready for your agents to use."
-                  : "Click to configure the application. This will add the application to your project, allowing your agents to use it."}
-              </p>
-            </TooltipContent>
-          </Tooltip>
           {app && (
             <ConfigureAppPopup
               name={app.name}
@@ -135,6 +121,20 @@ const AppPage = () => {
               </Button>
             </ConfigureAppPopup>
           )}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span className="cursor-pointer">
+                <BsQuestionCircle className="h-4 w-4 text-muted-foreground" />
+              </span>
+            </TooltipTrigger>
+            <TooltipContent side="top">
+              <p className="text-xs">
+                {appConfig
+                  ? "The app has already been configured. It is ready for your agents to use."
+                  : "Click to configure the application. This will add the application to your project, allowing your agents to use it."}
+              </p>
+            </TooltipContent>
+          </Tooltip>
         </div>
       </div>
       <Separator />
