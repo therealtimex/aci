@@ -10,6 +10,12 @@ import {
 } from "@/components/ui/card";
 import { type App } from "@/lib/types/app";
 import { IdDisplay } from "@/components/apps/id-display";
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+  TooltipProvider,
+} from "@/components/ui/tooltip";
 
 interface AppCardProps {
   app: App;
@@ -18,7 +24,7 @@ interface AppCardProps {
 export function AppCard({ app }: AppCardProps) {
   return (
     <Link href={`/apps/${app.name}`} className="block">
-      <Card className="h-full transition-shadow hover:shadow-lg">
+      <Card className="h-full transition-shadow hover:shadow-lg flex flex-col">
         <CardHeader className="space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3 min-w-0 flex-1 mr-4">
@@ -38,8 +44,8 @@ export function AppCard({ app }: AppCardProps) {
           </div>
           <CardDescription>{app.description}</CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="flex flex-wrap gap-2">
+        <CardContent className="mt-auto flex justify-between">
+          <div className="flex flex-wrap items-start gap-2  ">
             {app.categories.map((category) => (
               <span
                 key={category}
@@ -48,15 +54,25 @@ export function AppCard({ app }: AppCardProps) {
                 {category}
               </span>
             ))}
-            {/* {app.tags.map((tag) => (
-              <span
-                key={tag}
-                className="rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-600"
-              >
-                {tag}
-              </span>
-            ))} */}
           </div>
+          <TooltipProvider>
+            <div className="flex justify-end ">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="text-sm bg-gray-100  text-gray-600 mt-auto border border-gray-200 w-6 h-6 rounded-full flex items-center justify-center ">
+                    <span className="cursor-pointer">
+                      {app.functions.length}
+                    </span>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="text-xs">
+                    {`Functions in This App: ${app.functions.length}`}
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
+          </TooltipProvider>
         </CardContent>
       </Card>
     </Link>
