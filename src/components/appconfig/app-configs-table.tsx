@@ -182,17 +182,13 @@ export function AppConfigsTable({
                 <TableCell>
                   <div className="flex items-center gap-3">
                     <div className="relative h-5 w-5 flex-shrink-0 overflow-hidden">
-                      {appsMap[config.app_name]?.logo ? (
+                      {appsMap[config.app_name]?.logo && (
                         <Image
                           src={appsMap[config.app_name]?.logo || ""}
                           alt={`${config.app_name} logo`}
                           fill
                           className="object-contain"
                         />
-                      ) : (
-                        <div className="h-5 w-5 bg-gray-200 rounded-sm flex items-center justify-center text-xs text-gray-500">
-                          {config.app_name.charAt(0).toUpperCase()}
-                        </div>
                       )}
                     </div>
                     <IdDisplay id={config.app_name} dim={false} />
