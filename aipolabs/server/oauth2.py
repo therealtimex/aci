@@ -1,3 +1,4 @@
+import time
 from typing import Any, cast
 
 from authlib.integrations.starlette_client import OAuth, StarletteOAuth2App
@@ -6,6 +7,7 @@ from starlette.responses import RedirectResponse
 
 from aipolabs.common.exceptions import LinkedAccountOAuth2Error
 from aipolabs.common.logging_setup import get_logger
+from aipolabs.common.schemas.security_scheme import OAuth2SchemeCredentials
 
 logger = get_logger(__name__)
 
@@ -129,3 +131,80 @@ async def authorize_access_token_without_browser_session(
         )
         token["userinfo"] = userinfo
     return token
+
+
+def parse_oauth2_security_credentials(
+    app_name: str, token_response: dict
+) -> OAuth2SchemeCredentials:
+    """
+    Parse OAuth2SchemeCredentials from token response with app-specific handling.
+
+    Args:
+        app_name: Name of the app/provider (e.g., "SLACK", "GOOGLE")
+        token_response: OAuth2 token response from provider
+
+    Returns:
+        OAuth2SchemeCredentials with appropriate fields set
+    """
+    if app_name == "SLACK":
+        authed_user = token_response.get("authed_user", {})
+        if not authed_user or "access_token" not in authed_user:
+            logger.error(f"Invalid Slack OAuth response: {token_response}")
+            raise LinkedAccountOAuth2Error("Invalid Slack OAuth response")
+
+        return OAuth2SchemeCredentials(
+            access_token=authed_user["access_token"],
+            token_type=authed_user.get("token_type"),
+            refresh_token=authed_user.get("refresh_token"),
+            expires_at=int(time.time()) + authed_user.get("expires_in")
+            if authed_user.get("expires_in")
+            else None,
+            raw_token_response=token_response,
+        )
+
+    if "access_token" not in token_response:
+        logger.error(f"Missing access token in OAuth response: {token_response}")
+        raise LinkedAccountOAuth2Error("Missing access token in OAuth response")
+
+    return OAuth2SchemeCredentials(
+        access_token=token_response["access_token"],
+        token_type=token_response.get("token_type"),
+        expires_at=int(time.time()) + token_response["expires_in"]
+        if "expires_in" in token_response
+        else None,
+        refresh_token=token_response.get("refresh_token"),
+        raw_token_response=token_response,
+    )
+
+
+def rewrite_oauth2_authorization_url(app_name: str, authorization_url: str) -> str:
+    """
+    Rewrite OAuth2 authorization URL for specific apps that need special handling.
+    Currently handles Slack's special case where user scopes and scopes need to be replaced.
+    TODO: this approach is hacky and need to refactor this in the future
+
+    Args:
+        app_name: Name of the OAuth2 app (e.g., 'slack')
+        authorization_url: The original authorization URL
+
+    Returns:
+        The rewritten authorization URL if needed, otherwise the original URL
+    """
+    if app_name == "SLACK":
+        # Slack requires user scopes to be prefixed with 'user_'
+        # Replace 'scope=' with 'user_scope=' and add 'scope=' with the null value
+        if "scope=" in authorization_url:
+            # Extract the original scope value
+            scope_start = authorization_url.find("scope=") + 6
+            scope_end = authorization_url.find("&", scope_start)
+            if scope_end == -1:
+                scope_end = len(authorization_url)
+            original_scope = authorization_url[scope_start:scope_end]
+
+            # Replace the original scope with user_scope and add scope
+            new_url = authorization_url.replace(
+                f"scope={original_scope}", f"user_scope={original_scope}&scope="
+            )
+            return new_url
+
+    return authorization_url
