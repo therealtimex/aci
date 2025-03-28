@@ -9,10 +9,11 @@ interface EnhancedSwitchProps
   extends React.ComponentPropsWithoutRef<typeof ShadcnSwitch> {
   /** Async function to call when the switch toggles, should return a boolean indicating if the operation was successful */
   onAsyncChange?: (checked: boolean) => Promise<boolean>;
-  /** Message to display when the toggle is successful */
-  successMessage?: string;
-  /** Message to display when the toggle fails */
-  errorMessage?: string;
+  /**
+   * Message or a function to generate one based on the new state.
+   */
+  successMessage?: string | ((newState: boolean) => string);
+  errorMessage?: string | ((newState: boolean) => string);
   /** Custom class name for the active state background color */
   activeClassName?: string;
 }
@@ -47,6 +48,13 @@ export const EnhancedSwitch = React.forwardRef<
       }
     }, [checked]);
 
+    const getMessageContent = (
+      message: string | ((newState: boolean) => string),
+      state: boolean,
+    ) => {
+      return typeof message === "function" ? message(state) : message;
+    };
+
     const handleChange = async (newState: boolean) => {
       // Update internal state optimistically
       setInternalChecked(newState);
@@ -65,18 +73,17 @@ export const EnhancedSwitch = React.forwardRef<
 
         if (success) {
           // Operation succeeded, keep the new state
-          // Display success message based on the transition (not the new state)
-          toast.success(successMessage);
+          // Display a success message, using either a static string or a function based on the new state
+          toast.success(getMessageContent(successMessage, newState));
         } else {
-          // Operation failed, revert the state
           setInternalChecked(!newState);
-          toast.error(errorMessage);
+          toast.error(getMessageContent(errorMessage, !newState));
         }
       } catch (error) {
         // Error occurred, revert the state
         setInternalChecked(!newState);
         console.error("Switch toggle failed:", error);
-        toast.error(errorMessage);
+        toast.error(getMessageContent(errorMessage, !newState));
       } finally {
         setIsLoading(false);
       }

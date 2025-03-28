@@ -18,7 +18,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
 import Link from "next/link";
 import { Input } from "@/components/ui/input";
 import { IdDisplay } from "../apps/id-display";
@@ -41,7 +40,7 @@ import { getApiKey } from "@/lib/api/util";
 import { getAppLinkedAccounts } from "@/lib/api/linkedaccount";
 import { getApps } from "@/lib/api/app";
 import Image from "next/image";
-import { toast } from "sonner";
+import { EnhancedSwitch } from "../ui-extensions/enhanced-switch";
 
 interface AppConfigsTableProps {
   appConfigs: AppConfig[];
@@ -198,29 +197,26 @@ export function AppConfigsTable({
                   {linkedAccountsCountMap[config.app_name] || 0}
                 </TableCell>
                 <TableCell>
-                  <Switch
+                  <EnhancedSwitch
                     checked={config.enabled}
-                    className={config.enabled ? "bg-[#1CD1AF]" : ""}
-                    onCheckedChange={async (checked) => {
+                    onAsyncChange={async (checked) => {
                       try {
                         if (!project) {
                           console.warn("No active project");
-                          return;
+                          return false;
                         }
                         const apiKey = getApiKey(project);
                         await updateAppConfig(config.app_name, checked, apiKey);
-                        updateAppConfigs();
-                        toast.success(
-                          `${config.app_name} ${checked ? "enabled" : "disabled"}`,
-                        );
+                        return true;
                       } catch (error) {
-                        console.error(
-                          "Failed to update app configuration:",
-                          error,
-                        );
-                        toast.error("Failed to update app configuration");
+                        console.error("Failed to update app config:", error);
+                        return false;
                       }
                     }}
+                    successMessage={(newState) => {
+                      return `${config.app_name} configurations ${newState ? "enabled" : "disabled"}`;
+                    }}
+                    errorMessage="Failed to update app configuration"
                   />
                 </TableCell>
                 <TableCell className="space-x-2 flex">

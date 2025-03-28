@@ -99,7 +99,9 @@ export function LinkedAccountDetails({
                               }
                               return false;
                             }}
-                            successMessage={`Linked account ${account.linked_account_owner_id} ${account.enabled ? "disabled" : "enabled"}`}
+                            successMessage={(newState) => {
+                              return `Linked account ${account.linked_account_owner_id} ${newState ? "enabled" : "disabled"}`;
+                            }}
                             errorMessage="Failed to update linked account status"
                           />
                         </div>
