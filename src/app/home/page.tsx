@@ -99,12 +99,13 @@ export default function HomePage() {
                 2. Set up your Aipolabs ACI Client
               </h3>
               <CodeBlock
-                code={`from aipolabs import Aipolabs
+                code={`from aipolabs import ACI
 
-Client = Aipolabs(
-    # It reads from environment variable by Default
-    api_key=os.environ.get("ACI_API_KEY")
-)`}
+aci = ACI()
+
+LINKED_ACCOUNT_OWNER_ID = os.getenv("LINKED_ACCOUNT_OWNER_ID", "")
+if not LINKED_ACCOUNT_OWNER_ID:
+    raise ValueError("LINKED_ACCOUNT_OWNER_ID is not set")`}
               />
             </div>
 
@@ -115,16 +116,16 @@ Client = Aipolabs(
                 3. Add a Tool to Your LLM Request
               </h3>
               <CodeBlock
-                code={`function_definition = aipolabs.functions.get_definition("BRAVE_SEARCH__WEB_SEARCH")
+                code={`function_definition = aci.functions.get_definition("BRAVE_SEARCH__WEB_SEARCH")
 
 response = openai.chat.completions.create(
-    model="gpt-4o-mini",
+    model="gpt-4o",
     messages=[
         {"role": "system", "content": "You are a helpful assistant with access to a variety of tools."},
-        {"role": "user", "content": "What is aipolabs?"}
+        {"role": "user", "content": "What is aipolabs ACI?"}
     ],
     tools=[function_definition],
-    tool_choice="Required" # Force the model to generate a tool call
+    tool_choice="Required"
 )`}
               />
             </div>
@@ -140,10 +141,10 @@ response = openai.chat.completions.create(
     else None
 )
 
-result = aipolabs.functions.execute(
+result = aci.functions.execute(
     tool_call.function.name,
     json.loads(tool_call.function.arguments),
-    linked_account_owner_id=linked_account_owner_id
+    linked_account_owner_id=LINKED_ACCOUNT_OWNER_ID
 )
 print(f"function call result: {result}")`}
               />
