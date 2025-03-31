@@ -136,25 +136,24 @@ export function AppEditForm({
           <Separator />
           <h3 className="text-sm font-medium">Select enabled app(s)</h3>
 
-          <div className="flex flex-wrap gap-2 p-2 border rounded-md overflow-y-auto max-h-20">
-            {selectedApps.map((app) => (
-              <div
-                key={app}
-                className="flex items-center gap-1 px-2 py-1 bg-gray-100 rounded-md"
-              >
-                {app}
-                <button
-                  onClick={() => toggleApp(app)}
-                  className="text-gray-500 hover:text-gray-700"
+          {selectedApps.length > 0 && (
+            <div className="flex flex-wrap gap-2 p-2 rounded-md overflow-y-auto max-h-16 border">
+              {selectedApps.map((app) => (
+                <div
+                  key={app}
+                  className="flex items-center gap-1 px-2 py-1 max-h-9 bg-gray-100 rounded-md"
                 >
-                  <IoMdClose size={14} />
-                </button>
-              </div>
-            ))}
-            {selectedApps.length === 0 && (
-              <span className="text-gray-400 text-sm">Select apps...</span>
-            )}
-          </div>
+                  {app}
+                  <button
+                    onClick={() => toggleApp(app)}
+                    className="text-gray-500 hover:text-gray-700"
+                  >
+                    <IoMdClose size={14} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
         </DialogHeader>
 
         <div className="space-y-4">
@@ -166,20 +165,20 @@ export function AppEditForm({
                 placeholder="Search App"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="border-0 p-0 focus-visible:ring-0 placeholder:text-gray-400"
+                className="border-0 shadow-none p-0 focus-visible:ring-0 placeholder:text-gray-400"
               />
             </div>
 
             {loading ? (
-              <div className="flex justify-center py-4 ">
+              <div className="flex h-40  justify-center py-4 ">
                 <p>Loading...</p>
               </div>
             ) : appConfigs.length === 0 ? (
-              <div className="flex justify-center py-4">
+              <div className="flex h-40  justify-center py-4">
                 <p>No app configurations available</p>
               </div>
             ) : (
-              <div className="space-y-1 max-h-40 overflow-y-auto">
+              <div className="space-y-1 h-40 overflow-y-auto ">
                 {filteredApps.map((app) => (
                   <div
                     key={app}
