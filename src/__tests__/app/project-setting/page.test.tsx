@@ -7,8 +7,12 @@ import { getAllApps } from "@/lib/api/app";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
 // Mock the modules
-vi.mock("@/components/context/project");
-vi.mock("@/components/context/user");
+vi.mock("@/components/context/project", () => ({
+  useProject: vi.fn(),
+}));
+vi.mock("@/components/context/user", () => ({
+  useUser: vi.fn(),
+}));
 vi.mock("@/lib/api/app");
 vi.mock("@/lib/api/util", () => ({
   getApiKey: vi.fn(() => "test-api-key"),
@@ -71,13 +75,14 @@ describe("ProjectSettingPage", () => {
     vi.clearAllMocks();
 
     // Mock user context
-    vi.mocked(useUser).mockReturnValue({
+    const userMock = {
       user: { accessToken: "test-token", userId: "user-1" },
       setUser: vi.fn(),
       signup: vi.fn(),
       login: vi.fn(),
       logout: vi.fn(),
-    });
+    };
+    vi.mocked(useUser).mockReturnValue(userMock);
 
     // Mock project context
     vi.mocked(useProject).mockReturnValue({
