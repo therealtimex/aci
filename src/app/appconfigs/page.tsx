@@ -9,26 +9,61 @@ import { AppConfigsTable } from "@/components/appconfig/app-configs-table";
 import { useProject } from "@/components/context/project";
 import { getApiKey } from "@/lib/api/util";
 import { getAllAppConfigs } from "@/lib/api/appconfig";
+import { App } from "@/lib/types/app";
+import { getApps } from "@/lib/api/app";
+import { getAppLinkedAccounts } from "@/lib/api/linkedaccount";
 
 export default function AppConfigPage() {
   const [appConfigs, setAppConfigs] = useState<AppConfig[]>([]);
+  const [appsMap, setAppsMap] = useState<Record<string, App>>({});
+  const [linkedAccountsCountMap, setLinkedAccountsCountMap] = useState<
+    Record<string, number>
+  >({});
+  const [isLoading, setIsLoading] = useState(true);
 
   const { project } = useProject();
 
-  const loadAppConfigs = useCallback(async () => {
+  const loadAllData = useCallback(async () => {
     if (!project) {
       console.warn("No active project");
       return;
     }
     const apiKey = getApiKey(project);
+    try {
+      const [configs, apps] = await Promise.all([
+        getAllAppConfigs(apiKey),
+        getApps([], apiKey),
+      ]);
 
-    const appConfigs = await getAllAppConfigs(apiKey);
-    setAppConfigs(appConfigs);
+      const appsMapData = apps.reduce(
+        (acc, app) => {
+          acc[app.name] = app;
+          return acc;
+        },
+        {} as Record<string, App>,
+      );
+
+      const linkedAccountsData = await Promise.all(
+        configs.map(async (config) => {
+          const linkedAccounts = await getAppLinkedAccounts(
+            config.app_name,
+            apiKey,
+          );
+          return [config.app_name, linkedAccounts.length];
+        }),
+      );
+
+      setAppsMap(appsMapData);
+      setAppConfigs(configs);
+      setLinkedAccountsCountMap(Object.fromEntries(linkedAccountsData));
+    } finally {
+      setIsLoading(false);
+    }
   }, [project]);
 
   useEffect(() => {
-    loadAppConfigs();
-  }, [project, loadAppConfigs]);
+    loadAllData();
+  }, [loadAllData]);
 
   return (
     <div>
@@ -44,10 +79,22 @@ export default function AppConfigPage() {
       <Separator />
 
       <div className="m-4">
-        <AppConfigsTable
-          appConfigs={appConfigs}
-          updateAppConfigs={loadAppConfigs}
-        />
+        {isLoading && (
+          <div className="flex items-center justify-center p-8">
+            <div className="flex flex-col items-center space-y-4">
+              <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+              <p className="text-sm text-gray-500">Loading...</p>
+            </div>
+          </div>
+        )}
+        {!isLoading && (
+          <AppConfigsTable
+            appConfigs={appConfigs}
+            appsMap={appsMap}
+            linkedAccountsCountMap={linkedAccountsCountMap}
+            updateAppConfigs={loadAllData}
+          />
+        )}
       </div>
     </div>
   );

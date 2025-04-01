@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { type AppConfig } from "@/lib/types/appconfig";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   Select,
   SelectContent,
@@ -37,26 +37,24 @@ import {
 import { deleteAppConfig, updateAppConfig } from "@/lib/api/appconfig";
 import { useProject } from "@/components/context/project";
 import { getApiKey } from "@/lib/api/util";
-import { getAppLinkedAccounts } from "@/lib/api/linkedaccount";
-import { getApps } from "@/lib/api/app";
+
 import Image from "next/image";
 import { EnhancedSwitch } from "../ui-extensions/enhanced-switch";
 
 interface AppConfigsTableProps {
   appConfigs: AppConfig[];
+  appsMap: Record<string, App>;
+  linkedAccountsCountMap: Record<string, number>;
   updateAppConfigs: () => void;
 }
 
 export function AppConfigsTable({
   appConfigs,
+  appsMap,
+  linkedAccountsCountMap,
   updateAppConfigs,
 }: AppConfigsTableProps) {
   const { project } = useProject();
-
-  const [appsMap, setAppsMap] = useState<Record<string, App>>({});
-  const [linkedAccountsCountMap, setLinkedAccountsCountMap] = useState<
-    Record<string, number>
-  >({});
 
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
@@ -88,57 +86,6 @@ export function AppConfigsTable({
 
     return matchesNameAndCategory && matchesCategory;
   });
-
-  useEffect(() => {
-    async function loadAppMaps() {
-      if (!appConfigs) {
-        return;
-      }
-
-      if (!project) {
-        console.warn("No active project");
-        return;
-      }
-      const apiKey = getApiKey(project);
-
-      const apps = await getApps(
-        appConfigs.map((config) => config.app_name),
-        apiKey,
-      );
-      setAppsMap(
-        apps.reduce(
-          (acc, app) => {
-            acc[app.name] = app;
-            return acc;
-          },
-          {} as Record<string, App>,
-        ),
-      );
-    }
-    loadAppMaps();
-  }, [project, appConfigs]);
-
-  useEffect(() => {
-    async function loadLinkedAccountsCountMap() {
-      if (!project) {
-        console.warn("No active project");
-        return;
-      }
-      const apiKey = getApiKey(project);
-
-      appConfigs.forEach(async (config) => {
-        const linkedAccounts = await getAppLinkedAccounts(
-          config.app_name,
-          apiKey,
-        );
-        setLinkedAccountsCountMap((prev) => ({
-          ...prev,
-          [config.app_name]: linkedAccounts.length,
-        }));
-      });
-    }
-    loadLinkedAccountsCountMap();
-  }, [project, appConfigs]);
 
   return (
     <div>

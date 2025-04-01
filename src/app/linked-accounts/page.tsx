@@ -48,6 +48,7 @@ import {
 } from "@/components/ui/select";
 import { App } from "@/lib/types/app";
 import { EnhancedSwitch } from "@/components/ui-extensions/enhanced-switch";
+import Image from "next/image";
 
 export default function LinkedAccountsPage() {
   const { project } = useProject();
@@ -263,8 +264,23 @@ export default function LinkedAccountsPage() {
                     {filteredLinkedAccounts.map((account) => (
                       <TableRow key={account.id}>
                         <TableCell>
-                          <div className="font-medium">{account.app_name}</div>
+                          <div className="flex items-center gap-2">
+                            {appsMap[account.app_name]?.logo && (
+                              <div className="relative h-6 w-6 flex-shrink-0 overflow-hidden">
+                                <Image
+                                  src={appsMap[account.app_name].logo}
+                                  alt={`${account.app_name} logo`}
+                                  fill
+                                  className="object-contain rounded-sm"
+                                />
+                              </div>
+                            )}
+                            <span className="font-medium">
+                              {account.app_name}
+                            </span>
+                          </div>
                         </TableCell>
+
                         <TableCell>
                           <div className="flex-shrink-0">
                             <IdDisplay id={account.linked_account_owner_id} />
