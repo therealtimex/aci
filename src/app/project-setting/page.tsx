@@ -7,14 +7,6 @@ import { AgentForm } from "@/components/project/agent-form";
 import { createAgent, deleteAgent } from "@/lib/api/agent";
 import { useProject } from "@/components/context/project";
 import { Separator } from "@/components/ui/separator";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { IdDisplay } from "@/components/apps/id-display";
 // import { RiTeamLine } from "react-icons/ri";
 import { MdAdd } from "react-icons/md";
@@ -30,20 +22,11 @@ import { useUser } from "@/components/context/user";
 import { getProjects } from "@/lib/api/project";
 import { App } from "@/lib/types/app";
 import { getAllApps } from "@/lib/api/app";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
-import { GoTrash } from "react-icons/go";
-import { AppEditForm } from "@/components/project/app-edit-form";
-import { AgentInstructionFilterForm } from "@/components/project/agent-instruction-filter-form";
+import { useAgentsTableColumns } from "@/components/project/useAgentsTableColumns";
+import { EnhancedDataTable } from "@/components/ui-extensions/enhanced-data-table/data-table";
+import { Agent } from "@/lib/types/project";
+import { toast } from "sonner";
+
 export default function ProjectSettingPage() {
   const { user } = useUser();
   const { project, setProject } = useProject();
@@ -86,6 +69,37 @@ export default function ProjectSettingPage() {
   useEffect(() => {
     loadAppConfigs();
   }, [project, loadAppConfigs]);
+
+  const handleDeleteAgent = useCallback(
+    async (agentId: string) => {
+      if (!project || !user) {
+        console.warn("No active project or user");
+        return;
+      }
+
+      try {
+        if (project.agents.length <= 1) {
+          toast.error(
+            "Failed to delete agent. You must keep at least one agent in the project.",
+          );
+          return;
+        }
+
+        await deleteAgent(project.id, agentId, user.accessToken);
+        await loadProject();
+      } catch (error) {
+        console.error("Error deleting agent:", error);
+      }
+    },
+    [project, user, loadProject],
+  );
+
+  const agentTableColumns = useAgentsTableColumns(
+    project?.id || "",
+    handleDeleteAgent,
+    loadProject,
+    loadProject,
+  );
 
   if (!project) {
     return <div>Loading...</div>;
@@ -235,173 +249,13 @@ export default function ProjectSettingPage() {
         </div>
 
         {project.agents && project.agents.length > 0 && (
-          <div className="border rounded-lg">
-            <Table>
-              <TableHeader className="bg-gray-50">
-                <TableRow>
-                  <TableHead>AGENT NAME</TableHead>
-                  <TableHead>DESCRIPTION</TableHead>
-                  <TableHead>API KEY</TableHead>
-                  <TableHead>CREATION DATE AND TIME</TableHead>
-                  <TableHead>ALLOWED APPS</TableHead>
-                  <TableHead>
-                    <Tooltip>
-                      <TooltipTrigger className="flex text-left items-center gap-2">
-                        CUSTOM INSTRUCTIONS
-                        <BsQuestionCircle className="h-4 w-4 text-muted-foreground" />
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>
-                          Outline in natural language when an API execution
-                          request from agents should be blocked.
-                        </p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TableHead>
-                  <TableHead>DELETE</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {[...project.agents]
-                  .sort(
-                    (a, b) =>
-                      new Date(b.created_at).getTime() -
-                      new Date(a.created_at).getTime(),
-                  )
-                  .map((agent) => {
-                    return (
-                      <TableRow key={agent.id}>
-                        <TableCell>
-                          <div>
-                            <div className="font-medium">{agent.name}</div>
-                          </div>
-                        </TableCell>
-                        <TableCell>{agent.description}</TableCell>
-                        <TableCell className="font-mono">
-                          <div className="w-24">
-                            <IdDisplay id={agent.api_keys[0].key} />
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          {new Date(agent.created_at)
-                            .toISOString()
-                            .replace(/\.\d{3}Z$/, "")
-                            .replace("T", " ")}
-                        </TableCell>
-                        {/* <TableCell>
-                        <div className="flex flex-wrap gap-2">
-                          {appConfigs.map((config) => (
-                            <span
-                              key={config.app_name}
-                              className="rounded-md bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600 border border-gray-200"
-                            >
-                              {config.app_name}
-                            </span>
-                          ))}
-                        </div>
-                      </TableCell> */}
-                        <TableCell className="space-x-2">
-                          <AppEditForm
-                            onSubmit={(selectedApps) => {
-                              console.log("Selected apps:", selectedApps);
-                              loadProject();
-                            }}
-                            projectId={project.id}
-                            agentId={agent.id}
-                            allowedApps={agent.allowed_apps || []}
-                          >
-                            <Button variant="outline" size="sm">
-                              Edit
-                            </Button>
-                          </AppEditForm>
-                        </TableCell>
-                        <TableCell className="space-x-6 flex">
-                          <AgentInstructionFilterForm
-                            projectId={project.id}
-                            agentId={agent.id}
-                            initialInstructions={agent.custom_instructions}
-                            allowedApps={agent.allowed_apps || []}
-                            onSaveSuccess={loadProject}
-                          >
-                            <Button variant="outline" size="sm">
-                              Edit
-                            </Button>
-                          </AgentInstructionFilterForm>
-                        </TableCell>
-                        <TableCell>
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="text-red-600"
-                              >
-                                <GoTrash />
-                              </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>
-                                  {project.agents.length <= 1
-                                    ? "Cannot Delete Agent"
-                                    : "Delete Agent?"}
-                                </AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  {project.agents.length <= 1 ? (
-                                    "You must keep at least one agent in the project. This agent cannot be deleted."
-                                  ) : (
-                                    <>
-                                      This action cannot be undone. This will
-                                      permanently delete the agent &quot;
-                                      {agent.name}
-                                      &quot; and remove all its associated data.
-                                    </>
-                                  )}
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>
-                                  {project.agents.length <= 1
-                                    ? "Close"
-                                    : "Cancel"}
-                                </AlertDialogCancel>
-                                {project.agents.length > 1 && (
-                                  <AlertDialogAction
-                                    onClick={async () => {
-                                      try {
-                                        if (!project || !user) {
-                                          console.warn(
-                                            "No active project or user",
-                                          );
-                                          return;
-                                        }
-                                        await deleteAgent(
-                                          project.id,
-                                          agent.id,
-                                          user.accessToken,
-                                        );
-                                        await loadProject();
-                                      } catch (error) {
-                                        console.error(
-                                          "Error deleting agent:",
-                                          error,
-                                        );
-                                      }
-                                    }}
-                                  >
-                                    Delete
-                                  </AlertDialogAction>
-                                )}
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-              </TableBody>
-            </Table>
-          </div>
+          <EnhancedDataTable
+            columns={agentTableColumns}
+            data={project.agents as Agent[]}
+            defaultSorting={[{ id: "name", desc: true }]}
+            searchableColumns={["name", "description"]}
+            searchPlaceholder="Search agents..."
+          />
         )}
       </div>
     </div>

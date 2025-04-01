@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/popover";
 import { useEffect, useState } from "react";
 import { useProject } from "@/components/context/project";
-import { Skeleton } from "../ui/skeleton";
+import { Skeleton } from "@/components/ui/skeleton";
 // import { GoPlus } from "react-icons/go";
 import { useUser } from "@/components/context/user";
 import { Project } from "@/lib/types/project";

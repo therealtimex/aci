@@ -14,6 +14,18 @@ vi.mock("@/lib/api/util", () => ({
   getApiKey: vi.fn(() => "test-api-key"),
 }));
 
+vi.mock("@/components/project/app-edit-form", () => ({
+  AppEditForm: ({ children }: { children: React.ReactNode }) => (
+    <div data-testid="app-edit-form">{children}</div>
+  ),
+}));
+
+vi.mock("@/components/project/agent-instruction-filter-form", () => ({
+  AgentInstructionFilterForm: ({ children }: { children: React.ReactNode }) => (
+    <div data-testid="agent-instruction-form">{children}</div>
+  ),
+}));
+
 const TestWrapper = ({ children }: { children: React.ReactNode }) => (
   <TooltipProvider>{children}</TooltipProvider>
 );

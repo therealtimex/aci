@@ -47,7 +47,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { App } from "@/lib/types/app";
-import { EnhancedSwitch } from "@/components/ui-extensions/enhanced-switch";
+import { EnhancedSwitch } from "@/components/ui-extensions/enhanced-switch/enhanced-switch";
 import Image from "next/image";
 
 export default function LinkedAccountsPage() {

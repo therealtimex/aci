@@ -7,7 +7,7 @@ import {
   BreadcrumbLink,
   BreadcrumbList,
   BreadcrumbSeparator,
-} from "../ui/breadcrumb";
+} from "@/components/ui/breadcrumb";
 import { sidebarItems, settingsItems } from "./app-sidebar";
 
 interface BreadcrumbLinksProps {

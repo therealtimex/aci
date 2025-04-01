@@ -24,7 +24,7 @@ import { toast } from "sonner";
 
 interface AppEditFormProps {
   children: React.ReactNode;
-  onSubmit: (selectedApps: string[]) => void;
+  reload: () => Promise<void>;
   initialSelectedApps?: string[];
   projectId: string;
   agentId: string;
@@ -33,7 +33,7 @@ interface AppEditFormProps {
 
 export function AppEditForm({
   children,
-  onSubmit,
+  reload,
   initialSelectedApps = [],
   projectId,
   agentId,
@@ -95,7 +95,7 @@ export function AppEditForm({
 
         toast.success("Agent's allowed apps have been updated successfully.");
 
-        onSubmit(selectedApps);
+        reload();
       }
       setOpen(false);
     } catch (error) {

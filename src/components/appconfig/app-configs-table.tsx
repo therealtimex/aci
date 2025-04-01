@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/select";
 import Link from "next/link";
 import { Input } from "@/components/ui/input";
-import { IdDisplay } from "../apps/id-display";
+import { IdDisplay } from "@/components/apps/id-display";
 import { GoTrash } from "react-icons/go";
 import { App } from "@/lib/types/app";
 import {
@@ -39,7 +39,7 @@ import { useProject } from "@/components/context/project";
 import { getApiKey } from "@/lib/api/util";
 
 import Image from "next/image";
-import { EnhancedSwitch } from "../ui-extensions/enhanced-switch";
+import { EnhancedSwitch } from "@/components/ui-extensions/enhanced-switch/enhanced-switch";
 
 interface AppConfigsTableProps {
   appConfigs: AppConfig[];

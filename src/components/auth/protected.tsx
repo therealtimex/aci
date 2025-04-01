@@ -4,7 +4,7 @@ import React from "react";
 import { useUser } from "@/components/context/user";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
-import { Input } from "../ui/input";
+import { Input } from "@/components/ui/input";
 import { checkSignUpCode } from "@/lib/api/user";
 import {
   Form,

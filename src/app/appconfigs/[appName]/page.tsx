@@ -46,7 +46,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import Link from "next/link";
-import { EnhancedSwitch } from "@/components/ui-extensions/enhanced-switch";
+import { EnhancedSwitch } from "@/components/ui-extensions/enhanced-switch/enhanced-switch";
 
 export default function AppConfigDetailPage() {
   const { appName } = useParams<{ appName: string }>();

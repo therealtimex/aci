@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/table";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { EnhancedSwitch } from "@/components/ui-extensions/enhanced-switch";
+import { EnhancedSwitch } from "@/components/ui-extensions/enhanced-switch/enhanced-switch";
 
 interface LinkedAccountDetailsProps {
   account: LinkedAccount;

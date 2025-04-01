@@ -26,7 +26,7 @@ import {
 } from "@/components/ui/form";
 import { useState, useEffect } from "react";
 import ReactJson from "react-json-view";
-import { IdDisplay } from "../apps/id-display";
+import { IdDisplay } from "@/components/apps/id-display";
 
 const formSchema = z.object({
   name: z.string().min(1, "Name is required"),
