@@ -9,6 +9,8 @@ import {
   useReactTable,
   getFilteredRowModel,
   Row,
+  FilterFn,
+  FilterFnOption,
 } from "@tanstack/react-table";
 
 import {
@@ -19,8 +21,18 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { EnhancedDataTableToolbar } from "./data-table-toolbar";
+import { rankItem } from "@tanstack/match-sorter-utils";
+
+const fuzzyFilter: FilterFn<unknown> = (row, columnId, value, addMeta) => {
+  if (!value || value === "") return true;
+  const itemRank = rankItem(row.getValue(columnId), value);
+  addMeta({
+    itemRank,
+  });
+  return itemRank.passed;
+};
 
 interface EnhancedDataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -30,8 +42,6 @@ interface EnhancedDataTableProps<TData, TValue> {
     id: string;
     desc: boolean;
   }[];
-  // Specify which columns are searchable (empty means disable search)
-  searchableColumns?: string[];
   // Placeholder text for search input
   searchPlaceholder?: string;
   // Row click handler - can trigger button clicks or custom events
@@ -40,38 +50,10 @@ interface EnhancedDataTableProps<TData, TValue> {
   rowClickableClassName?: string;
 }
 
-function enhancedGlobalFilterFn<T>(
-  row: Row<T>,
-  filterValue: string,
-  searchableColumns: string[] = [],
-): boolean {
-  const search = filterValue.toLowerCase();
-
-  // If searchableColumns is empty, disable search completely
-  if (searchableColumns.length === 0) return true;
-
-  const visibleValues = row
-    .getAllCells()
-    .filter((cell) => searchableColumns.includes(cell.column.id))
-    .map((cell) => {
-      const value = cell.getValue();
-      if (typeof value === "string") {
-        return value.toLowerCase();
-      }
-      if (typeof value === "number") {
-        return value.toString();
-      }
-      return "";
-    });
-
-  return visibleValues.some((value: string) => value.includes(search));
-}
-
 export function EnhancedDataTable<TData, TValue>({
   columns,
   data,
   defaultSorting = [],
-  searchableColumns = [],
   searchPlaceholder = "Search...",
 }: EnhancedDataTableProps<TData, TValue>) {
   const [sorting, setSorting] = useState<SortingState>(defaultSorting);
@@ -84,16 +66,22 @@ export function EnhancedDataTable<TData, TValue>({
     }
   }, [defaultSorting]);
 
+  const hasFilterableColumns = useMemo(() => {
+    return columns.some((column) => column.enableGlobalFilter === true);
+  }, [columns]);
+
   const table = useReactTable({
     data,
     columns,
+    filterFns: {
+      fuzzy: fuzzyFilter,
+    },
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     onSortingChange: setSorting,
     onGlobalFilterChange: setGlobalFilter,
-    globalFilterFn: (row, _columnId, filterValue) =>
-      enhancedGlobalFilterFn(row, filterValue as string, searchableColumns),
+    globalFilterFn: "fuzzy" as FilterFnOption<TData>,
     state: {
       sorting,
       globalFilter,
@@ -105,7 +93,7 @@ export function EnhancedDataTable<TData, TValue>({
       <EnhancedDataTableToolbar
         table={table}
         placeholder={searchPlaceholder}
-        searchableColumns={searchableColumns}
+        showSearchInput={hasFilterableColumns}
       />
       <div className="border rounded-lg">
         <Table>

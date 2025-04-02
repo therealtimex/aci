@@ -253,7 +253,6 @@ export default function ProjectSettingPage() {
             columns={agentTableColumns}
             data={project.agents as Agent[]}
             defaultSorting={[{ id: "name", desc: true }]}
-            searchableColumns={["name", "description"]}
             searchPlaceholder="Search agents..."
           />
         )}

@@ -1,6 +1,6 @@
 "use client";
 
-import { ColumnDef } from "@tanstack/react-table";
+import { createColumnHelper, ColumnDef } from "@tanstack/react-table";
 import { IdDisplay } from "@/components/apps/id-display";
 import { Button } from "@/components/ui/button";
 import { GoTrash } from "react-icons/go";
@@ -27,6 +27,8 @@ import { ArrowUpDown } from "lucide-react";
 import { Agent } from "@/lib/types/project";
 import { useMemo } from "react";
 
+const columnHelper = createColumnHelper<Agent>();
+
 export const useAgentsTableColumns = (
   projectId: string,
   onDeleteAgent: (agentId: string) => Promise<void>,
@@ -35,8 +37,7 @@ export const useAgentsTableColumns = (
 ): ColumnDef<Agent>[] => {
   return useMemo(() => {
     return [
-      {
-        accessorKey: "name",
+      columnHelper.accessor("name", {
         header: ({ column }) => (
           <div className="text-left">
             <Button
@@ -51,27 +52,22 @@ export const useAgentsTableColumns = (
             </Button>
           </div>
         ),
-        filterFn: "includesString",
-      },
-      {
-        accessorKey: "description",
+        enableGlobalFilter: true,
+      }) as ColumnDef<Agent>,
+      columnHelper.accessor("description", {
         header: "DESCRIPTION",
-        filterFn: "includesString",
-      },
-      {
-        accessorKey: "api_keys",
+        enableGlobalFilter: true,
+      }) as ColumnDef<Agent>,
+      columnHelper.accessor("api_keys", {
         header: "API KEY",
-        cell: ({ row }) => {
-          const agent = row.original;
-          return (
-            <div className="font-mono w-24">
-              <IdDisplay id={agent.api_keys[0].key} />
-            </div>
-          );
-        },
-      },
-      {
-        accessorKey: "created_at",
+        cell: (ctx) => (
+          <div className="font-mono w-24">
+            <IdDisplay id={ctx.getValue()[0].key} />
+          </div>
+        ),
+        enableGlobalFilter: false,
+      }) as ColumnDef<Agent>,
+      columnHelper.accessor("created_at", {
         header: ({ column }) => (
           <div className="text-left">
             <Button
@@ -86,41 +82,35 @@ export const useAgentsTableColumns = (
             </Button>
           </div>
         ),
-        cell: ({ row }) => {
-          return (
-            <div>
-              {new Date(row.getValue("created_at"))
-                .toISOString()
-                .replace(/\.\d{3}Z$/, "")
-                .replace("T", " ")}
-            </div>
-          );
-        },
-        sortingFn: "datetime",
-      },
-      {
-        accessorKey: "allowed_apps",
+        cell: (ctx) => (
+          <div>
+            {new Date(ctx.getValue())
+              .toISOString()
+              .replace(/\.\d{3}Z$/, "")
+              .replace("T", " ")}
+          </div>
+        ),
+        enableGlobalFilter: false,
+      }) as ColumnDef<Agent>,
+      columnHelper.accessor("allowed_apps", {
         header: "ALLOWED APPS",
-        cell: ({ row }) => {
-          const agent = row.original;
-          return (
-            <div className="text-center">
-              <AppEditForm
-                reload={reload}
-                projectId={projectId}
-                agentId={agent.id}
-                allowedApps={agent.allowed_apps || []}
-              >
-                <Button variant="outline" size="sm" data-action="edit-apps">
-                  Edit
-                </Button>
-              </AppEditForm>
-            </div>
-          );
-        },
-      },
-      {
-        accessorKey: "custom_instructions",
+        cell: (ctx) => (
+          <div className="text-center">
+            <AppEditForm
+              reload={reload}
+              projectId={projectId}
+              agentId={ctx.row.original.id}
+              allowedApps={ctx.row.original.allowed_apps || []}
+            >
+              <Button variant="outline" size="sm" data-action="edit-apps">
+                Edit
+              </Button>
+            </AppEditForm>
+          </div>
+        ),
+        enableGlobalFilter: false,
+      }) as ColumnDef<Agent>,
+      columnHelper.accessor("custom_instructions", {
         header: () => (
           <div className="text-left w-40">
             <Tooltip>
@@ -137,60 +127,57 @@ export const useAgentsTableColumns = (
             </Tooltip>
           </div>
         ),
-        cell: ({ row }) => {
-          const agent = row.original;
-          return (
-            <div className="text-center">
-              <AgentInstructionFilterForm
-                projectId={projectId}
-                agentId={agent.id}
-                initialInstructions={agent.custom_instructions}
-                allowedApps={agent.allowed_apps || []}
-                onSaveSuccess={onInstructionsSave}
-              >
-                <Button variant="outline" size="sm">
-                  Edit
-                </Button>
-              </AgentInstructionFilterForm>
-            </div>
-          );
-        },
-      },
-      {
-        id: "delete",
+        cell: (ctx) => (
+          <div className="text-center">
+            <AgentInstructionFilterForm
+              projectId={projectId}
+              agentId={ctx.row.original.id}
+              initialInstructions={ctx.row.original.custom_instructions}
+              allowedApps={ctx.row.original.allowed_apps || []}
+              onSaveSuccess={onInstructionsSave}
+            >
+              <Button variant="outline" size="sm">
+                Edit
+              </Button>
+            </AgentInstructionFilterForm>
+          </div>
+        ),
+        enableGlobalFilter: false,
+      }) as ColumnDef<Agent>,
+      columnHelper.accessor("id", {
         header: () => <div className="text-center">DELETE</div>,
-        cell: ({ row }) => {
-          const agent = row.original;
-          return (
-            <div className="text-center">
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button variant="ghost" size="sm" className="text-red-600">
-                    <GoTrash />
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Delete Agent?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      This action cannot be undone. This will permanently delete
-                      the agent &quot;
-                      {agent.name}
-                      &quot; and remove all its associated data.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={() => onDeleteAgent(agent.id)}>
-                      Delete
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-            </div>
-          );
-        },
-      },
+        cell: (ctx) => (
+          <div className="text-center">
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="ghost" size="sm" className="text-red-600">
+                  <GoTrash />
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Delete Agent?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This action cannot be undone. This will permanently delete
+                    the agent &quot;
+                    {ctx.row.original.name}
+                    &quot; and remove all its associated data.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={() => onDeleteAgent(ctx.row.original.id)}
+                  >
+                    Delete
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
+        ),
+        enableGlobalFilter: false,
+      }) as ColumnDef<Agent>,
     ];
   }, [projectId, onDeleteAgent, reload, onInstructionsSave]);
 };

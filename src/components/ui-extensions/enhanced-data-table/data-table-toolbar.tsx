@@ -9,13 +9,13 @@ import { useState } from "react";
 interface EnhancedDataTableToolbarProps<TData> {
   table: Table<TData>;
   placeholder?: string;
-  searchableColumns: string[];
+  showSearchInput?: boolean;
 }
 
 export function EnhancedDataTableToolbar<TData>({
   table,
   placeholder = "Search...",
-  searchableColumns,
+  showSearchInput,
 }: EnhancedDataTableToolbarProps<TData>) {
   const [searchValue, setSearchValue] = useState("");
 
@@ -24,9 +24,7 @@ export function EnhancedDataTableToolbar<TData>({
     table.setGlobalFilter(value);
   };
 
-  const isFiltered = table.getState().globalFilter !== "";
-
-  const showSearchInput = searchableColumns.length > 0;
+  const isFiltered = table.getState().globalFilter ? true : false;
 
   return (
     <div className="flex items-center justify-between py-4">
