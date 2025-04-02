@@ -2034,6 +2034,7 @@
             "visible": [
                 "query"
             ],
+
             "additionalProperties": false
         }
     }
