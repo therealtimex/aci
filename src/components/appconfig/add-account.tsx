@@ -21,6 +21,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { BsQuestionCircle } from "react-icons/bs";
+import { MdDescription } from "react-icons/md";
+import Link from "next/link";
 import {
   Tooltip,
   TooltipTrigger,
@@ -378,6 +380,22 @@ export function AddAccountForm({
                       <TooltipContent side="top">
                         <p className="text-xs">
                           {"Input a name or label for your end user."}
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Link
+                          href={`https://www.aci.dev/docs/core-concepts/linked-account`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          <MdDescription className="h-4 w-4 text-muted-foreground hover:text-primary" />
+                        </Link>
+                      </TooltipTrigger>
+                      <TooltipContent side="top">
+                        <p className="text-xs">
+                          {"Learn more about linked accounts."}
                         </p>
                       </TooltipContent>
                     </Tooltip>
