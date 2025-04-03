@@ -135,11 +135,11 @@ describe("ProjectSettingPage", () => {
     expect(manageAgentsLabels[0]).toBeInTheDocument();
 
     // Check if agent table is rendered with correct data
-    const agentNameLabels = screen.getAllByText("Test Agent");
-    expect(agentNameLabels[0]).toBeInTheDocument();
+    const agentNames = screen.getAllByDisplayValue("Test Agent");
+    expect(agentNames[0]).toBeInTheDocument();
 
-    const descriptionLabels = screen.getAllByText("Test Description");
-    expect(descriptionLabels[0]).toBeInTheDocument();
+    const agentDescriptions = screen.getAllByDisplayValue("Test Description");
+    expect(agentDescriptions[0]).toBeInTheDocument();
   });
 
   it("loads apps on component mount", () => {

@@ -1,10 +1,17 @@
 "use client";
 
-import { createColumnHelper, ColumnDef } from "@tanstack/react-table";
+import {
+  createColumnHelper,
+  ColumnDef,
+  CellContext,
+} from "@tanstack/react-table";
 import { IdDisplay } from "@/components/apps/id-display";
 import { Button } from "@/components/ui/button";
 import { GoTrash } from "react-icons/go";
 import { BsQuestionCircle } from "react-icons/bs";
+import { CiEdit } from "react-icons/ci";
+import { IoIosCheckmark } from "react-icons/io";
+import { Input } from "@/components/ui/input";
 import {
   Tooltip,
   TooltipContent,
@@ -25,7 +32,98 @@ import {
 } from "@/components/ui/alert-dialog";
 import { ArrowUpDown } from "lucide-react";
 import { Agent } from "@/lib/types/project";
-import { useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
+import { updateAgent } from "@/lib/api/agent";
+import { useUser } from "@/components/context/user";
+import { toast } from "sonner";
+
+const EditableCell = ({
+  initialValue,
+  fieldName,
+  agentId,
+  onUpdate,
+}: {
+  initialValue: string;
+  fieldName: string;
+  agentId: string;
+  onUpdate: (agentId: string, field: string, value: string) => Promise<void>;
+}) => {
+  const [isEditing, setIsEditing] = useState(false);
+  const [value, setValue] = useState(initialValue);
+  const [inputRef, setInputRef] = useState<HTMLInputElement | null>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (!target.closest('[data-edit-element="true"]')) {
+        setIsEditing(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (isEditing && inputRef) {
+      inputRef.focus();
+      const length = inputRef.value.length;
+      inputRef.setSelectionRange(length, length);
+    }
+  }, [isEditing, inputRef]);
+
+  return (
+    <div className="flex items-center space-x-2" data-edit-element="true">
+      {isEditing ? (
+        <>
+          <Input
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+            className="h-5 p-0 w-full border-none shadow-none bg-transparent px-0 focus-visible:ring-0 focus-visible:ring-offset-0 caret-visible"
+            autoFocus
+            data-edit-element="true"
+            ref={setInputRef}
+          />
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-8 w-8 p-0"
+            onClick={() => {
+              onUpdate(agentId, fieldName, value);
+              setIsEditing(false);
+            }}
+            data-edit-element="true"
+          >
+            <IoIosCheckmark className="h-5 w-5" />
+          </Button>
+        </>
+      ) : (
+        <>
+          <Input
+            value={initialValue}
+            readOnly
+            className="h-5 p-0 w-full border-none shadow-none bg-transparent px-0 focus-visible:ring-0 focus-visible:ring-offset-0 cursor-default"
+            data-edit-element="true"
+          />
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-8 w-8 p-0"
+            onClick={() => {
+              setValue(initialValue);
+              setIsEditing(true);
+            }}
+            data-edit-element="true"
+          >
+            <CiEdit className="h-4 w-4" />
+          </Button>
+        </>
+      )}
+    </div>
+  );
+};
 
 const columnHelper = createColumnHelper<Agent>();
 
@@ -35,6 +133,44 @@ export const useAgentsTableColumns = (
   reload: () => Promise<void>,
   onInstructionsSave: () => Promise<void>,
 ): ColumnDef<Agent>[] => {
+  const { user } = useUser();
+
+  const handleUpdateAgent = async (
+    agentId: string,
+    field: string,
+    value: string,
+  ) => {
+    if (!user || !projectId) return;
+
+    try {
+      if (field === "name") {
+        await updateAgent(
+          projectId,
+          agentId,
+          user.accessToken,
+          value,
+          undefined,
+          undefined,
+          undefined,
+        );
+      } else if (field === "description") {
+        await updateAgent(
+          projectId,
+          agentId,
+          user.accessToken,
+          undefined,
+          value,
+          undefined,
+          undefined,
+        );
+      }
+      toast.success(`Agent ${field} updated successfully`);
+      await reload();
+    } catch (error) {
+      console.error(`Error updating agent ${field}:`, error);
+    }
+  };
+
   return useMemo(() => {
     return [
       columnHelper.accessor("name", {
@@ -52,15 +188,37 @@ export const useAgentsTableColumns = (
             </Button>
           </div>
         ),
+        cell: (ctx: CellContext<Agent, string>) => {
+          const agent = ctx.row.original;
+          return (
+            <EditableCell
+              initialValue={agent.name}
+              fieldName="name"
+              agentId={agent.id}
+              onUpdate={handleUpdateAgent}
+            />
+          );
+        },
         enableGlobalFilter: true,
       }) as ColumnDef<Agent>,
       columnHelper.accessor("description", {
         header: "DESCRIPTION",
+        cell: (ctx: CellContext<Agent, string>) => {
+          const agent = ctx.row.original;
+          return (
+            <EditableCell
+              initialValue={agent.description}
+              fieldName="description"
+              agentId={agent.id}
+              onUpdate={handleUpdateAgent}
+            />
+          );
+        },
         enableGlobalFilter: true,
       }) as ColumnDef<Agent>,
       columnHelper.accessor("api_keys", {
         header: "API KEY",
-        cell: (ctx) => (
+        cell: (ctx: CellContext<Agent, Agent["api_keys"]>) => (
           <div className="font-mono w-24">
             <IdDisplay id={ctx.getValue()[0].key} />
           </div>
@@ -179,5 +337,5 @@ export const useAgentsTableColumns = (
         enableGlobalFilter: false,
       }) as ColumnDef<Agent>,
     ];
-  }, [projectId, onDeleteAgent, reload, onInstructionsSave]);
+  }, [projectId, onDeleteAgent, reload, onInstructionsSave, user]);
 };
