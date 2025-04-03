@@ -11,6 +11,8 @@ import {
   Row,
   FilterFn,
   FilterFnOption,
+  ColumnFiltersState,
+  OnChangeFn,
 } from "@tanstack/react-table";
 
 import {
@@ -48,6 +50,9 @@ interface EnhancedDataTableProps<TData, TValue> {
   onRowClick?: (row: Row<TData>) => void;
   // Additional class for the row to indicate it's clickable
   rowClickableClassName?: string;
+  columnFilters?: ColumnFiltersState;
+  onColumnFiltersChange?: OnChangeFn<ColumnFiltersState>;
+  filterComponent?: React.ReactNode;
 }
 
 export function EnhancedDataTable<TData, TValue>({
@@ -55,9 +60,20 @@ export function EnhancedDataTable<TData, TValue>({
   data,
   defaultSorting = [],
   searchPlaceholder = "Search...",
+  onRowClick,
+  rowClickableClassName,
+  columnFilters,
+  onColumnFiltersChange,
+  filterComponent,
 }: EnhancedDataTableProps<TData, TValue>) {
   const [sorting, setSorting] = useState<SortingState>(defaultSorting);
   const [globalFilter, setGlobalFilter] = useState("");
+  const [innerColumnFilters, setInnerColumnFilters] =
+    useState<ColumnFiltersState>([]);
+
+  const effectiveColumnFilters = columnFilters || innerColumnFilters;
+  const effectiveColumnFiltersChange =
+    onColumnFiltersChange || setInnerColumnFilters;
 
   // Apply default sorting on initial render
   useEffect(() => {
@@ -81,10 +97,12 @@ export function EnhancedDataTable<TData, TValue>({
     getFilteredRowModel: getFilteredRowModel(),
     onSortingChange: setSorting,
     onGlobalFilterChange: setGlobalFilter,
+    onColumnFiltersChange: effectiveColumnFiltersChange,
     globalFilterFn: "fuzzy" as FilterFnOption<TData>,
     state: {
       sorting,
       globalFilter,
+      columnFilters: effectiveColumnFilters,
     },
   });
 
@@ -94,6 +112,7 @@ export function EnhancedDataTable<TData, TValue>({
         table={table}
         placeholder={searchPlaceholder}
         showSearchInput={hasFilterableColumns}
+        filterComponent={filterComponent}
       />
       <div className="border rounded-lg">
         <Table>
@@ -119,6 +138,8 @@ export function EnhancedDataTable<TData, TValue>({
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
+                  className={onRowClick ? rowClickableClassName : undefined}
+                  onClick={onRowClick ? () => onRowClick(row) : undefined}
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id} className="px-4 py-2">
