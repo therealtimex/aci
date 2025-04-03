@@ -7,6 +7,7 @@ import { GoHome } from "react-icons/go";
 import { cn } from "@/lib/utils";
 import { usePathname } from "next/navigation";
 import React from "react";
+import { VscGraph } from "react-icons/vsc";
 
 import {
   Sidebar,
@@ -58,6 +59,11 @@ export const sidebarItems = [
     title: "Linked Accounts",
     url: `/linked-accounts`,
     icon: RiLinkUnlinkM,
+  },
+  {
+    title: "Usage",
+    url: `/usage`,
+    icon: VscGraph,
   },
 ];
 
