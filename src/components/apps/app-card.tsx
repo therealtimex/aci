@@ -56,14 +56,12 @@ export function AppCard({ app }: AppCardProps) {
             ))}
           </div>
           <TooltipProvider>
-            <div className="flex justify-end ">
+            <div className="flex justify-end  items-end  flex-wrap gap-2  ">
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <div className="text-sm bg-gray-100  text-gray-600 mt-auto border border-gray-200 w-6 h-6 rounded-full flex items-center justify-center ">
-                    <span className="cursor-pointer">
-                      {app.functions.length}
-                    </span>
-                  </div>
+                  <span className="text-sm bg-gray-100 px-2.5 py-1 font-medium text-gray-600 border rounded-full border-gray-200">
+                    {app.functions.length}
+                  </span>
                 </TooltipTrigger>
                 <TooltipContent>
                   <p className="text-xs">
