@@ -60,48 +60,58 @@ export function UsageBarChart({ title, data }: UsageBarChartProps) {
         </div>
       </CardHeader>
       <Separator />
-      <CardContent className="flex-1 pb-0">
-        <ChartContainer
-          config={chartConfig}
-          className="mx-auto w-full h-full min-h-[200px] max-h-[300px]"
-        >
-          <BarChart
-            data={sortedData}
-            margin={{ top: 30, right: 10, left: 10, bottom: 50 }}
-            width={500}
-            height={300}
+      {data.length > 0 ? (
+        <CardContent className="flex-1 pb-0">
+          <ChartContainer
+            config={chartConfig}
+            className="mx-auto w-full h-full min-h-[200px] max-h-[300px]"
           >
-            <CartesianGrid
-              strokeDasharray="3 3"
-              vertical={false}
-              stroke="rgba(0,0,0,0.1)"
-            />
-            <XAxis
-              dataKey="date"
-              fontSize={10}
-              tickLine={false}
-              axisLine={false}
-              padding={{ left: 10, right: 10 }}
-            />
-            <ChartTooltip content={<ChartTooltipContent />} />
-            {appNames.map((app, index) => (
-              <Bar
-                key={app}
-                dataKey={app}
-                stackId="a"
-                fill={`hsl(var(--chart-${(index % 5) + 1}))`}
-                isAnimationActive={false}
+            <BarChart
+              data={sortedData}
+              margin={{ top: 30, right: 10, left: 10, bottom: 50 }}
+              width={500}
+              height={300}
+            >
+              <CartesianGrid
+                strokeDasharray="3 3"
+                vertical={false}
+                stroke="rgba(0,0,0,0.1)"
               />
-            ))}
-            <ChartLegend
-              content={<ChartLegendContent />}
-              verticalAlign="bottom"
-              height={30}
-              className="-translate-y-2 flex-wrap gap-2 [&>*]:basis-1/4 [&>*]:justify-center max-h-12 overflow-y-auto [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-muted [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar]:opacity-0 hover:[&::-webkit-scrollbar]:opacity-100 transition-opacity"
-            />
-          </BarChart>
-        </ChartContainer>
-      </CardContent>
+              <XAxis
+                dataKey="date"
+                fontSize={10}
+                tickLine={false}
+                axisLine={false}
+                padding={{ left: 10, right: 10 }}
+              />
+              <ChartTooltip content={<ChartTooltipContent />} />
+              {appNames.map((app, index) => (
+                <Bar
+                  key={app}
+                  dataKey={app}
+                  stackId="a"
+                  fill={`hsl(var(--chart-${(index % 5) + 1}))`}
+                  isAnimationActive={false}
+                />
+              ))}
+              <ChartLegend
+                content={<ChartLegendContent />}
+                verticalAlign="bottom"
+                height={30}
+                className="-translate-y-2 flex-wrap gap-2 [&>*]:basis-1/4 [&>*]:justify-center max-h-12 overflow-y-auto [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-muted [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar]:opacity-0 hover:[&::-webkit-scrollbar]:opacity-100 transition-opacity"
+              />
+            </BarChart>
+          </ChartContainer>
+        </CardContent>
+      ) : (
+        <CardContent className="flex-1 pb-0">
+          <div className="flex items-center justify-center h-full min-h-[200px] max-h-[300px]">
+            <p className="text-muted-foreground">
+              No usage data in the last 7 days
+            </p>
+          </div>
+        </CardContent>
+      )}
     </Card>
   );
 }

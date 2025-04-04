@@ -57,29 +57,39 @@ export default function UsagePieChart({ title, cutoff, data }: PieChartProps) {
         <CardTitle>{title}</CardTitle>
       </CardHeader>
       <Separator />
-      <CardContent className="flex-1 pb-0">
-        <ChartContainer
-          config={chartConfig}
-          className="mx-auto w-full h-full min-h-[200px] max-h-[300px]"
-        >
-          <PieChart width={400} height={300}>
-            <Pie
-              data={chartData}
-              nameKey="name"
-              dataKey="value"
-              cx="50%"
-              cy="50%"
-              outerRadius="80%"
-              label={false}
-            />
-            <ChartTooltip content={<ChartTooltipContent labelKey="name" />} />
-            <ChartLegend
-              content={<ChartLegendContent nameKey="name" />}
-              className="-translate-y-2 flex-wrap gap-2 [&>*]:basis-1/4 [&>*]:justify-center max-h-20 overflow-y-auto [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-muted [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar]:opacity-0 hover:[&::-webkit-scrollbar]:opacity-100 transition-opacity"
-            />
-          </PieChart>
-        </ChartContainer>
-      </CardContent>
+      {data.length > 0 ? (
+        <CardContent className="flex-1 pb-0">
+          <ChartContainer
+            config={chartConfig}
+            className="mx-auto w-full h-full min-h-[200px] max-h-[300px]"
+          >
+            <PieChart width={400} height={300}>
+              <Pie
+                data={chartData}
+                nameKey="name"
+                dataKey="value"
+                cx="50%"
+                cy="50%"
+                outerRadius="80%"
+                label={false}
+              />
+              <ChartTooltip content={<ChartTooltipContent labelKey="name" />} />
+              <ChartLegend
+                content={<ChartLegendContent nameKey="name" />}
+                className="-translate-y-2 flex-wrap gap-2 [&>*]:basis-1/4 [&>*]:justify-center max-h-20 overflow-y-auto [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-muted [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar]:opacity-0 hover:[&::-webkit-scrollbar]:opacity-100 transition-opacity"
+              />
+            </PieChart>
+          </ChartContainer>
+        </CardContent>
+      ) : (
+        <CardContent className="flex-1 pb-0">
+          <div className="flex items-center justify-center h-full min-h-[200px] max-h-[300px]">
+            <p className="text-muted-foreground">
+              No usage data in the last 7 days
+            </p>
+          </div>
+        </CardContent>
+      )}
     </Card>
   );
 }

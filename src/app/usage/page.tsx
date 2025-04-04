@@ -72,24 +72,24 @@ export default function UsagePage() {
     <div>
       <div className="m-4 flex items-center justify-between">
         <h1 className="text-2xl font-bold">Usage</h1>
-        {/* <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
+        <div className="flex items-center gap-4">
+          {/* <div className="flex items-center gap-2">
             <span className="text-sm text-muted-foreground">
               Analytics View
             </span>
-          </div>
+          </div> */}
           <div className="flex items-center gap-2">
             <span className="text-sm text-muted-foreground">
-              Dec 27 - Jan 27
+              From the last 7 days
             </span>
           </div>
-          <div className="flex items-center gap-2">
+          {/* <div className="flex items-center gap-2">
             <span className="text-sm text-muted-foreground">Monthly</span>
           </div>
           <div className="flex items-center gap-2">
             <span className="text-sm text-muted-foreground">Filter</span>
-          </div>
-        </div> */}
+          </div> */}
+        </div>
       </div>
 
       <Separator />
