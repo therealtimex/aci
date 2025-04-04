@@ -18,15 +18,13 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
 import { useState, useEffect } from "react";
-import ReactJson from "react-json-view";
-import { IdDisplay } from "@/components/apps/id-display";
+import { toast } from "sonner";
 
 const formSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -92,6 +90,7 @@ export function AgentForm({
 
       await onSubmit(values);
       setOpen(false);
+      toast.success("Agent created successfully");
       form.reset();
     } catch (error) {
       console.error("Error submitting form:", error);
@@ -150,67 +149,6 @@ export function AgentForm({
                 </FormItem>
               )}
             />
-
-            {/* <FormField
-              control={form.control}
-              name="excluded_apps"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Excluded Apps</FormLabel>
-                  <FormControl>
-                    <Input {...field} placeholder="Enter apps to exclude" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="excluded_functions"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Excluded Functions</FormLabel>
-                  <FormControl>
-                    <Input {...field} placeholder="Enter functions to exclude" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            /> */}
-
-            <FormField
-              control={form.control}
-              name="custom_instructions"
-              render={({ field: { value, onChange } }) => (
-                <FormItem>
-                  <FormLabel>Custom Instructions</FormLabel>
-                  <FormDescription>
-                    Custom instructions are in the &#123;app_name:
-                    instruction&#125;. Valid app names are:
-                    {/* TODO: fix the div cannot be inside of p warning when we refactor the agent edit UI */}
-                    {validAppNames.map((name) => (
-                      <IdDisplay key={name} id={name} />
-                    ))}
-                  </FormDescription>
-                  <FormControl>
-                    <ReactJson
-                      style={{ wordBreak: "break-all" }}
-                      name={false}
-                      src={value}
-                      onEdit={(edit) => onChange(edit.updated_src)}
-                      onAdd={(add) => onChange(add.updated_src)}
-                      onDelete={(del) => onChange(del.updated_src)}
-                      displayDataTypes={false}
-                      enableClipboard={true}
-                      defaultValue=""
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
             <DialogFooter>
               <Button type="submit">Save</Button>
             </DialogFooter>

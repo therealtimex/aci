@@ -102,7 +102,11 @@ export default function ProjectSettingPage() {
   );
 
   if (!project) {
-    return <div>Loading...</div>;
+    return (
+      <div className="flex justify-center items-center h-screen">
+        Loading...
+      </div>
+    );
   }
 
   return (
