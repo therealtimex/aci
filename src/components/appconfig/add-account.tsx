@@ -324,41 +324,35 @@ export function AddAccountForm({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>App Name</FormLabel>
-                  {appInfos.length === 1 ? (
-                    <div className="w-fit bg-muted px-2 py-1 rounded-md">
-                      {selectedAppName}
-                    </div>
-                  ) : (
-                    <Select
-                      onValueChange={(value) => {
-                        field.onChange(value);
-                        form.setValue(
-                          "authType",
-                          appInfosDict[value].securitySchemes[0] as
-                            | "api_key"
-                            | "oauth2"
-                            | "no_auth",
-                          {
-                            shouldValidate: true,
-                          },
-                        );
-                      }}
-                      value={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select app" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {appInfos.map((appInfo) => (
-                          <SelectItem key={appInfo.name} value={appInfo.name}>
-                            {appInfo.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  )}
+                  <Select
+                    onValueChange={(value) => {
+                      field.onChange(value);
+                      form.setValue(
+                        "authType",
+                        appInfosDict[value].securitySchemes[0] as
+                          | "api_key"
+                          | "oauth2"
+                          | "no_auth",
+                        {
+                          shouldValidate: true,
+                        },
+                      );
+                    }}
+                    value={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select app" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {appInfos.map((appInfo) => (
+                        <SelectItem key={appInfo.name} value={appInfo.name}>
+                          {appInfo.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}

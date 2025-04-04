@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 import LinkedAccountsPage from "@/app/linked-accounts/page";
-import { useProject } from "@/components/context/project";
+import { useProject, ProjectProvider } from "@/components/context/project";
 import {
   getAllLinkedAccounts,
   deleteLinkedAccount,
@@ -12,7 +12,12 @@ import { getAllAppConfigs } from "@/lib/api/appconfig";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { toast } from "sonner";
 
-vi.mock("@/components/context/project");
+vi.mock("@/components/context/project", () => ({
+  useProject: vi.fn(),
+  ProjectProvider: ({ children }: { children: React.ReactNode }) => (
+    <>{children}</>
+  ),
+}));
 vi.mock("@/lib/api/linkedaccount");
 vi.mock("@/lib/api/app");
 vi.mock("@/lib/api/appconfig");
@@ -27,7 +32,9 @@ vi.mock("sonner", () => ({
 }));
 
 const TestWrapper = ({ children }: { children: React.ReactNode }) => (
-  <TooltipProvider>{children}</TooltipProvider>
+  <TooltipProvider>
+    <ProjectProvider>{children}</ProjectProvider>
+  </TooltipProvider>
 );
 
 describe("LinkedAccountsPage", () => {
