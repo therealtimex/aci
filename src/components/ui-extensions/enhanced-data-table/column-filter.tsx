@@ -8,14 +8,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
-interface ColumnFilterProps<TData = unknown, TValue = unknown> {
-  column:
-    | {
-        getFilterValue: () => string | unknown;
-        setFilterValue: (value: string | undefined) => void;
-      }
-    | Column<TData, TValue>;
+import { useEffect, useState } from "react";
+interface ColumnFilterProps<TData, TValue> {
+  column: Column<TData, TValue>;
   options: string[];
   placeholder?: string;
   defaultOption?: string;
@@ -31,16 +26,24 @@ export function ColumnFilter<TData, TValue>({
   defaultLabel = "All",
   width = "w-[150px]",
 }: ColumnFilterProps<TData, TValue>) {
-  const selectedValue = (column.getFilterValue() as string) || defaultOption;
+  const [selectedValue, setSelectedValue] = useState(defaultOption);
+
+  useEffect(() => {
+    const filterValue = column.getFilterValue() as string;
+    if (filterValue) {
+      setSelectedValue(filterValue);
+    }
+  }, [column]);
 
   return (
     <Select
       value={selectedValue}
       onValueChange={(value) => {
+        setSelectedValue(value);
         column.setFilterValue(value === defaultOption ? undefined : value);
       }}
     >
-      <SelectTrigger className={width}>
+      <SelectTrigger className={`${width} h-8`}>
         <SelectValue placeholder={placeholder} />
       </SelectTrigger>
       <SelectContent>

@@ -1,7 +1,10 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { AppFunctionsTable } from "@/components/apps/app-functions-table";
+import {
+  useAppFunctionsColumns,
+  useAppFunctionsTableState,
+} from "@/components/apps/useAppFunctionsColumns";
 import { Separator } from "@/components/ui/separator";
 import { useParams } from "next/navigation";
 import { IdDisplay } from "@/components/apps/id-display";
@@ -27,6 +30,7 @@ import {
 } from "@/lib/api/appconfig";
 import Image from "next/image";
 import { ConfigureAppPopup } from "@/components/apps/configure-app-popup";
+import { EnhancedDataTable } from "@/components/ui-extensions/enhanced-data-table/data-table";
 
 const AppPage = () => {
   const { appName } = useParams<{ appName: string }>();
@@ -34,6 +38,10 @@ const AppPage = () => {
   const [app, setApp] = useState<App | null>(null);
   const [functions, setFunctions] = useState<AppFunction[]>([]);
   const [appConfig, setAppConfig] = useState<AppConfig | null>(null);
+
+  const columns = useAppFunctionsColumns();
+  const { setTableInstance, tagFilterComponent } =
+    useAppFunctionsTableState(functions);
 
   const configureApp = async (security_scheme: string) => {
     if (!project) {
@@ -140,7 +148,14 @@ const AppPage = () => {
       <Separator />
 
       <div className="m-4">
-        <AppFunctionsTable functions={functions} />
+        <EnhancedDataTable
+          columns={columns}
+          data={functions}
+          searchBarProps={{ placeholder: "Search functions..." }}
+          filterComponent={tagFilterComponent}
+          defaultSorting={[{ id: "name", desc: false }]}
+          onTableCreated={setTableInstance}
+        />
       </div>
     </div>
   );
