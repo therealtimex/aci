@@ -1,0 +1,25 @@
+{
+    "name": "STEEL",
+    "display_name": "Steel.dev",
+    "logo": "https://github.com/steel-dev/steel-browser/raw/main/images/steel_header_logo.png",
+    "provider": "Steel.dev",
+    "version": "1.0.0",
+    "description": "API for browser automation, web scraping, screenshot capture, and PDF generation with session management capabilities.",
+    "security_schemes": {
+      "api_key": {
+        "location": "header",
+        "name": "steel-api-key",
+        "prefix": null
+      }
+    },
+    "default_security_credentials_by_scheme": {},
+    "categories": [
+        "browser",
+        "headless browser",
+        "web scraping",
+        "developer",
+        "data"
+    ],
+    "visibility": "public",
+    "active": true
+}
