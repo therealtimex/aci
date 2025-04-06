@@ -10,7 +10,9 @@ import { Input } from "@/components/ui/input";
 import { AppCard } from "./app-card";
 import { useState } from "react";
 import { App } from "@/lib/types/app";
-
+import { Separator } from "@/components/ui/separator";
+import { AppCardComingSoon } from "./app-card-coming-soon";
+import comingsoon from "@/lib/comingsoon/comingsoon.json";
 interface AppGridProps {
   apps: App[];
 }
@@ -35,6 +37,8 @@ export function AppGrid({ apps }: AppGridProps) {
 
     return matchesNameOrDescriptionOrCategory && matchesCategory;
   });
+
+  const comingSoonApps = comingsoon;
 
   return (
     <div className="space-y-6">
@@ -77,6 +81,21 @@ export function AppGrid({ apps }: AppGridProps) {
         {filteredApps.map((app) => (
           <AppCard key={app.id} app={app} />
         ))}
+      </div>
+
+      <Separator />
+
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {comingSoonApps.map((app) => {
+          return (
+            <AppCardComingSoon
+              key={app.title}
+              title={app.title}
+              description={app.description}
+              logo={app.logo}
+            />
+          );
+        })}
       </div>
 
       {filteredApps.length === 0 && (
