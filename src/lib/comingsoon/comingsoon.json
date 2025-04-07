@@ -221,16 +221,6 @@
     "description": "LMNT is an API for text-to-speech and voice cloning"
   },
   {
-    "logo": "https://raw.githubusercontent.com/aipotheosis-labs/aipolabs-icons/refs/heads/main/apps/composio.svg",
-    "title": "Composio",
-    "description": "Composio enables AI Agents and LLMs to authenticate and integrate with various tools via function calling."
-  },
-  {
-    "logo": "https://raw.githubusercontent.com/aipotheosis-labs/aipolabs-icons/refs/heads/main/apps/composio-search.png",
-    "title": "Composio search",
-    "description": "Composio Search is an all-in-one tool for searching and scraping the web."
-  },
-  {
     "logo": "https://raw.githubusercontent.com/aipotheosis-labs/aipolabs-icons/refs/heads/main/apps/perplexityai.jpg",
     "title": "Perplexityai",
     "description": "The Perplexity tool interfaces with Perplexity AI's search service, offering advanced natural language processing for sophisticated searches. The PerplexityAISearch action allows for:\n\n    - Query execution with AI models tailored to various search tasks.\n    - Search customization through parameters affecting content generation.\n    - Domain filtering to enhance search precision.\n    - Real-time response streaming for dynamic applications.\n\n    This action is highly configurable for a tailored search experience, suitable for a wide range of AI-driven applications."
@@ -416,7 +406,7 @@
     "description": "SerpApi provides a real-time API for structured search engine results, allowing developers to scrape, parse, and analyze SERP data for SEO and research"
   },
   {
-    "logo": "https://raw.githubusercontent.com/ComposioHQ/open-logos/refs/heads/master/servicenow.png",
+    "logo": "https://raw.githubusercontent.com/aipotheosis-labs/aipolabs-icons/refs/heads/main/apps/servicenow.png",
     "title": "Servicenow",
     "description": "Servicenow provides IT Service Management Transform service management to boost productivity and maximize ROI"
   },

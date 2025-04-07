@@ -24,7 +24,7 @@ interface AppCardProps {
 export function AppCard({ app }: AppCardProps) {
   return (
     <Link href={`/apps/${app.name}`} className="block">
-      <Card className="h-full transition-shadow hover:shadow-lg flex flex-col">
+      <Card className="h-[300px] transition-shadow hover:shadow-lg flex flex-col overflow-hidden ]">
         <CardHeader className="space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3 min-w-0 flex-1 mr-4">
@@ -42,7 +42,19 @@ export function AppCard({ app }: AppCardProps) {
               <IdDisplay id={app.name} />
             </div>
           </div>
-          <CardDescription>{app.description}</CardDescription>
+
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <CardDescription className="line-clamp-4  overflow-hidden">
+                  {app.description}
+                </CardDescription>
+              </TooltipTrigger>
+              <TooltipContent className="max-w-md">
+                <p>{app.description}</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </CardHeader>
         <CardContent className="mt-auto flex justify-between">
           <div className="flex flex-wrap items-start gap-2  ">

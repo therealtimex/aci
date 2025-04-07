@@ -9,6 +9,12 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { IdDisplay } from "@/components/apps/id-display";
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+  TooltipProvider,
+} from "@/components/ui/tooltip";
 
 interface AppCardComingSoonProps {
   title: string;
@@ -22,7 +28,7 @@ export function AppCardComingSoon({
   logo,
 }: AppCardComingSoonProps) {
   return (
-    <Card className="h-full flex flex-col  cursor-not-allowed transition-shadow">
+    <Card className="h-[full] flex flex-col cursor-not-allowed transition-shadow aspect-[1.414/1]">
       <CardHeader className="space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3 min-w-0 flex-1 mr-4">
@@ -40,7 +46,18 @@ export function AppCardComingSoon({
             <IdDisplay id={title} />
           </div>
         </div>
-        <CardDescription>{description}</CardDescription>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <CardDescription className="line-clamp-2 h-10 overflow-hidden">
+                {description}
+              </CardDescription>
+            </TooltipTrigger>
+            <TooltipContent className="max-w-md">
+              <p>{description}</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       </CardHeader>
       <CardContent className="mt-auto">
         <div className="flex flex-wrap items-center gap-2">
@@ -50,6 +67,5 @@ export function AppCardComingSoon({
         </div>
       </CardContent>
     </Card>
-    // </Link>
   );
 }
