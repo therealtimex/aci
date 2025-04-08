@@ -28,7 +28,7 @@ export function AppCardComingSoon({
   logo,
 }: AppCardComingSoonProps) {
   return (
-    <Card className="h-[full] flex flex-col cursor-not-allowed transition-shadow aspect-[1.414/1]">
+    <Card className="h-[300px] flex flex-col cursor-not-allowed transition-shadow ">
       <CardHeader className="space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3 min-w-0 flex-1 mr-4">
