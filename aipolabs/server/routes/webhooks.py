@@ -55,7 +55,7 @@ async def handle_user_created_webhook(
         )
         return
 
-    user = auth.fetch_user_metadata_by_user_id(msg["user_id"])
+    user = auth.fetch_user_metadata_by_user_id(msg["user_id"], include_orgs=True)
     if user is None:
         response.status_code = status.HTTP_404_NOT_FOUND
         logger.error(
@@ -72,12 +72,22 @@ async def handle_user_created_webhook(
     # No-Op if user already has a Personal Organization
     # This shouldn't happen because each user can only be created once
     if user.org_id_to_org_info:
-        for user_org in user.org_id_to_org_info.values():
-            if user_org.org_metadata.get("personal") is True:
+        for org_id, org_info in user.org_id_to_org_info.items():
+            # TODO: propel auth type hinting bug: org_info is not a dataclass but a dict here
+            org_metadata = org_info["org_metadata"]
+            if not isinstance(org_metadata, dict):
+                logger.error(
+                    "org_metadata is not a dict",
+                    extra={"org_id": org_id, "org_metadata": org_metadata},
+                )
+                response.status_code = status.HTTP_422_UNPROCESSABLE_ENTITY
+                return
+
+            if org_metadata["personal"] is True:
                 response.status_code = status.HTTP_409_CONFLICT
                 logger.error(
                     "user already has a personal organization",
-                    extra={"user_id": user.user_id, "org_id": user_org.org_id},
+                    extra={"user_id": user.user_id, "org_id": org_id},
                 )
                 return
 
