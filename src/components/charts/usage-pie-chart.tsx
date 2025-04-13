@@ -10,7 +10,7 @@ import {
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartLegend } from "@/components/ui/chart";
-import { Separator } from "../ui/separator";
+import { Separator } from "@/components/ui/separator";
 
 interface PieChartProps {
   title: string;

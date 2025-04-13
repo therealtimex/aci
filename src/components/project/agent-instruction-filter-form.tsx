@@ -23,10 +23,9 @@ import { getAllApps } from "@/lib/api/app";
 import { updateAgent } from "@/lib/api/agent";
 import { AppConfig } from "@/lib/types/appconfig";
 import { App } from "@/lib/types/app";
-import { useUser } from "@/components/context/user";
-import { useProject } from "@/components/context/project";
 import { getApiKey } from "@/lib/api/util";
 import { toast } from "sonner";
+import { useMetaInfo } from "@/components/context/metainfo";
 
 interface AgentInstructionFilterFormProps {
   children: React.ReactNode;
@@ -45,8 +44,7 @@ export function AgentInstructionFilterForm({
   allowedApps = [],
   onSaveSuccess,
 }: AgentInstructionFilterFormProps) {
-  const { user } = useUser();
-  const { project } = useProject();
+  const { activeProject, accessToken } = useMetaInfo();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [appConfigs, setAppConfigs] = useState<AppConfig[]>([]);
@@ -56,12 +54,12 @@ export function AgentInstructionFilterForm({
 
   // Fetch App configurations and App data
   useEffect(() => {
-    if (!open || !project) return;
+    if (!open) return;
 
     const fetchData = async () => {
       try {
         setLoading(true);
-        const apiKey = getApiKey(project);
+        const apiKey = getApiKey(activeProject);
 
         // Get App configurations
         const configs = await getAllAppConfigs(apiKey);
@@ -80,7 +78,7 @@ export function AgentInstructionFilterForm({
     };
 
     fetchData();
-  }, [open, project]);
+  }, [open, activeProject]);
 
   // Initialize instruction data when dialog opens
   useEffect(() => {
@@ -91,8 +89,6 @@ export function AgentInstructionFilterForm({
 
   // Save custom instructions
   const handleSave = async () => {
-    if (!user || !project) return;
-
     try {
       const cleanedInstructions = Object.entries(instructions).reduce(
         (acc, [key, value]) => {
@@ -108,7 +104,7 @@ export function AgentInstructionFilterForm({
       await updateAgent(
         projectId,
         agentId,
-        user.accessToken,
+        accessToken,
         undefined,
         undefined,
         undefined,
@@ -150,8 +146,6 @@ export function AgentInstructionFilterForm({
 
   // Save single function instruction
   const handleSaveFunction = async (appName: string, functionName: string) => {
-    if (!user || !project) return;
-
     try {
       // Create a copy of current instructions
       const currentInstructions = { ...instructions };
@@ -168,7 +162,7 @@ export function AgentInstructionFilterForm({
       await updateAgent(
         projectId,
         agentId,
-        user.accessToken,
+        accessToken,
         undefined,
         undefined,
         undefined,
@@ -190,8 +184,6 @@ export function AgentInstructionFilterForm({
     appName: string,
     functionName: string,
   ) => {
-    if (!user || !project) return;
-
     try {
       // Create a copy of current instructions
       const currentInstructions = { ...instructions };
@@ -206,7 +198,7 @@ export function AgentInstructionFilterForm({
       await updateAgent(
         projectId,
         agentId,
-        user.accessToken,
+        accessToken,
         undefined,
         undefined,
         undefined,

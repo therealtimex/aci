@@ -1,11 +1,15 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import AppStorePage from "@/app/apps/page";
-import { useProject } from "@/components/context/project";
 import { getAllApps } from "@/lib/api/app";
+import { useMetaInfo } from "@/components/context/metainfo";
+import { OrgMemberInfoClass } from "@propelauth/react";
+import { Project } from "@/lib/types/project";
 
 // Mock the modules
-vi.mock("@/components/context/project");
+vi.mock("@/components/context/metainfo", () => ({
+  useMetaInfo: vi.fn(),
+}));
 vi.mock("@/lib/api/app");
 vi.mock("@/lib/api/util", () => ({
   getApiKey: vi.fn(() => "test-api-key"),
@@ -17,9 +21,9 @@ describe("AppStorePage", () => {
   });
 
   it("loads and displays apps when project is available", async () => {
-    // Mock the project context
-    vi.mocked(useProject).mockReturnValue({
-      project: {
+    // Mock the MetaInfo context - Changed
+    vi.mocked(useMetaInfo).mockReturnValue({
+      activeProject: {
         id: "123",
         name: "Test Project",
         owner_id: "owner-1",
@@ -31,7 +35,30 @@ describe("AppStorePage", () => {
         updated_at: "2024-01-01",
         agents: [],
       },
-      setProject: vi.fn(),
+      accessToken: "test-token",
+      // Add other required fields from MetaInfoContextType with dummy values
+      reloadActiveProject: vi.fn(),
+      setActiveProject: vi.fn(),
+      orgs: [],
+      activeOrg: {
+        orgId: "org-123",
+        orgName: "Test Org",
+      } as OrgMemberInfoClass,
+      setActiveOrg: vi.fn(),
+      projects: [
+        {
+          id: "123",
+          name: "Test Project",
+          owner_id: "owner-1",
+          visibility_access: "private",
+          daily_quota_used: 0,
+          daily_quota_reset_at: "2024-01-01",
+          total_quota_used: 0,
+          created_at: "2024-01-01",
+          updated_at: "2024-01-01",
+          agents: [],
+        } as Project,
+      ],
     });
 
     // Mock the getAllApps response with complete app properties

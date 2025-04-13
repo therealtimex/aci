@@ -5,7 +5,6 @@ import { Input } from "@/components/ui/input";
 // import { Switch } from "@/components/ui/switch";
 import { AgentForm } from "@/components/project/agent-form";
 import { createAgent, deleteAgent } from "@/lib/api/agent";
-import { useProject } from "@/components/context/project";
 import { Separator } from "@/components/ui/separator";
 import { IdDisplay } from "@/components/apps/id-display";
 // import { RiTeamLine } from "react-icons/ri";
@@ -18,28 +17,21 @@ import {
 } from "@/components/ui/tooltip";
 import { useCallback, useEffect, useState } from "react";
 import { getApiKey } from "@/lib/api/util";
-import { useUser } from "@/components/context/user";
-import { getProjects } from "@/lib/api/project";
 import { App } from "@/lib/types/app";
 import { getAllApps } from "@/lib/api/app";
 import { useAgentsTableColumns } from "@/components/project/useAgentsTableColumns";
 import { EnhancedDataTable } from "@/components/ui-extensions/enhanced-data-table/data-table";
 import { Agent } from "@/lib/types/project";
 import { toast } from "sonner";
+import { useMetaInfo } from "@/components/context/metainfo";
 
 export default function ProjectSettingPage() {
-  const { user } = useUser();
-  const { project, setProject } = useProject();
-
+  const { accessToken, activeProject, reloadActiveProject } = useMetaInfo();
   // const [appConfigs, setAppConfigs] = useState<AppConfig[]>([]);
   const [apps, setApps] = useState<App[]>([]);
 
   const loadAppConfigs = useCallback(async () => {
-    if (!project) {
-      console.warn("No active project");
-      return;
-    }
-    const apiKey = getApiKey(project);
+    const apiKey = getApiKey(activeProject);
 
     // const appConfigs = await getAllAppConfigs(apiKey);
     // setAppConfigs(appConfigs);
@@ -49,65 +41,37 @@ export default function ProjectSettingPage() {
     } catch (error) {
       console.error("Error fetching apps:", error);
     }
-  }, [project]);
-
-  const loadProject = useCallback(async () => {
-    if (!user) {
-      return;
-    }
-
-    try {
-      const retrievedProjects = await getProjects(user.accessToken);
-
-      // TODO: there will be multiple projects in a future release
-      setProject(retrievedProjects[0]);
-    } catch (error) {
-      console.error("Error fetching projects:", error);
-    }
-  }, [setProject, user]);
+  }, [activeProject]);
 
   useEffect(() => {
     loadAppConfigs();
-  }, [project, loadAppConfigs]);
+  }, [activeProject, loadAppConfigs]);
 
   const handleDeleteAgent = useCallback(
     async (agentId: string) => {
-      if (!project || !user) {
-        console.warn("No active project or user");
-        return;
-      }
-
       try {
-        if (project.agents.length <= 1) {
+        if (activeProject.agents.length <= 1) {
           toast.error(
             "Failed to delete agent. You must keep at least one agent in the project.",
           );
           return;
         }
 
-        await deleteAgent(project.id, agentId, user.accessToken);
-        await loadProject();
+        await deleteAgent(activeProject.id, agentId, accessToken);
+        await reloadActiveProject();
       } catch (error) {
         console.error("Error deleting agent:", error);
       }
     },
-    [project, user, loadProject],
+    [activeProject, accessToken, reloadActiveProject],
   );
 
   const agentTableColumns = useAgentsTableColumns(
-    project?.id || "",
+    activeProject.id,
     handleDeleteAgent,
-    loadProject,
-    loadProject,
+    reloadActiveProject,
+    reloadActiveProject,
   );
-
-  if (!project) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        Loading...
-      </div>
-    );
-  }
 
   return (
     <div className="w-full">
@@ -132,7 +96,11 @@ export default function ProjectSettingPage() {
             </p>
           </div>
           <div>
-            <Input defaultValue={project.name} className="w-96" readOnly />
+            <Input
+              defaultValue={activeProject.name}
+              className="w-96"
+              readOnly
+            />
           </div>
         </div>
 
@@ -156,7 +124,7 @@ export default function ProjectSettingPage() {
             </div>
           </div>
           <div className="flex items-center px-2">
-            <IdDisplay id={project.id} dim={false} />
+            <IdDisplay id={activeProject.id} dim={false} />
           </div>
         </div>
 
@@ -213,18 +181,17 @@ export default function ProjectSettingPage() {
                 title="Create Agent"
                 validAppNames={apps.map((app) => app.name)}
                 onSubmit={async (values) => {
-                  if (!project) return;
                   try {
                     await createAgent(
-                      project.id,
-                      user!.accessToken,
+                      activeProject.id,
+                      accessToken,
                       values.name,
                       values.description,
                       // TODO: need to create a UI for specifying allowed apps
                       values.allowed_apps,
                       values.custom_instructions,
                     );
-                    await loadProject();
+                    await reloadActiveProject();
                   } catch (error) {
                     console.error("Error creating agent:", error);
                   }
@@ -252,10 +219,10 @@ export default function ProjectSettingPage() {
           </div>
         </div>
 
-        {project.agents && project.agents.length > 0 && (
+        {activeProject.agents && activeProject.agents.length > 0 && (
           <EnhancedDataTable
             columns={agentTableColumns}
-            data={project.agents as Agent[]}
+            data={activeProject.agents as Agent[]}
             defaultSorting={[{ id: "name", desc: true }]}
             searchBarProps={{ placeholder: "Search agents..." }}
           />

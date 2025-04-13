@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 import LinkedAccountsPage from "@/app/linked-accounts/page";
-import { useProject, ProjectProvider } from "@/components/context/project";
+import { useMetaInfo, MetaInfoProvider } from "@/components/context/metainfo";
 import {
   getAllLinkedAccounts,
   deleteLinkedAccount,
@@ -11,10 +11,11 @@ import { getApps } from "@/lib/api/app";
 import { getAllAppConfigs } from "@/lib/api/appconfig";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { toast } from "sonner";
+import { OrgMemberInfoClass } from "@propelauth/react";
 
-vi.mock("@/components/context/project", () => ({
-  useProject: vi.fn(),
-  ProjectProvider: ({ children }: { children: React.ReactNode }) => (
+vi.mock("@/components/context/metainfo", () => ({
+  useMetaInfo: vi.fn(),
+  MetaInfoProvider: ({ children }: { children: React.ReactNode }) => (
     <>{children}</>
   ),
 }));
@@ -33,7 +34,7 @@ vi.mock("sonner", () => ({
 
 const TestWrapper = ({ children }: { children: React.ReactNode }) => (
   <TooltipProvider>
-    <ProjectProvider>{children}</ProjectProvider>
+    <MetaInfoProvider>{children}</MetaInfoProvider>
   </TooltipProvider>
 );
 
@@ -135,9 +136,18 @@ describe("LinkedAccountsPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
 
-    vi.mocked(useProject).mockReturnValue({
-      project: mockProject,
-      setProject: vi.fn(),
+    vi.mocked(useMetaInfo).mockReturnValue({
+      activeProject: mockProject,
+      accessToken: "test-token",
+      reloadActiveProject: vi.fn(),
+      setActiveProject: vi.fn(),
+      orgs: [],
+      activeOrg: {
+        orgId: "org-123",
+        orgName: "Test Org",
+      } as OrgMemberInfoClass,
+      setActiveOrg: vi.fn(),
+      projects: [mockProject],
     });
 
     vi.mocked(getAllLinkedAccounts).mockResolvedValue(mockLinkedAccounts);

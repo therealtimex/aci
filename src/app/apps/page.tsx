@@ -2,26 +2,21 @@
 
 import { AppGrid } from "@/components/apps/app-grid";
 import { Separator } from "@/components/ui/separator";
-import { useProject } from "@/components/context/project";
 import { App } from "@/lib/types/app";
 import { useEffect, useState } from "react";
 import { getApiKey } from "@/lib/api/util";
 import { getAllApps } from "@/lib/api/app";
+import { useMetaInfo } from "@/components/context/metainfo";
 
 export default function AppStorePage() {
-  const { project } = useProject();
+  const { activeProject } = useMetaInfo();
   const [apps, setApps] = useState<App[]>([]);
 
   // TODO: implement pagination once we have a lot of apps
   useEffect(() => {
     async function loadApps() {
       try {
-        if (!project) {
-          console.warn("No active project");
-          return;
-        }
-
-        const apiKey = getApiKey(project);
+        const apiKey = getApiKey(activeProject);
         const apps = await getAllApps(apiKey);
 
         setApps(apps);
@@ -30,7 +25,7 @@ export default function AppStorePage() {
       }
     }
     loadApps();
-  }, [project]);
+  }, [activeProject]);
 
   return (
     <div>

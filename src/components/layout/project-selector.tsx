@@ -18,22 +18,17 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { useEffect, useState } from "react";
-import { useProject } from "@/components/context/project";
 import { Skeleton } from "@/components/ui/skeleton";
 // import { GoPlus } from "react-icons/go";
-import { useUser } from "@/components/context/user";
-import { Project } from "@/lib/types/project";
-import { getProjects } from "@/lib/api/project";
+import { useMetaInfo } from "@/components/context/metainfo";
 
 interface ProjectSelectOption {
   value: string; // project id
   label: string; // project name
 }
 
-export function ProjectSelector() {
-  const { user } = useUser();
-  const { project, setProject } = useProject();
-  const [projects, setProjects] = useState<Map<string, Project>>(new Map());
+export const ProjectSelector = () => {
+  const { projects, activeProject, setActiveProject } = useMetaInfo();
   const [projectSelectOptions, setProjectSelectOptions] = useState<
     ProjectSelectOption[]
   >([]);
@@ -41,30 +36,8 @@ export function ProjectSelector() {
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
-    async function loadProjects() {
-      if (!user) {
-        return;
-      }
-
-      try {
-        const retrievedProjects = await getProjects(user.accessToken);
-
-        setProjects(new Map(retrievedProjects.map((p) => [p.id, p])));
-        if (!project && retrievedProjects.length > 0) {
-          // TODO: there will be multiple projects in a future release
-          setProject(retrievedProjects[0]);
-        }
-      } catch (error) {
-        console.error("Error fetching projects:", error);
-      }
-    }
-
-    loadProjects();
-  }, [user, project, setProject, setProjects]);
-
-  useEffect(() => {
     setProjectSelectOptions(
-      Array.from(projects.values()).map((p) => ({
+      projects.map((p) => ({
         value: p.id,
         label: p.name,
       })),
@@ -80,7 +53,11 @@ export function ProjectSelector() {
           aria-expanded={open}
           className="w-full justify-between"
         >
-          {project ? project.name : <Skeleton className="h-4 w-24" />}
+          {activeProject ? (
+            activeProject.name
+          ) : (
+            <Skeleton className="h-4 w-24" />
+          )}
           <ChevronsUpDown className="opacity-50" />
         </Button>
       </PopoverTrigger>
@@ -95,9 +72,11 @@ export function ProjectSelector() {
                   key={option.value}
                   value={option.value}
                   onSelect={() => {
-                    const selectedProject = projects.get(option.value);
+                    const selectedProject = projects.find(
+                      (p) => p.id === option.value,
+                    );
                     if (selectedProject) {
-                      setProject(selectedProject);
+                      setActiveProject(selectedProject);
                       setOpen(false);
                     } else {
                       console.error(`Project ${option.value} not found`);
@@ -108,7 +87,7 @@ export function ProjectSelector() {
                   <Check
                     className={cn(
                       "ml-auto",
-                      project?.id === option.value
+                      activeProject?.id === option.value
                         ? "opacity-100"
                         : "opacity-0",
                     )}
@@ -128,4 +107,4 @@ export function ProjectSelector() {
       </PopoverContent>
     </Popover>
   );
-}
+};

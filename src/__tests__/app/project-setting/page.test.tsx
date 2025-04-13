@@ -1,17 +1,14 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import ProjectSettingPage from "@/app/project-setting/page";
-import { useProject } from "@/components/context/project";
-import { useUser } from "@/components/context/user";
+import { useMetaInfo } from "@/components/context/metainfo";
 import { getAllApps } from "@/lib/api/app";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { OrgMemberInfoClass } from "@propelauth/react";
 
 // Mock the modules
-vi.mock("@/components/context/project", () => ({
-  useProject: vi.fn(),
-}));
-vi.mock("@/components/context/user", () => ({
-  useUser: vi.fn(),
+vi.mock("@/components/context/metainfo", () => ({
+  useMetaInfo: vi.fn(),
 }));
 vi.mock("@/lib/api/app");
 vi.mock("@/lib/api/util", () => ({
@@ -74,20 +71,19 @@ describe("ProjectSettingPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
 
-    // Mock user context
-    const userMock = {
-      user: { accessToken: "test-token", userId: "user-1" },
-      setUser: vi.fn(),
-      signup: vi.fn(),
-      login: vi.fn(),
-      logout: vi.fn(),
-    };
-    vi.mocked(useUser).mockReturnValue(userMock);
-
-    // Mock project context
-    vi.mocked(useProject).mockReturnValue({
-      project: mockProject,
-      setProject: vi.fn(),
+    // Mock MetaInfo context
+    vi.mocked(useMetaInfo).mockReturnValue({
+      activeProject: mockProject,
+      accessToken: "test-token",
+      reloadActiveProject: vi.fn(),
+      setActiveProject: vi.fn(),
+      orgs: [],
+      activeOrg: {
+        orgId: "org-123",
+        orgName: "Test Org",
+      } as OrgMemberInfoClass,
+      setActiveOrg: vi.fn(),
+      projects: [mockProject],
     });
 
     // Mock getAllApps

@@ -6,11 +6,10 @@ import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/layout/app-sidebar";
-import { ProjectProvider } from "@/components/context/project";
-import Protected from "@/components/auth/protected";
-import { UserProvider } from "@/components/context/user";
+import { MetaInfoProvider } from "@/components/context/metainfo";
 import { Toaster } from "@/components/ui/sonner";
 import { Analytics } from "@vercel/analytics/next";
+import { RequiredAuthProvider } from "@propelauth/react";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -75,23 +74,27 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <UserProvider>
-          <ProjectProvider>
-            <Protected>
-              <SidebarProvider>
-                <AppSidebar />
-                <SidebarInset>
-                  <main className="w-full h-full mr-2 border rounded-lg border-gray-400 border-opacity-30 bg-white">
-                    <Header />
-                    {children}
-                    <Analytics />
-                  </main>
-                </SidebarInset>
-              </SidebarProvider>
-            </Protected>
-          </ProjectProvider>
+        <RequiredAuthProvider authUrl={process.env.NEXT_PUBLIC_AUTH_URL!}>
+          {/* <UserProvider> */}
+          {/* <ProjectProvider> */}
+          <MetaInfoProvider>
+            {/* <Protected> */}
+            <SidebarProvider>
+              <AppSidebar />
+              <SidebarInset>
+                <main className="w-full h-full mr-2 border rounded-lg border-gray-400 border-opacity-30 bg-white">
+                  <Header />
+                  {children}
+                  <Analytics />
+                </main>
+              </SidebarInset>
+            </SidebarProvider>
+          </MetaInfoProvider>
+          {/* </Protected> */}
+          {/* </ProjectProvider> */}
           <Footer />
-        </UserProvider>
+          {/* </UserProvider> */}
+        </RequiredAuthProvider>
         <Toaster />
       </body>
     </html>

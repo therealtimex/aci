@@ -17,11 +17,9 @@ import { Separator } from "@/components/ui/separator";
 import { getAllAppConfigs } from "@/lib/api/appconfig";
 import { updateAgent } from "@/lib/api/agent";
 import { AppConfig } from "@/lib/types/appconfig";
-import { useUser } from "@/components/context/user";
 import { getApiKey } from "@/lib/api/util";
-import { useProject } from "@/components/context/project";
 import { toast } from "sonner";
-
+import { useMetaInfo } from "@/components/context/metainfo";
 interface AppEditFormProps {
   children: React.ReactNode;
   reload: () => Promise<void>;
@@ -39,7 +37,7 @@ export function AppEditForm({
   agentId,
   allowedApps,
 }: AppEditFormProps) {
-  const { user } = useUser();
+  const { accessToken } = useMetaInfo();
   const [open, setOpen] = useState(false);
   const [selectedApps, setSelectedApps] = useState<string[]>(
     allowedApps || initialSelectedApps,
@@ -47,12 +45,12 @@ export function AppEditForm({
   const [searchTerm, setSearchTerm] = useState("");
   const [appConfigs, setAppConfigs] = useState<AppConfig[]>([]);
   const [loading, setLoading] = useState(false);
-  const { project } = useProject();
+  const { activeProject } = useMetaInfo();
 
   useEffect(() => {
-    if (!open || !project || !user?.accessToken) return;
+    if (!open) return;
 
-    const apiKey = getApiKey(project);
+    const apiKey = getApiKey(activeProject);
     const fetchAppConfigs = async () => {
       try {
         setLoading(true);
@@ -68,7 +66,7 @@ export function AppEditForm({
     };
 
     fetchAppConfigs();
-  }, [open, projectId, user, project]);
+  }, [activeProject, open]);
 
   useEffect(() => {
     if (allowedApps) {
@@ -83,11 +81,11 @@ export function AppEditForm({
 
   const handleSubmit = async () => {
     try {
-      if (user && projectId && agentId) {
+      if (projectId && agentId) {
         await updateAgent(
           projectId,
           agentId,
-          user.accessToken,
+          accessToken,
           undefined,
           undefined,
           selectedApps,

@@ -34,4 +34,6 @@ jobs:
         run: npm run test
 
       - name: Build
+        env:
+          NEXT_PUBLIC_AUTH_URL: https://217353629.propelauthtest.com
         run: npm run build

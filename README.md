@@ -59,6 +59,7 @@ The Dev Portal enables developers to create and manage their projects efficientl
    NEXT_PUBLIC_API_URL=http://localhost:8000
    NEXT_PUBLIC_DEV_PORTAL_URL=http://localhost:3000
    NEXT_PUBLIC_ENVIRONMENT=local
+   NEXT_PUBLIC_AUTH_URL=https://217353629.propelauthtest.com
    ```
 
 4. **Start the application:**
@@ -140,6 +141,7 @@ For example, for the Vercel production environment, we set the following environ
 NEXT_PUBLIC_API_URL=https://api.aci.dev
 NEXT_PUBLIC_DEV_PORTAL_URL=https://platform.aci.dev
 NEXT_PUBLIC_ENVIRONMENT=production
+NEXT_PUBLIC_AUTH_URL=<actual_production_propelauth_endpoint>
 ```
 
 ## Additional Links

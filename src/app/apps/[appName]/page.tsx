@@ -9,7 +9,6 @@ import { Separator } from "@/components/ui/separator";
 import { useParams } from "next/navigation";
 import { IdDisplay } from "@/components/apps/id-display";
 import { Button } from "@/components/ui/button";
-import { useProject } from "@/components/context/project";
 import { BsQuestionCircle } from "react-icons/bs";
 import {
   Tooltip,
@@ -31,10 +30,11 @@ import {
 import Image from "next/image";
 import { ConfigureAppPopup } from "@/components/apps/configure-app-popup";
 import { EnhancedDataTable } from "@/components/ui-extensions/enhanced-data-table/data-table";
+import { useMetaInfo } from "@/components/context/metainfo";
 
 const AppPage = () => {
   const { appName } = useParams<{ appName: string }>();
-  const { project } = useProject();
+  const { activeProject } = useMetaInfo();
   const [app, setApp] = useState<App | null>(null);
   const [functions, setFunctions] = useState<AppFunction[]>([]);
   const [appConfig, setAppConfig] = useState<AppConfig | null>(null);
@@ -44,11 +44,7 @@ const AppPage = () => {
     useAppFunctionsTableState(functions);
 
   const configureApp = async (security_scheme: string) => {
-    if (!project) {
-      throw new Error("No API key available");
-    }
-
-    const apiKey = getApiKey(project);
+    const apiKey = getApiKey(activeProject);
     if (!app) return;
 
     try {
@@ -70,12 +66,7 @@ const AppPage = () => {
   useEffect(() => {
     async function loadData() {
       try {
-        if (!project) {
-          console.warn("No active project");
-          return;
-        }
-
-        const apiKey = getApiKey(project);
+        const apiKey = getApiKey(activeProject);
 
         const app = await getApp(appName, apiKey);
         setApp(app);
@@ -91,7 +82,7 @@ const AppPage = () => {
     }
 
     loadData();
-  }, [appName, project]);
+  }, [appName, activeProject]);
 
   return (
     <div>

@@ -35,12 +35,11 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { deleteAppConfig, updateAppConfig } from "@/lib/api/appconfig";
-import { useProject } from "@/components/context/project";
 import { getApiKey } from "@/lib/api/util";
 
 import Image from "next/image";
 import { EnhancedSwitch } from "@/components/ui-extensions/enhanced-switch/enhanced-switch";
-
+import { useMetaInfo } from "@/components/context/metainfo";
 interface AppConfigsTableProps {
   appConfigs: AppConfig[];
   appsMap: Record<string, App>;
@@ -54,7 +53,7 @@ export function AppConfigsTable({
   linkedAccountsCountMap,
   updateAppConfigs,
 }: AppConfigsTableProps) {
-  const { project } = useProject();
+  const { activeProject } = useMetaInfo();
 
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
@@ -148,11 +147,7 @@ export function AppConfigsTable({
                     checked={config.enabled}
                     onAsyncChange={async (checked) => {
                       try {
-                        if (!project) {
-                          console.warn("No active project");
-                          return false;
-                        }
-                        const apiKey = getApiKey(project);
+                        const apiKey = getApiKey(activeProject);
                         await updateAppConfig(config.app_name, checked, apiKey);
                         return true;
                       } catch (error) {
@@ -197,11 +192,7 @@ export function AppConfigsTable({
                         <AlertDialogAction
                           onClick={async () => {
                             try {
-                              if (!project) {
-                                console.warn("No active project");
-                                return;
-                              }
-                              const apiKey = getApiKey(project);
+                              const apiKey = getApiKey(activeProject);
 
                               await deleteAppConfig(config.app_name, apiKey);
                               updateAppConfigs();

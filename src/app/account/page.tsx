@@ -1,12 +1,12 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { useUser } from "@/components/context/user";
 // import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
+import { useLogoutFunction } from "@propelauth/react";
 
 export default function AccountPage() {
-  const { logout } = useUser();
+  const logoutFn = useLogoutFunction();
 
   return (
     <div>
@@ -221,7 +221,7 @@ export default function AccountPage() {
         {/* Danger Zone */}
         <div className="flex flex-row">
           <div>
-            <Button variant="destructive" onClick={() => logout()}>
+            <Button variant="destructive" onClick={() => logoutFn(true)}>
               Sign Out
             </Button>
           </div>

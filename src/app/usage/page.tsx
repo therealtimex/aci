@@ -14,11 +14,11 @@ import {
   DistributionDatapoint,
   TimeSeriesDatapoint,
 } from "@/lib/types/analytics";
-import { useProject } from "@/components/context/project";
 import { getApiKey } from "@/lib/api/util";
+import { useMetaInfo } from "@/components/context/metainfo";
 
 export default function UsagePage() {
-  const { project } = useProject();
+  const { activeProject } = useMetaInfo();
   const [appDistributionData, setAppDistributionData] = useState<
     DistributionDatapoint[]
   >([]);
@@ -37,13 +37,8 @@ export default function UsagePage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        if (!project) {
-          console.warn("No active project");
-          return;
-        }
-
         setIsLoading(true);
-        const apiKey = getApiKey(project);
+        const apiKey = getApiKey(activeProject);
 
         const [appDistData, funcDistData, appTimeData, funcTimeData] =
           await Promise.all([
@@ -66,7 +61,7 @@ export default function UsagePage() {
     };
 
     fetchData();
-  }, [project]);
+  }, [activeProject]);
 
   return (
     <div>

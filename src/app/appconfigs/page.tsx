@@ -6,12 +6,12 @@ import { useCallback, useEffect, useState } from "react";
 import { AppConfig } from "@/lib/types/appconfig";
 import { Separator } from "@/components/ui/separator";
 import { AppConfigsTable } from "@/components/appconfig/app-configs-table";
-import { useProject } from "@/components/context/project";
 import { getApiKey } from "@/lib/api/util";
 import { getAllAppConfigs } from "@/lib/api/appconfig";
 import { App } from "@/lib/types/app";
 import { getApps } from "@/lib/api/app";
 import { getAppLinkedAccounts } from "@/lib/api/linkedaccount";
+import { useMetaInfo } from "@/components/context/metainfo";
 
 export default function AppConfigPage() {
   const [appConfigs, setAppConfigs] = useState<AppConfig[]>([]);
@@ -21,14 +21,10 @@ export default function AppConfigPage() {
   >({});
   const [isLoading, setIsLoading] = useState(true);
 
-  const { project } = useProject();
+  const { activeProject } = useMetaInfo();
 
   const loadAllData = useCallback(async () => {
-    if (!project) {
-      console.warn("No active project");
-      return;
-    }
-    const apiKey = getApiKey(project);
+    const apiKey = getApiKey(activeProject);
     try {
       const [configs, apps] = await Promise.all([
         getAllAppConfigs(apiKey),
@@ -59,7 +55,7 @@ export default function AppConfigPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [project]);
+  }, [activeProject]);
 
   useEffect(() => {
     loadAllData();

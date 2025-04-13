@@ -32,10 +32,10 @@ import {
 } from "@/components/ui/alert-dialog";
 import { ArrowUpDown } from "lucide-react";
 import { Agent } from "@/lib/types/project";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { updateAgent } from "@/lib/api/agent";
-import { useUser } from "@/components/context/user";
 import { toast } from "sonner";
+import { useMetaInfo } from "@/components/context/metainfo";
 
 const EditableCell = ({
   initialValue,
@@ -133,43 +133,42 @@ export const useAgentsTableColumns = (
   reload: () => Promise<void>,
   onInstructionsSave: () => Promise<void>,
 ): ColumnDef<Agent>[] => {
-  const { user } = useUser();
+  const { accessToken } = useMetaInfo();
 
-  const handleUpdateAgent = async (
-    agentId: string,
-    field: string,
-    value: string,
-  ) => {
-    if (!user || !projectId) return;
+  const handleUpdateAgent = useCallback(
+    async (agentId: string, field: string, value: string) => {
+      if (!projectId) return;
 
-    try {
-      if (field === "name") {
-        await updateAgent(
-          projectId,
-          agentId,
-          user.accessToken,
-          value,
-          undefined,
-          undefined,
-          undefined,
-        );
-      } else if (field === "description") {
-        await updateAgent(
-          projectId,
-          agentId,
-          user.accessToken,
-          undefined,
-          value,
-          undefined,
-          undefined,
-        );
+      try {
+        if (field === "name") {
+          await updateAgent(
+            projectId,
+            agentId,
+            accessToken,
+            value,
+            undefined,
+            undefined,
+            undefined,
+          );
+        } else if (field === "description") {
+          await updateAgent(
+            projectId,
+            agentId,
+            accessToken,
+            undefined,
+            value,
+            undefined,
+            undefined,
+          );
+        }
+        toast.success(`Agent ${field} updated successfully`);
+        await reload();
+      } catch (error) {
+        console.error(`Error updating agent ${field}:`, error);
       }
-      toast.success(`Agent ${field} updated successfully`);
-      await reload();
-    } catch (error) {
-      console.error(`Error updating agent ${field}:`, error);
-    }
-  };
+    },
+    [projectId, accessToken, reload],
+  );
 
   return useMemo(() => {
     return [
@@ -272,7 +271,7 @@ export const useAgentsTableColumns = (
         header: () => (
           <div className="text-left w-40">
             <Tooltip>
-              <TooltipTrigger className="flex items-center whitespace-nowrap gap-2">
+              <TooltipTrigger className="flex items-center whitespace-nowrap gap-1">
                 <span className="text-sm">CUSTOM INSTRUCTIONS</span>
                 <BsQuestionCircle className="h-4 w-4 text-muted-foreground" />
               </TooltipTrigger>
@@ -337,5 +336,5 @@ export const useAgentsTableColumns = (
         enableGlobalFilter: false,
       }) as ColumnDef<Agent>,
     ];
-  }, [projectId, onDeleteAgent, reload, onInstructionsSave, user]);
+  }, [handleUpdateAgent, reload, projectId, onInstructionsSave, onDeleteAgent]);
 };

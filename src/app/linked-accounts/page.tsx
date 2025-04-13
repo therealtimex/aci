@@ -14,7 +14,6 @@ import {
 } from "@/components/ui/table";
 import { GoTrash } from "react-icons/go";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
-import { useProject } from "@/components/context/project";
 import { getApiKey } from "@/lib/api/util";
 import {
   getAllLinkedAccounts,
@@ -49,9 +48,10 @@ import {
 import { App } from "@/lib/types/app";
 import { EnhancedSwitch } from "@/components/ui-extensions/enhanced-switch/enhanced-switch";
 import Image from "next/image";
+import { useMetaInfo } from "@/components/context/metainfo";
 
 export default function LinkedAccountsPage() {
-  const { project } = useProject();
+  const { activeProject } = useMetaInfo();
   const [linkedAccounts, setLinkedAccounts] = useState<LinkedAccount[]>([]);
   const [appConfigs, setAppConfigs] = useState<AppConfig[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -79,12 +79,12 @@ export default function LinkedAccountsPage() {
   );
 
   const loadAppMaps = useCallback(async () => {
-    if (!project || linkedAccounts.length === 0) {
+    if (linkedAccounts.length === 0) {
       return;
     }
 
     try {
-      const apiKey = getApiKey(project);
+      const apiKey = getApiKey(activeProject);
       const appNames = Array.from(
         new Set(linkedAccounts.map((account) => account.app_name)),
       );
@@ -111,17 +111,12 @@ export default function LinkedAccountsPage() {
     } catch (error) {
       console.error("Failed to load app data:", error);
     }
-  }, [project, linkedAccounts]);
+  }, [activeProject, linkedAccounts]);
 
-  const loadAppConfigs = async () => {
-    if (!project) {
-      console.warn("No active project");
-      return;
-    }
-
+  const loadAppConfigs = useCallback(async () => {
     try {
       setIsLoading(true);
-      const apiKey = getApiKey(project);
+      const apiKey = getApiKey(activeProject);
       const configs = await getAllAppConfigs(apiKey);
       setAppConfigs(configs);
     } catch (error) {
@@ -130,42 +125,36 @@ export default function LinkedAccountsPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [activeProject]);
 
-  const refreshLinkedAccounts = async (silent: boolean = false) => {
-    if (!project) {
-      console.warn("No active project");
-      return;
-    }
+  const refreshLinkedAccounts = useCallback(
+    async (silent: boolean = false) => {
+      try {
+        if (!silent) {
+          setIsLoading(true);
+        }
 
-    try {
-      if (!silent) {
-        setIsLoading(true);
+        const apiKey = getApiKey(activeProject);
+        const linkedAccounts = await getAllLinkedAccounts(apiKey);
+        setLinkedAccounts(linkedAccounts);
+      } catch (error) {
+        console.error("Failed to load linked accounts:", error);
+        toast.error("Failed to load linked accounts");
+      } finally {
+        if (!silent) {
+          setIsLoading(false);
+        }
       }
-
-      const apiKey = getApiKey(project);
-      const linkedAccounts = await getAllLinkedAccounts(apiKey);
-      setLinkedAccounts(linkedAccounts);
-    } catch (error) {
-      console.error("Failed to load linked accounts:", error);
-      toast.error("Failed to load linked accounts");
-    } finally {
-      if (!silent) {
-        setIsLoading(false);
-      }
-    }
-  };
+    },
+    [activeProject],
+  );
 
   const toggleAccountStatus = async (
     accountId: string,
     newStatus: boolean,
   ): Promise<boolean> => {
     try {
-      if (!project) {
-        console.warn("No active project");
-        return false;
-      }
-      const apiKey = getApiKey(project);
+      const apiKey = getApiKey(activeProject);
 
       await updateLinkedAccount(accountId, apiKey, newStatus);
 
@@ -180,16 +169,14 @@ export default function LinkedAccountsPage() {
   };
 
   useEffect(() => {
-    if (project) {
-      const loadData = async () => {
-        setIsLoading(true);
-        await Promise.all([refreshLinkedAccounts(true), loadAppConfigs()]);
-        setIsLoading(false);
-      };
+    const loadData = async () => {
+      setIsLoading(true);
+      await Promise.all([refreshLinkedAccounts(true), loadAppConfigs()]);
+      setIsLoading(false);
+    };
 
-      loadData();
-    }
-  }, [project]);
+    loadData();
+  }, [activeProject, loadAppConfigs, refreshLinkedAccounts]);
 
   useEffect(() => {
     if (linkedAccounts.length > 0) {
@@ -342,11 +329,11 @@ export default function LinkedAccountsPage() {
                                 <AlertDialogAction
                                   onClick={async () => {
                                     try {
-                                      if (!project) {
+                                      if (!activeProject) {
                                         console.warn("No active project");
                                         return;
                                       }
-                                      const apiKey = getApiKey(project);
+                                      const apiKey = getApiKey(activeProject);
 
                                       await deleteLinkedAccount(
                                         account.id,

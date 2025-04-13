@@ -29,7 +29,6 @@ import {
   TooltipContent,
 } from "@/components/ui/tooltip";
 import { GoCopy, GoPlus } from "react-icons/go";
-import { useProject } from "@/components/context/project";
 import { toast } from "sonner";
 import {
   Form,
@@ -46,6 +45,7 @@ import {
   getOauth2LinkURL,
 } from "@/lib/api/linkedaccount";
 import { getApiKey } from "@/lib/api/util";
+import { useMetaInfo } from "@/components/context/metainfo";
 
 const formSchema = z
   .object({
@@ -87,7 +87,7 @@ export function AddAccountForm({
   appInfos,
   updateLinkedAccounts,
 }: AddAccountProps) {
-  const { project } = useProject();
+  const { activeProject } = useMetaInfo();
   const [open, setOpen] = useState(false);
 
   if (appInfos.length === 0) {
@@ -124,15 +124,11 @@ export function AddAccountForm({
     linkedAccountOwnerId: string,
     afterOAuth2LinkRedirectURL?: string,
   ): Promise<string> => {
-    if (!project) {
-      throw new Error("No API key available");
-    }
-
     if (!appName) {
       throw new Error("No app selected");
     }
 
-    const apiKey = getApiKey(project);
+    const apiKey = getApiKey(activeProject);
 
     if (afterOAuth2LinkRedirectURL === undefined) {
       return await getOauth2LinkURL(appName, linkedAccountOwnerId, apiKey);
@@ -199,15 +195,11 @@ export function AddAccountForm({
     linkedAccountOwnerId: string,
     linkedAPIKey: string,
   ) => {
-    if (!project) {
-      throw new Error("No API key available");
-    }
-
     if (!appName) {
       throw new Error("No app selected");
     }
 
-    const apiKey = getApiKey(project);
+    const apiKey = getApiKey(activeProject);
 
     try {
       await createAPILinkedAccount(
@@ -230,15 +222,11 @@ export function AddAccountForm({
     appName: string,
     linkedAccountOwnerId: string,
   ) => {
-    if (!project) {
-      throw new Error("No API key available");
-    }
-
     if (!appName) {
       throw new Error("No app selected");
     }
 
-    const apiKey = getApiKey(project);
+    const apiKey = getApiKey(activeProject);
 
     try {
       await createNoAuthLinkedAccount(appName, linkedAccountOwnerId, apiKey);

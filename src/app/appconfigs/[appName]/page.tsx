@@ -24,7 +24,6 @@ import { GoTrash } from "react-icons/go";
 import { useParams } from "next/navigation";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { App } from "@/lib/types/app";
-import { useProject } from "@/components/context/project";
 import { AddAccountForm } from "@/components/appconfig/add-account";
 import { getApiKey } from "@/lib/api/util";
 import { getApp } from "@/lib/api/app";
@@ -47,10 +46,11 @@ import {
 import { toast } from "sonner";
 import Link from "next/link";
 import { EnhancedSwitch } from "@/components/ui-extensions/enhanced-switch/enhanced-switch";
+import { useMetaInfo } from "@/components/context/metainfo";
 
 export default function AppConfigDetailPage() {
   const { appName } = useParams<{ appName: string }>();
-  const { project } = useProject();
+  const { activeProject } = useMetaInfo();
   const [app, setApp] = useState<App | null>(null);
   const [linkedAccounts, setLinkedAccounts] = useState<LinkedAccount[]>([]);
 
@@ -65,23 +65,15 @@ export default function AppConfigDetailPage() {
   };
 
   const refreshLinkedAccounts = useCallback(async () => {
-    if (!project) {
-      console.warn("No active project");
-      return;
-    }
-    const apiKey = getApiKey(project);
+    const apiKey = getApiKey(activeProject);
     const linkedAccounts = await getAppLinkedAccounts(appName, apiKey);
     setLinkedAccounts(sortLinkedAccountsByCreateTime(linkedAccounts));
-  }, [project, appName]);
+  }, [activeProject, appName]);
 
   const toggleAccountStatus = useCallback(
     async (accountId: string, newStatus: boolean) => {
       try {
-        if (!project) {
-          console.warn("No active project");
-          return false;
-        }
-        const apiKey = getApiKey(project);
+        const apiKey = getApiKey(activeProject);
 
         await updateLinkedAccount(accountId, apiKey, newStatus);
 
@@ -94,23 +86,19 @@ export default function AppConfigDetailPage() {
         return false;
       }
     },
-    [project, refreshLinkedAccounts],
+    [activeProject, refreshLinkedAccounts],
   );
 
   useEffect(() => {
     async function loadAppAndLinkedAccounts() {
-      if (!project) {
-        console.warn("No active project");
-        return;
-      }
-      const apiKey = getApiKey(project);
+      const apiKey = getApiKey(activeProject);
 
       const app = await getApp(appName, apiKey);
       setApp(app);
       await refreshLinkedAccounts();
     }
     loadAppAndLinkedAccounts();
-  }, [project, appName, refreshLinkedAccounts]);
+  }, [activeProject, appName, refreshLinkedAccounts]);
 
   return (
     <div className="p-6">
@@ -247,11 +235,7 @@ export default function AppConfigDetailPage() {
                             <AlertDialogAction
                               onClick={async () => {
                                 try {
-                                  if (!project) {
-                                    console.warn("No active project");
-                                    return;
-                                  }
-                                  const apiKey = getApiKey(project);
+                                  const apiKey = getApiKey(activeProject);
 
                                   await deleteLinkedAccount(account.id, apiKey);
 
