@@ -34,18 +34,13 @@ from sqlalchemy import Enum as SqlEnum
 # Note: need to use postgresqlr ARRAY in order to use overlap operator
 from sqlalchemy.dialects.postgresql import ARRAY, BYTEA, JSONB
 from sqlalchemy.dialects.postgresql import UUID as PGUUID
-from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.ext.mutable import MutableDict
 from sqlalchemy.orm import DeclarativeBase, Mapped, MappedAsDataclass, mapped_column, relationship
 
 from aipolabs.common.enums import (
     APIKeyStatus,
-    EntityType,
-    OrganizationRole,
     Protocol,
     SecurityScheme,
-    SubscriptionPlan,
-    SubscriptionStatus,
     Visibility,
 )
 
@@ -58,186 +53,6 @@ MAX_STRING_LENGTH = 255
 
 class Base(MappedAsDataclass, DeclarativeBase):
     pass
-
-
-class Entity(Base):
-    """
-    Polymorphic Base for Users and Organizations
-    """
-
-    __tablename__ = "entities"
-
-    id: Mapped[UUID] = mapped_column(
-        PGUUID(as_uuid=True), primary_key=True, default_factory=uuid4, init=False
-    )
-    # Discriminator column
-    type: Mapped[EntityType] = mapped_column(SqlEnum(EntityType), nullable=False, init=False)
-    name: Mapped[str] = mapped_column(String(MAX_STRING_LENGTH), nullable=False)
-    email: Mapped[str] = mapped_column(String(MAX_STRING_LENGTH), nullable=False)
-    profile_picture: Mapped[str | None] = mapped_column(Text, nullable=True)
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=False), server_default=func.now(), nullable=False, init=False
-    )
-    updated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=False),
-        server_default=func.now(),
-        onupdate=func.now(),
-        nullable=False,
-        init=False,
-    )
-
-    subscriptions: Mapped[list[Subscription]] = relationship(
-        "Subscription",
-        lazy="select",
-        cascade="all, delete-orphan",
-        foreign_keys="Subscription.entity_id",
-        init=False,
-    )
-
-    # deleting entity will delete all projects owned by the entity
-    owned_projects: Mapped[list[Project]] = relationship(
-        "Project",
-        lazy="select",
-        cascade="all, delete-orphan",
-        foreign_keys="Project.owner_id",
-        init=False,
-    )
-
-    __mapper_args__ = {
-        "polymorphic_on": type,
-        "polymorphic_identity": EntityType.ENTITY,
-    }
-
-
-class User(Entity):
-    """
-    User is a type of Entity.
-    """
-
-    __tablename__ = "users"
-
-    # TODO: not sure if this is the intended way to do this
-    # but it doesn't work if we do:
-    # id: Mapped[UUID] = mapped_column(PGUUID(as_uuid=True), ForeignKey("entities.id"), primary_key=True, init=False)
-    @declared_attr  # type: ignore
-    def id(cls) -> Mapped[UUID]:
-        return mapped_column(
-            PGUUID(as_uuid=True),
-            ForeignKey("entities.id"),
-            primary_key=True,
-            init=False,
-        )
-
-    # google, github, email, etc
-    identity_provider: Mapped[str] = mapped_column(String(MAX_STRING_LENGTH), nullable=False)
-    # google id, github id, email, etc
-    user_id_by_provider: Mapped[str] = mapped_column(String(MAX_STRING_LENGTH), nullable=False)
-
-    memberships: Mapped[list[Membership]] = relationship(
-        "Membership", back_populates="user", init=False
-    )
-
-    __mapper_args__ = {
-        "polymorphic_identity": EntityType.USER,
-    }
-
-    __table_args__ = (
-        UniqueConstraint("identity_provider", "user_id_by_provider", name="uc_auth_provider_user"),
-    )
-
-
-class Organization(Entity):
-    """
-    Organization is a type of Entity.
-    """
-
-    __tablename__ = "organizations"
-
-    @declared_attr  # type: ignore
-    def id(cls) -> Mapped[UUID]:
-        return mapped_column(
-            PGUUID(as_uuid=True),
-            ForeignKey("entities.id"),
-            primary_key=True,
-            init=False,
-        )
-
-    memberships: Mapped[list[Membership]] = relationship(
-        "Membership", back_populates="organization", init=False
-    )
-
-    __mapper_args__ = {
-        "polymorphic_identity": EntityType.ORGANIZATION,
-    }
-
-
-class Membership(Base):
-    """
-    Membership is a many-to-many relationship between users and organizations.
-    """
-
-    __tablename__ = "memberships"
-
-    id: Mapped[UUID] = mapped_column(
-        PGUUID(as_uuid=True), primary_key=True, default_factory=uuid4, init=False
-    )
-    user_id: Mapped[UUID] = mapped_column(
-        PGUUID(as_uuid=True), ForeignKey("users.id"), nullable=False
-    )
-    organization_id: Mapped[UUID] = mapped_column(
-        PGUUID(as_uuid=True), ForeignKey("organizations.id"), nullable=False
-    )
-    role: Mapped[OrganizationRole] = mapped_column(SqlEnum(OrganizationRole), nullable=False)
-
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=False), server_default=func.now(), nullable=False, init=False
-    )
-    updated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=False),
-        server_default=func.now(),
-        onupdate=func.now(),
-        nullable=False,
-        init=False,
-    )
-
-    user: Mapped[User] = relationship("User", back_populates="memberships", init=False)
-    organization: Mapped[Organization] = relationship(
-        "Organization", back_populates="memberships", init=False
-    )
-
-
-# TODO: need more details (e.g., billings) after we have a payment system and business model
-# TODO: should we only allow one subscription per entity?
-class Subscription(Base):
-    """
-    Stores subscription information for users and organizations.
-    """
-
-    __tablename__ = "subscriptions"
-
-    id: Mapped[UUID] = mapped_column(
-        PGUUID(as_uuid=True), primary_key=True, default_factory=uuid4, init=False
-    )
-    entity_id: Mapped[UUID] = mapped_column(
-        PGUUID(as_uuid=True), ForeignKey("entities.id"), nullable=False
-    )
-    plan: Mapped[SubscriptionPlan] = mapped_column(SqlEnum(SubscriptionPlan), nullable=False)
-    status: Mapped[SubscriptionStatus] = mapped_column(SqlEnum(SubscriptionStatus), nullable=False)
-
-    expires_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=False), default=None, nullable=True
-    )  # Null for active subscriptions
-
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=False), server_default=func.now(), nullable=False, init=False
-    )
-    updated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=False),
-        server_default=func.now(),
-        onupdate=func.now(),
-        nullable=False,
-        init=False,
-    )
 
 
 # TODO: might need to limit number of projects a user can create
@@ -253,10 +68,7 @@ class Project(Base):
         PGUUID(as_uuid=True), primary_key=True, default_factory=uuid4, init=False
     )
 
-    # owner of the project can be a user or an organization
-    owner_id: Mapped[UUID] = mapped_column(
-        PGUUID(as_uuid=True), ForeignKey("entities.id"), nullable=False
-    )
+    org_id: Mapped[UUID] = mapped_column(PGUUID(as_uuid=True), nullable=False)
 
     name: Mapped[str] = mapped_column(String(MAX_STRING_LENGTH), nullable=False)
     # if public, the project can only access public apps and functions
@@ -318,7 +130,7 @@ class Agent(Base):
     # TODO: reconsider if this should be in a separate table to enforce data integrity, or use periodic task to clean up
     # Custom instructions for the agent to follow. The key is the function name, and the value is the instruction.
     custom_instructions: Mapped[dict[str, str]] = mapped_column(
-        MutableDict.as_mutable(JSONB),  # type: ignore
+        MutableDict.as_mutable(JSONB),
         nullable=False,
     )
 
@@ -399,11 +211,11 @@ class Function(Base):
     # can be used to control if the app's discoverability
     active: Mapped[bool] = mapped_column(Boolean, nullable=False)
     protocol: Mapped[Protocol] = mapped_column(SqlEnum(Protocol), nullable=False)
-    protocol_data: Mapped[dict] = mapped_column(MutableDict.as_mutable(JSONB), nullable=False)  # type: ignore
+    protocol_data: Mapped[dict] = mapped_column(MutableDict.as_mutable(JSONB), nullable=False)
     # empty dict for function that takes no args
-    parameters: Mapped[dict] = mapped_column(MutableDict.as_mutable(JSONB), nullable=False)  # type: ignore
+    parameters: Mapped[dict] = mapped_column(MutableDict.as_mutable(JSONB), nullable=False)
     # TODO: should response schema be generic (data + execution success of not + optional error) or specific to the function
-    response: Mapped[dict] = mapped_column(MutableDict.as_mutable(JSONB), nullable=False)  # type: ignore
+    response: Mapped[dict] = mapped_column(MutableDict.as_mutable(JSONB), nullable=False)
     # TODO: should we provide EMBEDDING_DIMENSION here? which makes it less flexible if we want to change the embedding dimention in the future
     embedding: Mapped[list[float]] = mapped_column(Vector(EMBEDDING_DIMENSION), nullable=False)
 
@@ -447,12 +259,12 @@ class App(Base):
     active: Mapped[bool] = mapped_column(Boolean, nullable=False)
     # security schemes (including it's config) supported by the app, e.g., API key, OAuth2, etc
     security_schemes: Mapped[dict[SecurityScheme, dict]] = mapped_column(
-        MutableDict.as_mutable(JSONB),  # type: ignore
+        MutableDict.as_mutable(JSONB),
         nullable=False,
     )
     # default security credentials (provided by aipolabs, if any) for the app that can be used by any client
     default_security_credentials_by_scheme: Mapped[dict[SecurityScheme, dict]] = mapped_column(
-        MutableDict.as_mutable(JSONB),  # type: ignore
+        MutableDict.as_mutable(JSONB),
         nullable=False,
     )
     # embedding vector for similarity search
@@ -512,7 +324,7 @@ class AppConfiguration(Base):
     # want to use their own OAuth2 app for whitelabeling
     # TODO: create a pydantic model for security scheme overrides once we finalize overridable fields
     security_scheme_overrides: Mapped[dict] = mapped_column(
-        MutableDict.as_mutable(JSONB),  # type: ignore
+        MutableDict.as_mutable(JSONB),
         nullable=False,
     )
     # controlled by users to enable or disable the app
@@ -582,7 +394,7 @@ class LinkedAccount(Base):
     # security credentials are different for each security scheme, e.g., API key, OAuth2 (access token, refresh token, scope, etc) etc
     # it can beempty dict because the linked account could be created to use default credentials provided by Aipolabs
     security_credentials: Mapped[dict] = mapped_column(
-        MutableDict.as_mutable(JSONB),  # type: ignore
+        MutableDict.as_mutable(JSONB),
         nullable=False,
     )
     enabled: Mapped[bool] = mapped_column(Boolean, nullable=False)
@@ -648,12 +460,8 @@ __all__ = [
     "App",
     "AppConfiguration",
     "Base",
-    "Entity",
     "Function",
     "LinkedAccount",
-    "Membership",
-    "Organization",
     "Project",
-    "Subscription",
-    "User",
+    "Secret",
 ]

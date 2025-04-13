@@ -53,12 +53,6 @@ class HttpMethod(StrEnum):
     OPTIONS = "OPTIONS"
 
 
-class EntityType(StrEnum):
-    ENTITY = "entity"
-    USER = "user"
-    ORGANIZATION = "organization"
-
-
 class Visibility(StrEnum):
     """visibility of an app or function"""
 
@@ -66,34 +60,14 @@ class Visibility(StrEnum):
     PRIVATE = "private"
 
 
-class SubscriptionPlan(StrEnum):
-    """
-    subscription plan for a user or organization.
-    """
-
-    CUSTOM = "custom"
-    FREE = "free"
-    PRO = "pro"
-    ENTERPRISE = "enterprise"
-
-
-class SubscriptionStatus(StrEnum):
-    """
-    subscription status for a user or organization.
-    """
-
-    ACTIVE = "active"
-    CANCELLED = "cancelled"
-    EXPIRED = "expired"
-
-
 class OrganizationRole(StrEnum):
     """
     role for a user in an organization.
     """
 
-    ADMIN = "admin"
-    MEMBER = "member"
+    OWNER = "Owner"
+    ADMIN = "Admin"
+    MEMBER = "Member"
 
 
 class FunctionDefinitionFormat(StrEnum):
