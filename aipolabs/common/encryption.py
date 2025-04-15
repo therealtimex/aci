@@ -1,3 +1,5 @@
+import hashlib
+import hmac
 from typing import cast
 
 import aws_encryption_sdk  # type: ignore
@@ -10,7 +12,7 @@ from aws_cryptographic_material_providers.mpl.models import CreateAwsKmsKeyringI
 from aws_cryptographic_material_providers.mpl.references import IKeyring  # type: ignore
 from aws_encryption_sdk import CommitmentPolicy
 
-from aipolabs.server import config
+from aipolabs.common import config
 
 client = aws_encryption_sdk.EncryptionSDKClient(
     commitment_policy=CommitmentPolicy.REQUIRE_ENCRYPT_REQUIRE_DECRYPT
@@ -28,7 +30,7 @@ mat_prov: AwsCryptographicMaterialProviders = AwsCryptographicMaterialProviders(
 )
 
 keyring_input: CreateAwsKmsKeyringInput = CreateAwsKmsKeyringInput(
-    kms_key_id=config.SECRETS_MANAGER_KEK_ARN,
+    kms_key_id=config.KEY_ENCRYPTION_KEY_ARN,
     kms_client=kms_client,
 )
 
@@ -45,3 +47,9 @@ def decrypt(cipher_data: bytes) -> bytes:
     # TODO: ignore decryptor_header for now
     my_plaintext, _ = client.decrypt(source=cipher_data, keyring=kms_keyring)
     return cast(bytes, my_plaintext)
+
+
+def hmac_sha256(message: str) -> str:
+    return hmac.new(
+        config.API_KEY_HASHING_SECRET.encode("utf-8"), message.encode("utf-8"), hashlib.sha256
+    ).hexdigest()
