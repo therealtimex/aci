@@ -12,21 +12,13 @@ import { useEffect, useState } from "react";
 interface ColumnFilterProps<TData, TValue> {
   column: Column<TData, TValue>;
   options: string[];
-  placeholder?: string;
-  defaultOption?: string;
-  defaultLabel?: string;
-  width?: string;
 }
 
 export function ColumnFilter<TData, TValue>({
   column,
   options,
-  placeholder = "Filter...",
-  defaultOption = "",
-  defaultLabel = "All",
-  width = "w-[150px]",
 }: ColumnFilterProps<TData, TValue>) {
-  const [selectedValue, setSelectedValue] = useState(defaultOption);
+  const [selectedValue, setSelectedValue] = useState("_all_");
 
   useEffect(() => {
     const filterValue = column.getFilterValue() as string;
@@ -40,14 +32,14 @@ export function ColumnFilter<TData, TValue>({
       value={selectedValue}
       onValueChange={(value) => {
         setSelectedValue(value);
-        column.setFilterValue(value === defaultOption ? undefined : value);
+        column.setFilterValue(value === "_all_" ? undefined : value);
       }}
     >
-      <SelectTrigger className={`${width} h-8`}>
-        <SelectValue placeholder={placeholder} />
+      <SelectTrigger className="w-[120px] h-8">
+        <SelectValue placeholder="Select..." />
       </SelectTrigger>
       <SelectContent>
-        <SelectItem value={defaultOption}>{defaultLabel}</SelectItem>
+        <SelectItem value="_all_">{"all"}</SelectItem>
         {options.map((option) => (
           <SelectItem key={option} value={option}>
             {option}

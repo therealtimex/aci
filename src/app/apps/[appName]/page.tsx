@@ -1,10 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import {
-  useAppFunctionsColumns,
-  useAppFunctionsTableState,
-} from "@/components/apps/useAppFunctionsColumns";
+import { useAppFunctionsColumns } from "@/components/apps/useAppFunctionsColumns";
 import { Separator } from "@/components/ui/separator";
 import { useParams } from "next/navigation";
 import { IdDisplay } from "@/components/apps/id-display";
@@ -40,8 +37,6 @@ const AppPage = () => {
   const [appConfig, setAppConfig] = useState<AppConfig | null>(null);
 
   const columns = useAppFunctionsColumns();
-  const { setTableInstance, tagFilterComponent } =
-    useAppFunctionsTableState(functions);
 
   const configureApp = async (security_scheme: string) => {
     const apiKey = getApiKey(activeProject);
@@ -143,9 +138,6 @@ const AppPage = () => {
           columns={columns}
           data={functions}
           searchBarProps={{ placeholder: "Search functions..." }}
-          filterComponent={tagFilterComponent}
-          defaultSorting={[{ id: "name", desc: false }]}
-          onTableCreated={setTableInstance}
         />
       </div>
     </div>

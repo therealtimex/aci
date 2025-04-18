@@ -2,27 +2,11 @@
 
 import { FunctionDetail } from "@/components/apps/function-detail";
 import { type AppFunction } from "@/lib/types/appfunction";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { IdDisplay } from "@/components/apps/id-display";
-import {
-  createColumnHelper,
-  type ColumnDef,
-  type Table,
-} from "@tanstack/react-table";
-import { ColumnFilter } from "@/components/ui-extensions/enhanced-data-table/column-filter";
+import { createColumnHelper, type ColumnDef } from "@tanstack/react-table";
 
 const columnHelper = createColumnHelper<AppFunction>();
-
-export interface TagFilterComponentProps {
-  tableInstance: Table<AppFunction> | null;
-  functions: AppFunction[];
-}
-
-export interface AppFunctionsTableState {
-  tableInstance: Table<AppFunction> | null;
-  setTableInstance: (table: Table<AppFunction> | null) => void;
-  tagFilterComponent: React.ReactNode;
-}
 
 export const useAppFunctionsColumns = (): ColumnDef<AppFunction>[] => {
   return useMemo(() => {
@@ -32,6 +16,12 @@ export const useAppFunctionsColumns = (): ColumnDef<AppFunction>[] => {
         cell: (info) => <IdDisplay id={info.getValue()} dim={false} />,
         enableGlobalFilter: true,
         size: 50,
+        /** Column ID needed for default sorting */
+        id: "name",
+        meta: {
+          defaultSort: true,
+          defaultSortDesc: true,
+        },
       }),
 
       columnHelper.accessor("tags", {
@@ -49,6 +39,7 @@ export const useAppFunctionsColumns = (): ColumnDef<AppFunction>[] => {
           </div>
         ),
         enableGlobalFilter: true,
+        /** Set filterFn to "arrIncludes" for array filtering support */
         filterFn: "arrIncludes",
         enableColumnFilter: true,
       }),
@@ -71,40 +62,4 @@ export const useAppFunctionsColumns = (): ColumnDef<AppFunction>[] => {
       }),
     ] as ColumnDef<AppFunction>[];
   }, []);
-};
-
-export const useAppFunctionsTableState = (
-  functions: AppFunction[],
-): AppFunctionsTableState => {
-  const [tableInstance, setTableInstance] = useState<Table<AppFunction> | null>(
-    null,
-  );
-
-  const tagFilterComponent = useMemo(() => {
-    const tags = Array.from(
-      new Set(functions.flatMap((func) => func.tags || [])),
-    ).filter((tag) => tag !== "" && tag !== null);
-
-    if (tags.length === 0 || !tableInstance) return null;
-
-    const tagsColumn = tableInstance.getColumn("tags");
-    if (!tagsColumn) return null;
-
-    return (
-      <ColumnFilter
-        column={tagsColumn}
-        options={tags}
-        placeholder="Tags"
-        defaultLabel="All Tags"
-        defaultOption="_all_"
-        width="w-[120px]"
-      />
-    );
-  }, [functions, tableInstance]);
-
-  return {
-    tableInstance,
-    setTableInstance,
-    tagFilterComponent,
-  };
 };

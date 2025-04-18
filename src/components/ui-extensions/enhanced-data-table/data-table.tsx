@@ -11,6 +11,14 @@ import {
   ColumnFiltersState,
 } from "@tanstack/react-table";
 
+declare module "@tanstack/react-table" {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  interface ColumnMeta<TData, TValue> {
+    defaultSort?: boolean;
+    defaultSortDesc?: boolean;
+  }
+}
+
 import {
   Table,
   TableBody,
@@ -19,12 +27,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useEffect, useState, useMemo } from "react";
-import { EnhancedDataTableToolbar } from "./data-table-toolbar";
+import { useState, useMemo } from "react";
+import { EnhancedDataTableToolbar } from "@/components/ui-extensions/enhanced-data-table/data-table-toolbar";
+import { ColumnFilter } from "@/components/ui-extensions/enhanced-data-table/column-filter";
 
 interface SearchBarProps {
   placeholder: string;
 }
+
 interface EnhancedDataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
@@ -33,8 +43,6 @@ interface EnhancedDataTableProps<TData, TValue> {
     desc: boolean;
   }[];
   searchBarProps?: SearchBarProps;
-  filterComponent?: React.ReactNode;
-  onTableCreated?: (table: ReturnType<typeof useReactTable<TData>>) => void;
 }
 
 export function EnhancedDataTable<TData, TValue>({
@@ -42,10 +50,22 @@ export function EnhancedDataTable<TData, TValue>({
   data,
   defaultSorting = [],
   searchBarProps,
-  filterComponent,
-  onTableCreated,
 }: EnhancedDataTableProps<TData, TValue>) {
-  const [sorting, setSorting] = useState<SortingState>(defaultSorting);
+  const generatedDefaultSorting = useMemo(() => {
+    if (defaultSorting.length > 0) return defaultSorting;
+    const sortableColumn = columns.find((col) => col.meta?.defaultSort);
+    if (sortableColumn && sortableColumn.id) {
+      return [
+        {
+          id: sortableColumn.id,
+          desc: sortableColumn.meta?.defaultSortDesc ?? false,
+        },
+      ];
+    }
+    return [];
+  }, [columns, defaultSorting]);
+
+  const [sorting, setSorting] = useState<SortingState>(generatedDefaultSorting);
   const [globalFilter, setGlobalFilter] = useState("");
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 
@@ -69,12 +89,43 @@ export function EnhancedDataTable<TData, TValue>({
       columnFilters: columnFilters,
     },
   });
+  const filterComponents = useMemo(() => {
+    /** Get all columns that have column filtering enabled */
+    const filterableColumns = table
+      .getAllColumns()
+      .filter((column) => column.columnDef.enableColumnFilter === true);
 
-  useEffect(() => {
-    if (onTableCreated) {
-      onTableCreated(table);
-    }
-  }, [table, onTableCreated]);
+    if (filterableColumns.length === 0) return null;
+
+    return (
+      <div className="flex gap-2">
+        {filterableColumns.map((column) => {
+          if (column.columnDef.filterFn === "arrIncludes") {
+            const uniqueValues = new Set<string>();
+            /** Get all unique values from the column */
+            data.forEach((row) => {
+              const value = column.accessorFn?.(row, 0) as string[] | undefined;
+              if (Array.isArray(value)) {
+                value.forEach((v) => {
+                  /** If the value is not empty, add it to the set */
+                  if (v && v !== "") uniqueValues.add(v);
+                });
+              }
+            });
+
+            const options = Array.from(uniqueValues);
+            /** If there are no options, don't render the column filter component */
+            if (options.length === 0) return null;
+            /** Render the column filter component */
+            return (
+              <ColumnFilter key={column.id} column={column} options={options} />
+            );
+          }
+          return null;
+        })}
+      </div>
+    );
+  }, [data, table]);
 
   return (
     <div>
@@ -83,7 +134,7 @@ export function EnhancedDataTable<TData, TValue>({
           table={table}
           placeholder={searchBarProps.placeholder}
           showSearchInput={hasFilterableColumns}
-          filterComponent={filterComponent}
+          filterComponent={filterComponents}
         />
       )}
       <div className="border rounded-lg">
