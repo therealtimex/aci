@@ -186,6 +186,13 @@ class OpenAIFunctionDefinition(BaseModel):
     function: OpenAIFunction
 
 
+class OpenAIResponsesFunctionDefinition(BaseModel):
+    type: Literal["function"] = "function"
+    name: str
+    description: str
+    parameters: dict
+
+
 class AnthropicFunctionDefinition(BaseModel):
     name: str
     description: str
