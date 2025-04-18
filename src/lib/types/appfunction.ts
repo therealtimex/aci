@@ -4,5 +4,16 @@ export interface AppFunction {
   name: string;
   description: string;
   tags: string[];
-  parameters: Record<string, unknown>;
+  parameters: object;
+}
+
+export interface FunctionExecute {
+  function_input: object;
+  linked_account_owner_id: string;
+}
+
+export interface FunctionExecutionResult {
+  success: boolean;
+  data: object;
+  error?: string;
 }

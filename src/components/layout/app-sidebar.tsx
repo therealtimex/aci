@@ -8,7 +8,6 @@ import { cn } from "@/lib/utils";
 import { usePathname } from "next/navigation";
 import React from "react";
 import { VscGraph } from "react-icons/vsc";
-
 import {
   Sidebar,
   SidebarContent,
@@ -31,6 +30,7 @@ import {
   RiLinkUnlinkM,
 } from "react-icons/ri";
 import { AiOutlineExperiment } from "react-icons/ai";
+import { HiOutlineChatBubbleBottomCenterText } from "react-icons/hi2";
 
 import {
   Tooltip,
@@ -59,6 +59,11 @@ export const sidebarItems = [
     title: "Linked Accounts",
     url: `/linked-accounts`,
     icon: RiLinkUnlinkM,
+  },
+  {
+    title: "Agent Playground",
+    url: `/playground`,
+    icon: HiOutlineChatBubbleBottomCenterText,
   },
   {
     title: "Usage",
