@@ -1,5 +1,5 @@
 {
-  "name": "APITEMPLATE",
+  "name": "API_TEMPLATE",
   "display_name": "APITemplate.io",
   "description": "APITemplate.io is a template-based document generation service that allows you to create PDFs and other documents from HTML templates.",
   "provider": "APITemplate.io",

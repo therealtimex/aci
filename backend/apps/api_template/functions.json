@@ -1,6 +1,6 @@
 [
     {
-        "name": "APITEMPLATE__LIST_TEMPLATES",
+        "name": "API_TEMPLATE__LIST_TEMPLATES",
         "description": "List all templates from APITemplate.io",
         "tags": [
             "apitemplate",
@@ -95,7 +95,7 @@
         }
     },
     {
-        "name": "APITEMPLATE__GET_TEMPLATE",
+        "name": "API_TEMPLATE__GET_TEMPLATE",
         "description": "Get a specific template details from APITemplate.io",
         "tags": [
             "apitemplate",
@@ -157,7 +157,7 @@
         }
     },
     {
-        "name": "APITEMPLATE__UPDATE_TEMPLATE",
+        "name": "API_TEMPLATE__UPDATE_TEMPLATE",
         "description": "Update a specific template in APITemplate.io",
         "tags": [
             "apitemplate",
