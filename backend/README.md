@@ -90,7 +90,7 @@ the local db.
   Webhooks** for the **TEST ENV**, which will lead you to [Svix endpoints](https://app.svix.com/app_2uuG50X13IEu2cVRRL5fnXOeWWv/endpoints)
   page.
   ![webhook-setup](./images/webhook-setup.png)
-- Click `Add Endpoint`, put `<your_gnrok_public_endpoint>/v1/webhooks/user-created` as
+- Click `Add Endpoint`, put `<your_gnrok_public_endpoint>/v1/webhooks/auth/user-created` as
   the endpoint and subscribe to the `user.created` event. Hit Create.
   ![svix](./images/svix.png)
 - Copy the `Signing Secret` of the endpoint and set it as `SERVER_SVIX_SIGNING_SECRET`
