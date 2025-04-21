@@ -1,6 +1,6 @@
 ![ACI.dev Logo](frontend/public/aci-dev-full-logo.svg)
 
-# ACI.dev: The Open Source Tool-Use Infrastructure for AI Agents
+# ACI: Open Source Tool-Use Infrastructure for AI Agents
 
 [![CI](https://github.com/aipotheosis-labs/aci/actions/workflows/ci.yml/badge.svg)](https://github.com/aipotheosis-labs/aci/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
@@ -37,16 +37,16 @@ Build production-ready AI agents without the infrastructure headaches.
 
 ## Why Use ACI.dev?
 
-ACI.dev solves your critical infrastructure challenges for production deployment:
+ACI.dev solves your critical infrastructure challenges for production-ready AI agents:
 
 - **Authentication at Scale**: Connect multiple users to multiple services securely.
-- **Discovery Without Overload**: Find and use the right tools without overwhelming context windows.
+- **Discovery Without Overload**: Find and use the right tools without overwhelming LLM context windows.
 - **Natural Language Permissions**: Control agent capabilities with human-readable boundaries.
 - **Build Once, Run Anywhere**: No vendor lock-in with our open source, framework-agnostic approach.
 
 ## Common Use Cases
 
-*   **LLM Powered Personal Assistant:** Build bots that can search the web, manage calendars, send emails, interact with SaaS tools, etc.
+*   **Personal Assistant Chatbots:** Build chatbots that can search the web, manage calendars, send emails, interact with SaaS tools, etc.
 *   **Research Agent:** Conducts research on specific topics and syncs results to other apps (e.g., Notion, Google Sheets).
 *   **Outbound Sales Agent:** Automates lead generation, email outreach, and CRM updates.
 *   **Customer Support Agent:** Provides answers, manages tickets, and performs actions based on customer queries.
@@ -54,8 +54,6 @@ ACI.dev solves your critical infrastructure challenges for production deployment
 ---
 
 ## Tech Stack
-
-This project utilizes a modern stack for both backend and frontend development:
 
 -   **Backend:**
     -   **Language:** Python 3.12+
