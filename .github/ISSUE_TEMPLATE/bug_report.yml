@@ -14,7 +14,7 @@ body:
       label: "Required Pre-requisites"
       description: "Please make sure you've completed the following steps before submitting. Thank you! 🙏"
       options:
-        - label: "I have read the [documentation](https://www.aci.dev/docs)"
+        - label: "I have read the [Documentation](https://www.aci.dev/docs)"
           required: true
         - label: "I have searched the [Issue Tracker](https://github.com/aipotheosis-labs/aci/issues) and [Discussions](https://github.com/aipotheosis-labs/aci/discussions) that this hasn't been reported yet."
           required: true
