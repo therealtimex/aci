@@ -10,12 +10,29 @@ Please read and follow our [Code of Conduct](CODE_OF_CONDUCT.md) to foster an op
 
 Before you begin contributing, please set up your local development environment by following the instructions in the [README.md](README.md).
 
+## Contributor License Agreement (CLA)
+
+Before we can merge your contribution, we need you to agree to our Contributor License Agreement (CLA). This protects both you and the project.
+
+- **Individuals:** Please read the [Individual CLA (CLA-Individual.md)](CLA-Individual.md). To signify your agreement, comment on your Pull Request with the exact phrase:
+    `I have read the CLA Document and I hereby sign the CLA`
+
+- **Corporations:** If you are contributing on behalf of a company, please ensure **both** of the following steps are completed:
+    1. An authorized representative from your company must read the [Corporate CLA (CLA-Corporate.md)](CLA-Corporate.md) and signify agreement by commenting on the Pull Request with the exact phrase: `We have read the CLA Document and we hereby sign the CLA`. This comment must also include the Corporation Name, Address, Point of Contact Name, Email, and Phone number as specified in the Corporate CLA.
+    2. The individual developer submitting the code must **also** sign the [Individual CLA (CLA-Individual.md)](CLA-Individual.md) by commenting with the phrase specified in the "Individuals" section above.
+
+We cannot accept pull requests until **all** required CLA agreements are met.
+
 ## Repository Structure
 
 Our monorepo contains two main components:
 
 - **`/backend`**: Contains the main ACI platform server, including the APIs, core logic, database models, and the entire integration library (over 600+ tools).
 - **`/frontend`**: Contains the Next.js application for the ACI.dev Developer Portal. This is the web interface for managing projects, integrations, authentication, and testing agents.
+
+## Getting in Touch
+
+Before starting work on a contribution, especially for larger features or changes, we kindly request that you first get in touch with the core team by emailing <team@aipolabs.xyz>. This helps us coordinate efforts, provide guidance, and ensure your contribution aligns with the project's roadmap.
 
 ## How to Contribute
 
