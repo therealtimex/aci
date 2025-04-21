@@ -5,11 +5,11 @@
 # ACI: Open Source Tool-Use Infrastructure for AI Agents
 
 <p align="center">
-[![CI](https://github.com/aipotheosis-labs/aci/actions/workflows/ci.yml/badge.svg)](https://github.com/aipotheosis-labs/aci/actions/workflows/ci.yml)
-[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-[![Discord](https://img.shields.io/badge/Discord-Join_Chat-7289DA.svg?logo=discord)](https://discord.com/invite/UU2XAnfHJh)
-[![Twitter Follow](https://img.shields.io/twitter/follow/AipoLabs?style=social)](https://x.com/AipoLabs)
-[![PyPI version](https://badge.fury.io/py/aci-sdk.svg)](https://badge.fury.io/py/aci-sdk)
+  <a href="https://github.com/aipotheosis-labs/aci/actions/workflows/ci.yml"><img src="https://github.com/aipotheosis-labs/aci/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="https://opensource.org/licenses/Apache-2.0"><img src="https://img.shields.io/badge/License-Apache_2.0-blue.svg" alt="License"></a>
+  <a href="https://discord.com/invite/UU2XAnfHJh"><img src="https://img.shields.io/badge/Discord-Join_Chat-7289DA.svg?logo=discord" alt="Discord"></a>
+  <a href="https://x.com/AipoLabs"><img src="https://img.shields.io/twitter/follow/AipoLabs?style=social" alt="Twitter Follow"></a>
+  <a href="https://badge.fury.io/py/aci-sdk"><img src="https://badge.fury.io/py/aci-sdk.svg" alt="PyPI version"></a>
 </p>
 
 ACI.dev connects your AI agents to 600+ tool integrations with multi-tenant authentication, granular permissions, and dynamic tool discovery, accessible through either direct tool/function-calling or a unified MCP server.
