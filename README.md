@@ -1,12 +1,16 @@
-![ACI.dev Logo](frontend/public/aci-dev-full-logo.svg)
+<p align="center">
+  <img src="frontend/public/aci-dev-full-logo.svg" alt="ACI.dev Logo" width="100%">
+</p>
 
 # ACI: Open Source Tool-Use Infrastructure for AI Agents
 
+<p align="center">
 [![CI](https://github.com/aipotheosis-labs/aci/actions/workflows/ci.yml/badge.svg)](https://github.com/aipotheosis-labs/aci/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Discord](https://img.shields.io/badge/Discord-Join_Chat-7289DA.svg?logo=discord)](https://discord.com/invite/UU2XAnfHJh)
 [![Twitter Follow](https://img.shields.io/twitter/follow/AipoLabs?style=social)](https://x.com/AipoLabs)
 [![PyPI version](https://badge.fury.io/py/aci-sdk.svg)](https://badge.fury.io/py/aci-sdk)
+</p>
 
 ACI.dev connects your AI agents to 600+ tool integrations with multi-tenant authentication, granular permissions, and dynamic tool discovery, accessible through either direct tool/function-calling or a unified MCP server.
 
@@ -53,6 +57,15 @@ ACI.dev solves your critical infrastructure challenges for production-ready AI a
 
 ---
 
+## Repository Structure
+
+This is a monorepo that contains the core components of ACI.dev:
+
+-   **`/backend`**: Contains the main ACI platform server, including the APIs, core logic, database models, and the entire integration library (over 600+ tools). It relies on Python, FastAPI, PostgreSQL (with pgvector), and Docker.
+-   **`/frontend`**: Contains the Next.js application for the ACI.dev Developer Portal. This is the web interface for managing projects, integrations, authentication, and testing agents. It uses React, TypeScript, Tailwind CSS, and interacts with the backend API.
+
+---
+
 ## Tech Stack
 
 -   **Backend:**
@@ -76,15 +89,6 @@ ACI.dev solves your critical infrastructure challenges for production-ready AI a
 -   **Infrastructure:**
     -   **Containerization:** Docker & Docker Compose
     -   **Local AWS Mocking:** LocalStack (for services like Secrets Manager)
-
----
-
-## Repository Structure
-
-This repository contains the core components of ACI.dev:
-
--   **`/backend`**: Contains the main ACI platform server, including the APIs, core logic, database models, and the entire integration library (over 600+ tools). It relies on Python, FastAPI, PostgreSQL (with pgvector), and Docker.
--   **`/frontend`**: Contains the Next.js application for the ACI.dev Developer Portal. This is the web interface for managing projects, integrations, authentication, and testing agents. It uses React, TypeScript, Tailwind CSS, and interacts with the backend API.
 
 ---
 
