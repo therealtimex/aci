@@ -66,32 +66,6 @@ This is a monorepo that contains the core components of ACI.dev:
 
 ---
 
-## Tech Stack
-
--   **Backend:**
-    -   **Language:** Python 3.12+
-    -   **Framework:** FastAPI
-    -   **Database:** PostgreSQL with the `pgvector` extension (for vector similarity search)
-    -   **ORM:** SQLAlchemy with Alembic for migrations
-    -   **Dependency Management:** uv
-    -   **Testing:** Pytest
-    -   **Linting/Formatting:** Ruff, MyPy
--   **Frontend:**
-    -   **Framework:** Next.js (using App Router)
-    -   **Language:** TypeScript
-    -   **UI Library:** React 19
-    -   **Styling:** Tailwind CSS
-    -   **Component Library:** shadcn/ui
-    -   **Package Manager:** npm
-    -   **Testing:** Vitest
-    -   **Linting/Formatting:** ESLint, Prettier
--   **Authentication:** PropelAuth (Handles user login, sign-up, and organization management)
--   **Infrastructure:**
-    -   **Containerization:** Docker & Docker Compose
-    -   **Local AWS Mocking:** LocalStack (for services like Secrets Manager)
-
----
-
 ## Getting Started: Local Development
 
 To run the full ACI.dev platform (backend server and frontend portal) locally, follow these steps:
@@ -160,5 +134,31 @@ For more in-depth information, including advanced configuration (like webhook se
 
 -   **Backend:** `backend/README.md`
 -   **Frontend:** `frontend/README.md`
+
+---
+
+## Tech Stack
+
+-   **Backend:**
+    -   **Language:** Python 3.12+
+    -   **Framework:** FastAPI
+    -   **Database:** PostgreSQL with the `pgvector` extension (for vector similarity search)
+    -   **ORM:** SQLAlchemy with Alembic for migrations
+    -   **Dependency Management:** uv
+    -   **Testing:** Pytest
+    -   **Linting/Formatting:** Ruff, MyPy
+-   **Frontend:**
+    -   **Framework:** Next.js (using App Router)
+    -   **Language:** TypeScript
+    -   **UI Library:** React 19
+    -   **Styling:** Tailwind CSS
+    -   **Component Library:** shadcn/ui
+    -   **Package Manager:** npm
+    -   **Testing:** Vitest
+    -   **Linting/Formatting:** ESLint, Prettier
+-   **Authentication:** PropelAuth (Handles user login, sign-up, and organization management)
+-   **Infrastructure:**
+    -   **Containerization:** Docker & Docker Compose
+    -   **Local AWS Mocking:** LocalStack (for services like Secrets Manager)
 
 ---
