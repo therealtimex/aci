@@ -13,6 +13,12 @@
   <a href="https://badge.fury.io/py/aci-sdk"><img src="https://badge.fury.io/py/aci-sdk.svg" alt="PyPI version"></a>
 </p>
 
+:rocket:  Top strategy, product, and ops teams are building AI agents that can take action across their stack — not just chat.
+
+:point_right:  Star this repo to stay ahead of the agent-native future.
+
+:wrench:  Works with any LLM, framework, or workflow engine.
+
 ACI.dev connects your AI agents to 600+ tool integrations with multi-tenant authentication, granular permissions, and dynamic tool discovery, accessible through either direct tool/function-calling or a unified MCP server.
 
 **Example:** Instead of writing separate OAuth flows and API clients for Google Calendar, Slack, and more, use ACI.dev to manage authentication and provide your AI agents with unified, secure function calls. Access these capabilities through our lightweight [Python SDK](https://github.com/aipotheosis-labs/aci-python-sdk) or via our unified [MCP server](https://github.com/aipotheosis-labs/aci-mcp), compatible with any LLM framework.
