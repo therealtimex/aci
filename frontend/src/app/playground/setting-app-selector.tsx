@@ -25,7 +25,12 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from "@/components/ui/tooltip";
+import { BsQuestionCircle } from "react-icons/bs";
 // Maximum number of apps that can be selected
 const MAX_APPS = 6;
 
@@ -105,7 +110,20 @@ export function AppMultiSelector() {
 
   return (
     <div className="space-y-2">
-      <h3 className="text-sm font-medium">Apps</h3>
+      <Tooltip>
+        <div className="flex items-center gap-2">
+          <h3 className="text-sm font-medium">Apps</h3>
+          <TooltipTrigger asChild>
+            <BsQuestionCircle className="h-4 w-4 text-muted-foreground" />
+          </TooltipTrigger>
+        </div>
+        <TooltipContent>
+          <p>
+            Select from the agent&apos;s enabled apps, check manage project
+            panel.
+          </p>
+        </TooltipContent>
+      </Tooltip>
       <Popover open={open} onOpenChange={setOpen} key="app-selector-popover">
         <PopoverTrigger asChild>
           <Button
