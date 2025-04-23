@@ -1,6 +1,7 @@
 # Aipolabs Developer Portal
 
 ![CI](https://github.com/aipotheosis-labs/aci/actions/workflows/devportal.yml/badge.svg)
+[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 The developer portal for Aipolabs, a platform for developers to manage and configure the apps and functions used by their agents.
 
