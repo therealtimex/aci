@@ -15,7 +15,7 @@ We take the security of [ACI.dev](http://ACI.dev) very seriously. If you believe
 
 1. **Do not disclose the vulnerability publicly** or to any third parties.
 2. **Minimize Harm:** Make every effort to avoid accessing or downloading data that does not belong to you, disrupting services, or violating user privacy during your testing. If access to user data or confidential information is necessary to demonstrate the vulnerability, please minimize the amount accessed and report this immediately.
-3. **Email us directly** at <team@aipolabs.xyz> with
+3. **Email us directly** at <support@aipolabs.xyz> with
     1. Title format "[Vulnerability] Summary of issue".
     2. Details of the vulnerability in the body.
 4. **Include the following information** in your report:
