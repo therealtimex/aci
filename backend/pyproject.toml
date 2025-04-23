@@ -2,7 +2,7 @@
 name = "aci"
 version = "0.0.1-beta.3"
 description = "agent computer interface by aipolabs"
-authors = [{ name = "Aipolabs", email = "team@aipolabs.xyz" }]
+authors = [{ name = "Aipolabs", email = "support@aipolabs.xyz" }]
 requires-python = ">=3.12"
 dependencies = [
     "fastapi[standard]>=0.115.0,<0.116.0",
