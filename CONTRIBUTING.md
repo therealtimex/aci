@@ -32,7 +32,7 @@ Our monorepo contains two main components:
 
 ## Getting in Touch
 
-Before starting work on a contribution, especially for larger features or changes, we kindly request that you first get in touch with the core team by emailing <team@aipolabs.xyz>. This helps us coordinate efforts, provide guidance, and ensure your contribution aligns with the project's roadmap.
+Before starting work on a contribution, especially for larger features or changes, we kindly request that you first get in touch with the core team by emailing <support@aipolabs.xyz>. This helps us coordinate efforts, provide guidance, and ensure your contribution aligns with the project's roadmap.
 
 ## How to Contribute
 
