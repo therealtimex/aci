@@ -20,7 +20,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Select,
   SelectContent,
@@ -28,6 +28,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Agent } from "@/lib/types/project";
+import { useAgentColumns } from "@/components/apps/useAgentColumns";
+import { EnhancedDataTable } from "@/components/ui-extensions/enhanced-data-table/data-table";
+import { updateAgent } from "@/lib/api/agent";
+import { toast } from "sonner";
+import { useMetaInfo } from "@/components/context/metainfo";
 
 const formSchema = z.object({
   security_scheme: z.string().min(1, "Security Scheme is required"),
@@ -48,7 +54,13 @@ export function ConfigureAppPopup({
   name,
   security_schemes,
 }: ConfigureAppPopupProps) {
+  const { activeProject, reloadActiveProject, accessToken } = useMetaInfo();
+
   const [open, setOpen] = useState(false);
+  const [selectedAgentIds, setSelectedAgentIds] = useState<
+    Record<string, boolean>
+  >({});
+
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -56,15 +68,67 @@ export function ConfigureAppPopup({
     },
   });
 
+  useEffect(() => {
+    if (!open) {
+      setSelectedAgentIds({});
+      form.reset();
+    }
+  }, [open, form]);
+
+  useEffect(() => {
+    if (open && activeProject?.agents) {
+      const initialSelection: Record<string, boolean> = {};
+      activeProject.agents.forEach((agent: Agent) => {
+        if (agent.id) {
+          initialSelection[agent.id] = true;
+        }
+      });
+      setSelectedAgentIds(initialSelection);
+    }
+  }, [open, activeProject]);
+
   const handleSubmit: SubmitHandler<FormValues> = async (values) => {
     try {
       await configureApp(values.security_scheme);
+
+      const agentsToUpdate = activeProject.agents.filter(
+        (agent) => agent.id && selectedAgentIds[agent.id],
+      );
+
+      for (const agent of agentsToUpdate) {
+        const allowedApps = new Set(agent.allowed_apps);
+        allowedApps.add(name);
+        await updateAgent(
+          activeProject.id,
+          agent.id,
+          accessToken,
+          undefined,
+          undefined,
+          Array.from(allowedApps),
+        );
+      }
+
+      try {
+        await reloadActiveProject();
+      } catch (error) {
+        console.error("Failed to reload project data:", error);
+        toast.error("Changes saved, but failed to refresh data");
+      }
       setOpen(false);
-      form.reset();
     } catch (error) {
       console.error("Error submitting form:", error);
+      toast.error("Error configuring app");
     }
   };
+
+  const toggleAgentSelection = (agentId: string) => {
+    setSelectedAgentIds((prev) => ({
+      ...prev,
+      [agentId]: !prev[agentId],
+    }));
+  };
+
+  const agentColumns = useAgentColumns(selectedAgentIds, toggleAgentSelection);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -114,6 +178,19 @@ export function ConfigureAppPopup({
                 </FormItem>
               )}
             />
+
+            {activeProject.agents.length > 0 && (
+              <div>
+                <h3 className="text-sm font-medium mb-2">
+                  Select Agents to enable this app
+                </h3>
+                <EnhancedDataTable
+                  columns={agentColumns}
+                  data={activeProject.agents}
+                  searchBarProps={{ placeholder: "Search Agent..." }}
+                />
+              </div>
+            )}
 
             <DialogFooter>
               <Button type="submit">Save</Button>
