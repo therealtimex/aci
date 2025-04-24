@@ -56,6 +56,12 @@ ACI.dev solves your critical infrastructure challenges for production-ready AI a
 - **Natural Language Permissions**: Control agent capabilities with human-readable boundaries.
 - **Build Once, Run Anywhere**: No vendor lock-in with our open source, framework-agnostic approach.
 
+## Demo Videos
+
+*ACI.dev Unified MCP Server Demo*
+
+[![ACI.dev Unified MCP Server Demo](https://img.youtube.com/vi/XKO8lE0CLZA/0.jpg)](https://youtu.be/XKO8lE0CLZA)
+
 ## Common Use Cases
 
 - **Personal Assistant Chatbots:** Build chatbots that can search the web, manage calendars, send emails, interact with SaaS tools, etc.
