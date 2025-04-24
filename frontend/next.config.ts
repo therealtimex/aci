@@ -10,7 +10,7 @@ const nextConfig: NextConfig = {
     return [
       {
         source: "/",
-        destination: "/home",
+        destination: "/apps",
         permanent: false, // TODO: remove after we enabled home page
       },
     ];

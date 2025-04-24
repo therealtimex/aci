@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { GrAppsRounded } from "react-icons/gr";
-import { GoHome } from "react-icons/go";
+// import { GoHome } from "react-icons/go";
 import { cn } from "@/lib/utils";
 import { usePathname } from "next/navigation";
 import React from "react";
@@ -40,11 +40,11 @@ import {
 
 // Export sidebar items so they can be used in header
 export const sidebarItems = [
-  {
-    title: "Home",
-    url: `/home`,
-    icon: GoHome,
-  },
+  // {
+  //   title: "Home",
+  //   url: `/home`,
+  //   icon: GoHome,
+  // },
   {
     title: "App Store",
     url: `/apps`,
