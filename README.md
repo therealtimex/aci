@@ -83,28 +83,6 @@ To run the full ACI.dev platform (backend server and frontend portal) locally, f
 - **Backend:** [backend/README.md](backend/README.md)
 - **Frontend:** [frontend/README.md](frontend/README.md)
 
-## Tech Stack (local)
-
-- **Backend:**
-  - **Language:** Python 3.12+
-  - **Framework:** FastAPI
-  - **Database:** PostgreSQL
-  - **ORM:** SQLAlchemy with Alembic for migrations
-  - **Dependency Management:** uv
-  - **Testing:** Pytest
-  - **Linting/Formatting:** Ruff, MyPy
-  - **Containerization:** Docker & Docker Compose
-  - **Local AWS Mocking:** LocalStack
-- **Frontend:**
-  - **Framework:** Next.js (App Router)
-  - **Language:** TypeScript
-  - **UI Library:** React 19
-  - **Styling:** Tailwind CSS
-  - **Component Library:** shadcn/ui
-  - **Testing:** Vitest
-  - **Linting/Formatting:** ESLint, Prettier
-- **Authentication:** PropelAuth
-
 ## Contributing
 
 We welcome contributions! Please see our [CONTRIBUTING.md](CONTRIBUTING.md) for more information.
