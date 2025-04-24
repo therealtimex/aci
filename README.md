@@ -19,9 +19,9 @@
 
 :wrench:  Works with any LLM, framework, or workflow engine.
 
-ACI.dev connects your AI agents to 600+ tool integrations with multi-tenant authentication, granular permissions, and dynamic tool discovery, accessible through either direct tool/function-calling or a unified MCP server.
+ACI.dev connects your AI agents to 600+ tool integrations with multi-tenant authentication, granular permissions, and dynamic tool discovery, accessible through either direct tool/function-calling or a **Unified MCP server**.
 
-**Example:** Instead of writing separate OAuth flows and API clients for Google Calendar, Slack, and more, use ACI.dev to manage authentication and provide your AI agents with unified, secure function calls. Access these capabilities through our lightweight [Python SDK](https://github.com/aipotheosis-labs/aci-python-sdk) or via our unified [MCP server](https://github.com/aipotheosis-labs/aci-mcp), compatible with any LLM framework.
+**Example:** Instead of writing separate OAuth flows and API clients for Google Calendar, Slack, and more, use ACI.dev to manage authentication and provide your AI agents with unified, secure function calls. Access these capabilities through our lightweight [Python SDK](https://github.com/aipotheosis-labs/aci-python-sdk) or via our **Unified** [MCP server](https://github.com/aipotheosis-labs/aci-mcp), compatible with any LLM framework.
 
 Build production-ready AI agents without the infrastructure headaches.
 
@@ -29,7 +29,7 @@ Build production-ready AI agents without the infrastructure headaches.
 
 ## Demo Video
 
-*ACI.dev Unified MCP Server Demo*
+ACI.dev **Unified MCP Server** Demo
 
 [![ACI.dev Unified MCP Server Demo](https://img.youtube.com/vi/8zOYLp9Dn0U/0.jpg)](https://youtu.be/8zOYLp9Dn0U)
 
