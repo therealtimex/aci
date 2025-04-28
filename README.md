@@ -28,7 +28,7 @@ Build production-ready AI agents without the infrastructure headaches.
 
 ACI.dev **Unified MCP Server** Demo
 
-[![ACI.dev Unified MCP Server Demo](https://raw.githubusercontent.com/aipotheosis-labs/aipotheosis-icons/main/assets/umcp-demo-thumbnail.png)](https://youtu.be/GSR9P53-_7E?feature=shared)
+[![ACI.dev Unified MCP Server Demo]([https://raw.githubusercontent.com/aipotheosis-labs/aipotheosis-icons/main/assets/umcp-demo-thumbnail.png](https://github.com/aipotheosis-labs/aipolabs-icons/blob/main/assets/umcp-demo-thumbnail.png))](https://youtu.be/GSR9P53-_7E?feature=shared)
 
 ## Key Features
 
