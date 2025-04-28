@@ -2,7 +2,7 @@
   <img src="frontend/public/aci-dev-full-logo.svg" alt="ACI.dev Logo" width="100%">
 </p>
 
-# ACI: Open-Source Infra to Power Unified MCP Server
+# ACI: Open-Source Infra to Power Unified MCP Servers
 
 <p align="center">
   <a href="https://aci.dev/docs"><img src="https://img.shields.io/badge/Documentation-34a1bf" alt="Documentation"></a>
