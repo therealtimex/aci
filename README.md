@@ -26,6 +26,15 @@ Build production-ready AI agents without the infrastructure headaches.
 
 ![ACI.dev Architecture](frontend/public/aci-architecture-intro.svg)
 
+<p align="center">
+  Join us on <a href="https://discord.com/invite/UU2XAnfHJh">Discord</a> to help shape the future of Open Source AI Infrastructure.<br/><br/>
+  🌟 <strong>Star ACI.dev to stay updated on new releases!</strong><br/><br/>
+  <a href="https://github.com/aipotheosis-labs/aci/stargazers">
+    <img src="https://img.shields.io/github/stars/aipotheosis-labs/aci?style=social" alt="GitHub Stars">
+  </a>
+</p>
+
+
 ## Demo Video
 
 [ACI.dev **Unified MCP Server** Demo](https://youtu.be/GSR9P53-_7E?feature=shared)
