@@ -2,7 +2,7 @@
   <img src="frontend/public/aci-dev-full-logo.svg" alt="ACI.dev Logo" width="100%">
 </p>
 
-# ACI: Open Source Tool-Use Infrastructure for AI Agents
+# ACI: Open-Source Infra to Power Unified MCP Servers
 
 <p align="center">
   <a href="https://github.com/aipotheosis-labs/aci/actions/workflows/devportal.yml"><img src="https://github.com/aipotheosis-labs/aci/actions/workflows/devportal.yml/badge.svg" alt="Dev Portal CI"></a>
@@ -13,15 +13,9 @@
   <a href="https://badge.fury.io/py/aci-sdk"><img src="https://badge.fury.io/py/aci-sdk.svg" alt="PyPI version"></a>
 </p>
 
-:rocket:  Top strategy, product, and ops teams are building AI agents that can take action across their stack — not just chat.
+ACI.dev is the open-source infrastructure layer for AI-agent tool-use. It gives your agents intent-aware access to 600+ tools with multi-tenant auth, granular permissions, and dynamic tool discovery—exposed as either direct function calls or through a **Unified Model-Context-Protocol (MCP) server**.
 
-:point_right:  Star this repo to stay ahead of the agent-native future.
-
-:wrench:  Works with any LLM, framework, or workflow engine.
-
-ACI.dev connects your AI agents to 600+ tool integrations with multi-tenant authentication, granular permissions, and dynamic tool discovery, accessible through either direct tool/function-calling or a **Unified MCP server**.
-
-**Example:** Instead of writing separate OAuth flows and API clients for Google Calendar, Slack, and more, use ACI.dev to manage authentication and provide your AI agents with unified, secure function calls. Access these capabilities through our lightweight [Python SDK](https://github.com/aipotheosis-labs/aci-python-sdk) or via our **Unified** [MCP server](https://github.com/aipotheosis-labs/aci-mcp), compatible with any LLM framework.
+**Example:** Instead of writing separate OAuth flows and API clients for Google Calendar, Slack, and more, use ACI.dev to manage authentication and provide your AI agents with unified, secure function calls. Access these capabilities through our **Unified** [MCP server](https://github.com/aipotheosis-labs/aci-mcp) or via our lightweight [Python SDK](https://github.com/aipotheosis-labs/aci-python-sdk), compatible with any LLM framework.
 
 Build production-ready AI agents without the infrastructure headaches.
 
@@ -36,7 +30,7 @@ ACI.dev **Unified MCP Server** Demo
 ## Key Features
 
 - **600+ Pre-built Integrations**: Connect to popular services and apps in minutes.
-- **Flexible Access Methods**: Use our lightweight SDK for direct function calling or our unified MCP server.
+- **Flexible Access Methods**: Use our unified MCP server or our lightweight SDK for direct function calling.
 - **Multi-tenant Authentication**: Built-in OAuth flows and secrets management for both developers and end-users.
 - **Enhanced Agent Reliability**: Natural language permission boundaries and dynamic tool discovery.
 - **Framework & Model Agnostic**: Works with any LLM framework and agent architecture.
