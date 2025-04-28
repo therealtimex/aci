@@ -26,9 +26,11 @@ Build production-ready AI agents without the infrastructure headaches.
 
 ## Demo Video
 
-ACI.dev **Unified MCP Server** Demo
+[ACI.dev **Unified MCP Server** Demo](https://youtu.be/GSR9P53-_7E?feature=shared)
 
-[![ACI.dev Unified MCP Server Demo](frontend/public/umcp-demo-thumbnail.png)](https://youtu.be/GSR9P53-_7E?feature=shared)
+<a href="https://youtu.be/GSR9P53-_7E?feature=shared">
+  <img src="frontend/public/umcp-demo-thumbnail.png" alt="ACI.dev Unified MCP Server Demo" style="border-radius: 8px; border: 1px solid rgb(177, 207, 237);" />
+</a>
 
 ## Key Features
 
