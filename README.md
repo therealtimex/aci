@@ -77,12 +77,6 @@ ACI.dev solves your critical infrastructure challenges for production-ready AI a
 - **Blog:** [aci.dev/blog](https://www.aci.dev/blog)
 - **Community:** [Discord](https://discord.com/invite/UU2XAnfHJh) | [Twitter/X](https://x.com/AipoLabs) | [LinkedIn](https://www.linkedin.com/company/aipotheosis-labs-aipolabs/posts/?feedView=all)
 
-## Repository Structure
-
-This is a monorepo that contains the core components of ACI.dev:
-
-- **`/backend`**: Contains the main ACI platform server, including the APIs, core logic, database models, and the entire integration library (over 600+ tools).
-- **`/frontend`**: Contains the Next.js application for the ACI.dev Developer Portal. This is the web interface for managing projects, integrations, authentication, and testing agents.
 
 ## Getting Started: Local Development
 
