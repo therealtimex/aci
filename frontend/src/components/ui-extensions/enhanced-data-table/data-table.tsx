@@ -9,6 +9,8 @@ import {
   useReactTable,
   getFilteredRowModel,
   ColumnFiltersState,
+  RowSelectionState,
+  OnChangeFn,
 } from "@tanstack/react-table";
 
 declare module "@tanstack/react-table" {
@@ -30,9 +32,16 @@ import {
 import { useState, useMemo } from "react";
 import { EnhancedDataTableToolbar } from "@/components/ui-extensions/enhanced-data-table/data-table-toolbar";
 import { ColumnFilter } from "@/components/ui-extensions/enhanced-data-table/column-filter";
+import { getRowSelectionColumn } from "@/components/ui-extensions/enhanced-data-table/row-selection-column";
 
 interface SearchBarProps {
   placeholder: string;
+}
+
+interface RowSelectionProps<TData> {
+  rowSelection: RowSelectionState;
+  onRowSelectionChange: OnChangeFn<RowSelectionState>;
+  getRowId: (row: TData) => string;
 }
 
 interface EnhancedDataTableProps<TData, TValue> {
@@ -43,6 +52,7 @@ interface EnhancedDataTableProps<TData, TValue> {
     desc: boolean;
   }[];
   searchBarProps?: SearchBarProps;
+  rowSelectionProps?: RowSelectionProps<TData>;
 }
 
 export function EnhancedDataTable<TData, TValue>({
@@ -50,6 +60,7 @@ export function EnhancedDataTable<TData, TValue>({
   data,
   defaultSorting = [],
   searchBarProps,
+  rowSelectionProps,
 }: EnhancedDataTableProps<TData, TValue>) {
   const generatedDefaultSorting = useMemo(() => {
     if (defaultSorting.length > 0) return defaultSorting;
@@ -73,9 +84,33 @@ export function EnhancedDataTable<TData, TValue>({
     return columns.some((column) => column.enableGlobalFilter === true);
   }, [columns]);
 
+  const allColumns = useMemo(() => {
+    if (!rowSelectionProps) return columns;
+
+    return [getRowSelectionColumn<TData>(), ...columns] as ColumnDef<
+      TData,
+      TValue
+    >[];
+  }, [columns, rowSelectionProps]);
+
+  const tableState = useMemo(() => {
+    const baseState = {
+      sorting,
+      globalFilter,
+      columnFilters,
+    };
+
+    if (!rowSelectionProps) return baseState;
+
+    return {
+      ...baseState,
+      rowSelection: rowSelectionProps.rowSelection,
+    };
+  }, [sorting, globalFilter, columnFilters, rowSelectionProps]);
+
   const table = useReactTable({
     data,
-    columns,
+    columns: allColumns,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
@@ -83,12 +118,12 @@ export function EnhancedDataTable<TData, TValue>({
     onGlobalFilterChange: setGlobalFilter,
     onColumnFiltersChange: setColumnFilters,
     globalFilterFn: "includesString",
-    state: {
-      sorting,
-      globalFilter,
-      columnFilters: columnFilters,
-    },
+    state: tableState,
+    enableRowSelection: rowSelectionProps !== undefined,
+    onRowSelectionChange: rowSelectionProps?.onRowSelectionChange,
+    getRowId: rowSelectionProps?.getRowId,
   });
+
   const filterComponents = useMemo(() => {
     /** Get all columns that have column filtering enabled */
     const filterableColumns = table
