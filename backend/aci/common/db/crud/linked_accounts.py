@@ -1,3 +1,4 @@
+from datetime import datetime
 from uuid import UUID
 
 from sqlalchemy import select
@@ -138,6 +139,17 @@ def update_linked_account(
 ) -> LinkedAccount:
     if linked_account_update.enabled is not None:
         linked_account.enabled = linked_account_update.enabled
+    db_session.flush()
+    db_session.refresh(linked_account)
+    return linked_account
+
+
+def update_linked_account_last_used_at(
+    db_session: Session,
+    last_used_at: datetime,
+    linked_account: LinkedAccount,
+) -> LinkedAccount:
+    linked_account.last_used_at = last_used_at
     db_session.flush()
     db_session.refresh(linked_account)
     return linked_account

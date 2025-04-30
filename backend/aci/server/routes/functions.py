@@ -1,3 +1,4 @@
+from datetime import UTC, datetime
 from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, Query
@@ -450,6 +451,14 @@ async def execute_function(
         security_credentials_response.scheme,
         security_credentials_response.credentials,
     )
+
+    last_used_at: datetime = datetime.now(UTC)
+    crud.linked_accounts.update_linked_account_last_used_at(
+        db_session,
+        last_used_at,
+        linked_account,
+    )
+    db_session.commit()
 
     if not execution_result.success:
         logger.error(
