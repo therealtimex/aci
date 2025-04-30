@@ -14,6 +14,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
 // import { MultiSelect } from "@/components/ui/multi-select"; // Import MultiSelect component
 import {
   Form,
@@ -23,9 +24,16 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { toast } from "sonner";
+import { AppConfig } from "@/lib/types/appconfig";
+import { EnhancedDataTable } from "@/components/ui-extensions/enhanced-data-table/data-table";
+import { RowSelectionState } from "@tanstack/react-table";
+import { createColumnHelper, type ColumnDef } from "@tanstack/react-table";
+import { ArrowUpDown } from "lucide-react";
+import { IdDisplay } from "@/components/apps/id-display";
 
+const columnHelper = createColumnHelper<AppConfig>();
 const formSchema = z.object({
   name: z.string().min(1, "Name is required"),
   description: z.string().min(1, "Description is required"),
@@ -52,6 +60,8 @@ interface AgentFormProps {
   initialValues?: Partial<FormValues>;
   title: string;
   validAppNames: string[];
+  appConfigs?: AppConfig[];
+  onRequestRefreshAppConfigs: () => void;
 }
 
 export function AgentForm({
@@ -60,8 +70,38 @@ export function AgentForm({
   initialValues,
   title,
   validAppNames,
+  appConfigs = [],
+  onRequestRefreshAppConfigs,
 }: AgentFormProps) {
   const [open, setOpen] = useState(false);
+  const [selectedApps, setSelectedApps] = useState<RowSelectionState>({});
+
+  const columns: ColumnDef<AppConfig>[] = useMemo(() => {
+    return [
+      columnHelper.accessor("app_name", {
+        header: ({ column }) => (
+          <div className="text-left">
+            <Button
+              variant="ghost"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                column.toggleSorting(column.getIsSorted() === "asc");
+              }}
+              className="justify-start px-0"
+              type="button"
+            >
+              App Name
+              <ArrowUpDown className="h-4 w-4" />
+            </Button>
+          </div>
+        ),
+        cell: ({ row }) => <IdDisplay id={row.original.app_name} />,
+        enableGlobalFilter: true,
+        id: "app_name",
+      }),
+    ] as ColumnDef<AppConfig>[];
+  }, []);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -87,7 +127,10 @@ export function AgentForm({
         });
         return;
       }
-
+      const appNames: string[] = Object.keys(selectedApps).filter(
+        (app_name) => selectedApps[app_name],
+      );
+      values.allowed_apps = appNames;
       await onSubmit(values);
       setOpen(false);
       toast.success("Agent created successfully");
@@ -96,6 +139,11 @@ export function AgentForm({
       console.error("Error submitting form:", error);
     }
   };
+  useEffect(() => {
+    if (open && onRequestRefreshAppConfigs) {
+      onRequestRefreshAppConfigs();
+    }
+  }, [open, onRequestRefreshAppConfigs]);
 
   // Reset form values when dialog opens
   useEffect(() => {
@@ -107,7 +155,14 @@ export function AgentForm({
         custom_instructions: initialValues?.custom_instructions ?? {},
       });
     }
-  }, [open, initialValues, form]);
+    if (!open || appConfigs.length === 0) return;
+    const allSelected: RowSelectionState = {};
+    appConfigs.forEach((cfg) => {
+      allSelected[cfg.app_name] = true;
+    });
+    setSelectedApps(allSelected);
+    form.setValue("allowed_apps", Object.keys(allSelected));
+  }, [open, initialValues, form, appConfigs]);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -149,6 +204,38 @@ export function AgentForm({
                 </FormItem>
               )}
             />
+
+            <div className="space-y-2">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-sm font-medium">Allowed Apps</h3>
+                <Badge
+                  variant="secondary"
+                  className="flex items-center gap-1 px-2 py-1 text-xs"
+                >
+                  {Object.keys(selectedApps).length} selected
+                </Badge>
+              </div>
+              {appConfigs.length === 0 ? (
+                <div className="h-32 flex items-center justify-center">
+                  <p>No available app configs</p>
+                </div>
+              ) : (
+                <div className="max-h-[40vh] overflow-y-auto">
+                  <EnhancedDataTable
+                    columns={columns}
+                    data={appConfigs}
+                    defaultSorting={[{ id: "app_name", desc: true }]}
+                    searchBarProps={{ placeholder: "Search apps..." }}
+                    rowSelectionProps={{
+                      rowSelection: selectedApps,
+                      onRowSelectionChange: setSelectedApps,
+                      getRowId: (row) => row.app_name,
+                    }}
+                  />
+                </div>
+              )}
+            </div>
+
             <DialogFooter>
               <Button type="submit">Save</Button>
             </DialogFooter>
