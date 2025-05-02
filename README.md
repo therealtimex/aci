@@ -15,6 +15,8 @@
 
 </p>
 
+<a href="https://trendshift.io/repositories/13645" target="_blank"><img src="https://trendshift.io/api/badge/repositories/13645" alt="aipotheosis-labs%2Faci | Trendshift" style="width: 250px; height: 55px;" width="250" height="55"/></a>
+
 > [!NOTE]
 > This repo is for the ACI.dev platform. If you're looking for the **Unified MCP** server built with ACI.dev, see [aci-mcp](https://github.com/aipotheosis-labs/aci-mcp).
 
