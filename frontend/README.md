@@ -139,9 +139,9 @@ src
 
 ## Deployment
 
-The Dev Portal is deployed on Vercel: [obnoxiousproxys-projects/aipolabs-dev-portal](https://vercel.com/obnoxiousproxys-projects/aipolabs-dev-portal)
+The Dev Portal is deployed on Vercel: [obnoxiousproxys-projects/aci-dev-portal](https://vercel.com/obnoxiousproxys-projects/aci-dev-portal)
 
-The environment variables need to be set correctly on Vercel: <https://vercel.com/obnoxiousproxys-projects/aipolabs-dev-portal/settings/environment-variables>.
+The environment variables need to be set correctly on Vercel: <https://vercel.com/obnoxiousproxys-projects/aci-dev-portal/settings/environment-variables>.
 
 For example, for the Vercel production environment, we set the following environment variables:
 
