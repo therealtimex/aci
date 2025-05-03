@@ -46,6 +46,8 @@ from aci.common.enums import (
     APIKeyStatus,
     Protocol,
     SecurityScheme,
+    StripeSubscriptionInterval,
+    StripeSubscriptionStatus,
     Visibility,
 )
 
@@ -461,6 +463,91 @@ class Secret(Base):
     )
 
     __table_args__ = (UniqueConstraint("linked_account_id", "key", name="uc_linked_account_key"),)
+
+
+class Plan(Base):
+    __tablename__ = "plans"
+
+    id: Mapped[UUID] = mapped_column(
+        PGUUID(as_uuid=True), primary_key=True, default_factory=uuid4, init=False
+    )
+    name: Mapped[str] = mapped_column(String(MAX_STRING_LENGTH), nullable=False, unique=True)
+    stripe_product_id: Mapped[str] = mapped_column(
+        String(MAX_STRING_LENGTH), nullable=False, unique=True
+    )
+    stripe_monthly_price_id: Mapped[str] = mapped_column(
+        String(MAX_STRING_LENGTH), nullable=False, unique=True
+    )
+    stripe_yearly_price_id: Mapped[str] = mapped_column(
+        String(MAX_STRING_LENGTH), nullable=False, unique=True
+    )
+    features: Mapped[dict] = mapped_column(MutableDict.as_mutable(JSONB), nullable=False)
+    is_public: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=False), server_default=func.now(), nullable=False, init=False
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=False),
+        server_default=func.now(),
+        onupdate=func.now(),
+        nullable=False,
+        init=False,
+    )
+
+
+class Subscription(Base):
+    __tablename__ = "subscriptions"
+
+    id: Mapped[UUID] = mapped_column(
+        PGUUID(as_uuid=True), primary_key=True, default_factory=uuid4, init=False
+    )
+    org_id: Mapped[UUID] = mapped_column(PGUUID(as_uuid=True), nullable=False, unique=True)
+    plan_id: Mapped[UUID] = mapped_column(
+        PGUUID(as_uuid=True), ForeignKey("plans.id"), nullable=False
+    )
+    stripe_customer_id: Mapped[str] = mapped_column(
+        String(MAX_STRING_LENGTH), nullable=False, unique=True
+    )
+    stripe_subscription_id: Mapped[str] = mapped_column(
+        String(MAX_STRING_LENGTH), nullable=False, unique=True
+    )
+    status: Mapped[StripeSubscriptionStatus] = mapped_column(
+        SqlEnum(StripeSubscriptionStatus), nullable=False
+    )
+    interval: Mapped[StripeSubscriptionInterval] = mapped_column(
+        SqlEnum(StripeSubscriptionInterval), nullable=False
+    )
+    current_period_end: Mapped[datetime] = mapped_column(DateTime(timezone=False), nullable=False)
+    cancel_at_period_end: Mapped[bool] = mapped_column(Boolean, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=False), server_default=func.now(), nullable=False, init=False
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=False),
+        server_default=func.now(),
+        onupdate=func.now(),
+        nullable=False,
+        init=False,
+    )
+
+
+class ProcessedStripeEvent(Base):
+    __tablename__ = "processed_stripe_events"
+
+    id: Mapped[UUID] = mapped_column(
+        PGUUID(as_uuid=True), primary_key=True, default_factory=uuid4, init=False
+    )
+    event_id: Mapped[str] = mapped_column(String(MAX_STRING_LENGTH), nullable=False, unique=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=False), server_default=func.now(), nullable=False, init=False
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=False),
+        server_default=func.now(),
+        onupdate=func.now(),
+        nullable=False,
+        init=False,
+    )
 
 
 __all__ = [
