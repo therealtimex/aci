@@ -12,7 +12,6 @@ import {
   deleteLinkedAccount,
   updateLinkedAccount,
 } from "@/lib/api/linkedaccount";
-import { getApps } from "@/lib/api/app";
 import { getAllAppConfigs } from "@/lib/api/appconfig";
 import {
   AlertDialog,
@@ -39,7 +38,7 @@ import { ArrowUpDown } from "lucide-react";
 import { EnhancedDataTable } from "@/components/ui-extensions/enhanced-data-table/data-table";
 import { createColumnHelper, type ColumnDef } from "@tanstack/react-table";
 const columnHelper = createColumnHelper<TableData>();
-import { getAllApps } from "@/lib/api/app";
+import { useApps } from "@/hooks/use-app";
 
 type TableData = LinkedAccount & { logo: string };
 
@@ -48,43 +47,36 @@ export default function LinkedAccountsPage() {
   const [linkedAccounts, setLinkedAccounts] = useState<LinkedAccount[]>([]);
   const [appConfigs, setAppConfigs] = useState<AppConfig[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const { data: apps, isPending, isError } = useApps();
   const [appsMap, setAppsMap] = useState<Record<string, App>>({});
-  const [allApps, setAllApps] = useState<App[]>([]);
 
   const loadAppMaps = useCallback(async () => {
-    if (linkedAccounts.length === 0) {
+    if (linkedAccounts.length === 0 || !apps) {
       return;
     }
 
-    try {
-      const apiKey = getApiKey(activeProject);
-      const appNames = Array.from(
-        new Set(linkedAccounts.map((account) => account.app_name)),
-      );
+    const appNames = Array.from(
+      new Set(linkedAccounts.map((account) => account.app_name)),
+    );
 
-      const apps = await getApps(appNames, apiKey);
+    const missingApps = appNames.filter(
+      (name) => !apps.some((app) => app.name === name),
+    );
 
-      const missingApps = appNames.filter(
-        (name) => !apps.some((app) => app.name === name),
-      );
-
-      if (missingApps.length > 0) {
-        console.warn(`Missing apps: ${missingApps.join(", ")}`);
-      }
-
-      setAppsMap(
-        apps.reduce(
-          (acc, app) => {
-            acc[app.name] = app;
-            return acc;
-          },
-          {} as Record<string, App>,
-        ),
-      );
-    } catch (error) {
-      console.error("Failed to load app data:", error);
+    if (missingApps.length > 0) {
+      console.warn(`Missing apps: ${missingApps.join(", ")}`);
     }
-  }, [activeProject, linkedAccounts]);
+
+    setAppsMap(
+      apps.reduce(
+        (acc, app) => {
+          acc[app.name] = app;
+          return acc;
+        },
+        {} as Record<string, App>,
+      ),
+    );
+  }, [linkedAccounts, apps]);
 
   /**
    * Generate tableData and attach the logo from appsMap to each row of data.
@@ -111,14 +103,6 @@ export default function LinkedAccountsPage() {
     }
   }, [activeProject]);
 
-  useEffect(() => {
-    const fetchAllApps = async () => {
-      const apiKey = getApiKey(activeProject);
-      const apps = await getAllApps(apiKey);
-      setAllApps(apps);
-    };
-    fetchAllApps();
-  }, [activeProject]);
   const refreshLinkedAccounts = useCallback(
     async (silent: boolean = false) => {
       try {
@@ -376,11 +360,11 @@ export default function LinkedAccountsPage() {
           </p>
         </div>
         <div>
-          {!isLoading && appConfigs.length > 0 && (
+          {!isLoading && !isPending && !isError && appConfigs.length > 0 && (
             <AddAccountForm
               appInfos={appConfigs.map((config) => ({
                 name: config.app_name,
-                logo: allApps.find((app) => app.name === config.app_name)?.logo,
+                logo: apps.find((app) => app.name === config.app_name)?.logo,
                 securitySchemes: [config.security_scheme],
               }))}
               updateLinkedAccounts={() => refreshLinkedAccounts(true)}
