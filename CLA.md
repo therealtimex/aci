@@ -42,10 +42,17 @@ The laws of England and Wales govern this Agreement, excluding any applicable co
 ## Agreed and Accepted on My Behalf and on Behalf of Any Organization I Represent
 
 Name:
+
 Organization (if none, type “NA”):
+
 Date Signed:
+
 GitHub Username:
+
 Email Address:
+
 City:
+
 Country:
+
 Signature:
