@@ -54,9 +54,17 @@ const STEPS = [
 
 interface ConfigureAppProps {
   children: React.ReactNode;
-  configureApp: (security_scheme: string) => Promise<boolean>;
+  configureApp: (
+    security_scheme: string,
+    security_scheme_overrides?: {
+      oauth2?: {
+        client_id: string;
+        client_secret: string;
+      } | null;
+    },
+  ) => Promise<boolean>;
   name: string;
-  security_schemes: string[];
+  supported_security_schemes: Record<string, { scope?: string }>;
   logo?: string;
 }
 
@@ -64,11 +72,10 @@ export function ConfigureApp({
   children,
   configureApp,
   name,
-  security_schemes,
+  supported_security_schemes,
   logo,
 }: ConfigureAppProps) {
   const { activeProject, reloadActiveProject, accessToken } = useMetaInfo();
-
   const [open, setOpen] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
   const [selectedAgentIds, setSelectedAgentIds] = useState<RowSelectionState>(
@@ -77,13 +84,15 @@ export function ConfigureApp({
   const [submitLoading, setSubmitLoading] = useState(false);
 
   // security scheme
-  const [security_scheme, setConfigureApp] = useState<string>("");
+  const [security_scheme, setSelectedSecurityScheme] = useState<string>("");
 
   // security scheme form
   const ConfigureAppForm = useForm<ConfigureAppFormValues>({
     resolver: zodResolver(ConfigureAppFormSchema),
     defaultValues: {
-      security_scheme: security_schemes?.[0] ?? "",
+      security_scheme: Object.keys(supported_security_schemes || {})[0],
+      client_id: "",
+      client_secret: "",
     },
   });
 
@@ -131,13 +140,38 @@ export function ConfigureApp({
 
   // step 1 submit
   const handleConfigureAppSubmit = async (values: ConfigureAppFormValues) => {
-    setConfigureApp(values.security_scheme);
+    setSelectedSecurityScheme(values.security_scheme);
     setSubmitLoading(true);
-    const success = await configureApp(values.security_scheme);
-    if (success) {
-      setCurrentStep(2);
+
+    try {
+      let security_scheme_overrides = undefined;
+
+      if (
+        values.security_scheme === "oauth2" &&
+        values.client_id &&
+        values.client_secret
+      ) {
+        security_scheme_overrides = {
+          oauth2: {
+            client_id: values.client_id,
+            client_secret: values.client_secret,
+          },
+        };
+      }
+
+      const success = await configureApp(
+        values.security_scheme,
+        security_scheme_overrides,
+      );
+      if (success) {
+        setCurrentStep(2);
+      }
+    } catch (error) {
+      console.error("Failed to configure app:", error);
+      toast.error("Failed to configure app. Please try again.");
+    } finally {
+      setSubmitLoading(false);
     }
-    setSubmitLoading(false);
   };
 
   // step 2 submit
@@ -350,7 +384,7 @@ export function ConfigureApp({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="sm:max-w-[600px]">
+      <DialogContent className="sm:max-w-[65vw]">
         <DialogHeader>
           <DialogTitle className="text-xl font-semibold flex items-center gap-2">
             Configure App
@@ -376,7 +410,7 @@ export function ConfigureApp({
           {currentStep === 1 && (
             <ConfigureAppStep
               form={ConfigureAppForm}
-              security_schemes={security_schemes}
+              supported_security_schemes={supported_security_schemes}
               onNext={handleConfigureAppSubmit}
               name={name}
               isLoading={submitLoading}

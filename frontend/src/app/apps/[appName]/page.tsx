@@ -62,12 +62,25 @@ const AppPage = () => {
     loadData();
   }, [loadAppConfig]);
 
-  const configureApp = async (security_scheme: string) => {
+  const configureApp = async (
+    security_scheme: string,
+    security_scheme_overrides?: {
+      oauth2?: {
+        client_id: string;
+        client_secret: string;
+      } | null;
+    },
+  ) => {
     const apiKey = getApiKey(activeProject);
     if (!app) return false;
 
     try {
-      const appConfig = await createAppConfig(appName, security_scheme, apiKey);
+      const appConfig = await createAppConfig(
+        appName,
+        security_scheme,
+        apiKey,
+        security_scheme_overrides,
+      );
       setAppConfig(appConfig);
       toast.success(`Successfully configured app: ${app.display_name}`);
       return true;
@@ -109,7 +122,7 @@ const AppPage = () => {
           {app && (
             <ConfigureAppPopup
               name={app.name}
-              security_schemes={app.security_schemes}
+              supported_security_schemes={app.supported_security_schemes ?? {}}
               configureApp={configureApp}
               logo={app.logo}
             >
