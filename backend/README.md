@@ -149,8 +149,8 @@ For VS Code users, configure Ruff formatter:
    ```bash
    # put this in a file called .app.secrets.json under ./apps/gmail/
    {
-      "AIPOLABS_GOOGLE_APP_CLIENT_ID": "<your_google_oauth2_client_id>",
-      "AIPOLABS_GOOGLE_APP_CLIENT_SECRET": "<your_google_oauth2_client_secret>"
+      "AIPOLABS_GMAIL_CLIENT_ID": "<your_google_oauth2_client_id>",
+      "AIPOLABS_GMAIL_CLIENT_SECRET": "<your_google_oauth2_client_secret>"
    }
    ```
 
