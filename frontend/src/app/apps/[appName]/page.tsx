@@ -13,20 +13,17 @@ import {
   TooltipContent,
 } from "@/components/ui/tooltip";
 import { type AppFunction } from "@/lib/types/appfunction";
-import { toast } from "sonner";
 import { useApp } from "@/hooks/use-app";
-import { AppAlreadyConfiguredError } from "@/lib/api/appconfig";
 import Image from "next/image";
-import { ConfigureAppPopup } from "@/components/apps/configure-app-popup";
+import { ConfigureApp } from "@/components/apps/configure-app";
 import { EnhancedDataTable } from "@/components/ui-extensions/enhanced-data-table/data-table";
-import { useAppConfig, useCreateAppConfig } from "@/hooks/use-app-config";
+import { useAppConfig } from "@/hooks/use-app-config";
 
 const AppPage = () => {
   const { appName } = useParams<{ appName: string }>();
   const [functions, setFunctions] = useState<AppFunction[]>([]);
   const { app } = useApp(appName);
   const { data: appConfig } = useAppConfig(appName);
-  const createAppConfigMutation = useCreateAppConfig();
 
   const columns = useAppFunctionsColumns();
 
@@ -35,39 +32,6 @@ const AppPage = () => {
       setFunctions(app.functions);
     }
   }, [app]);
-
-  const configureApp = async (
-    security_scheme: string,
-    security_scheme_overrides?: {
-      oauth2?: {
-        client_id: string;
-        client_secret: string;
-      } | null;
-    },
-  ) => {
-    if (!app) return false;
-
-    try {
-      await createAppConfigMutation.mutateAsync({
-        app_name: appName,
-        security_scheme,
-        security_scheme_overrides,
-      });
-
-      toast.success(`Successfully configured app: ${app.display_name}`);
-      return true;
-    } catch (error) {
-      if (error instanceof AppAlreadyConfiguredError) {
-        toast.error(
-          `App configuration already exists for app: ${app.display_name}`,
-        );
-      } else {
-        console.error("Error configuring app:", error);
-        toast.error(`Failed to configure app. Please try again.`);
-      }
-      return false;
-    }
-  };
 
   return (
     <div>
@@ -97,10 +61,9 @@ const AppPage = () => {
         </div>
         <div className="flex items-center gap-2">
           {app && (
-            <ConfigureAppPopup
+            <ConfigureApp
               name={app.name}
               supported_security_schemes={app.supported_security_schemes ?? {}}
-              configureApp={configureApp}
               logo={app.logo}
             >
               <Button
@@ -109,7 +72,7 @@ const AppPage = () => {
               >
                 {appConfig ? "Configured" : "Configure App"}
               </Button>
-            </ConfigureAppPopup>
+            </ConfigureApp>
           )}
           <Tooltip>
             <TooltipTrigger asChild>
