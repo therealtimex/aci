@@ -20,13 +20,6 @@ from aci.server.context import (
 
 logger = get_logger(__name__)
 
-_LOG_REQUEST_BODY_ENDPOINTS = [
-    ("POST", "/v1/linked_accounts/default"),
-    ("POST", "/v1/linked_accounts/no-auth"),
-    ("POST", "/v1/linked_accounts/api-key"),
-    ("POST", "/v1/app_configurations"),
-]
-
 
 class InterceptorMiddleware(BaseHTTPMiddleware):
     """
@@ -75,22 +68,22 @@ class InterceptorMiddleware(BaseHTTPMiddleware):
 
         # Skip logging for health check endpoints
         is_health_check = request.url.path == config.ROUTER_PREFIX_HEALTH
-        request_body = await self._get_request_body(request)
 
         if not is_health_check or config.ENVIRONMENT != "local":
             request_log_data = {
-                "schema": request.url.scheme,
                 "http_version": request.scope.get("http_version", "unknown"),
                 "http_method": request.method,
                 "http_path": request.url.path,
                 "url": str(request.url),
+                "url_scheme": request.url.scheme,
                 "query_params": dict(request.query_params),
                 "client_ip": self._get_client_ip(
                     request
                 ),  # TODO: get from request.client.host if request.client else "unknown"
                 "user_agent": request.headers.get("User-Agent", "unknown"),
-                "x-forwarded-proto": request.headers.get("X-Forwarded-Proto", "unknown"),
+                "x_forwarded_proto": request.headers.get("X-Forwarded-Proto", "unknown"),
             }
+            request_body = await self._get_request_body(request)
             if request_body:
                 request_log_data["request_body"] = request_body
             logger.info("Received request", extra=request_log_data)
@@ -140,12 +133,19 @@ class InterceptorMiddleware(BaseHTTPMiddleware):
         if request.method != "POST":
             return None
         try:
-            request_body = await request.json()
-            if len(request_body) > 4096:
-                return None
-            return str(request_body)
+            request_body_bytes = await request.body()
+            # TODO: reconsider size limit
+            if len(request_body_bytes) > config.MAX_LOG_FIELD_SIZE:
+                return (
+                    request_body_bytes[: config.MAX_LOG_FIELD_SIZE - 100].decode(
+                        "utf-8", errors="replace"
+                    )
+                    + f"... [truncated, size={len(request_body_bytes)}]"
+                )
+            return request_body_bytes.decode("utf-8", errors="replace")
         except Exception:
-            return None
+            logger.exception("Error decoding request body")
+            return "error decoding request body"
 
 
 class RequestContextFilter(logging.Filter):
