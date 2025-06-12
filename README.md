@@ -45,7 +45,7 @@ Supercharge vibe coding by automating devOps through our unified MCP server (Vib
 
 [ACI.dev **VibeOps** Demo](https://youtu.be/SfEtNqB6yqI?feature=shared)
 
-[![ACI.dev VibeOps Demo]](https://youtu.be/SfEtNqB6yqI?feature=shared)
+[![ACI.dev VibeOps Demo](frontend/public/vibeops-thumbnail.jpg)](https://youtu.be/SfEtNqB6yqI?feature=shared)
 
 ## ✨ Key Features
 
