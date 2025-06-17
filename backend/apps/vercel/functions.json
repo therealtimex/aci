@@ -184,7 +184,7 @@
                 }
             },
             "required": ["body"],
-            "visible": ["body"],
+            "visible": ["body", "query"],
             "additionalProperties": false
         }
     },
@@ -324,7 +324,7 @@
                 }
             },
             "required": ["path"],
-            "visible": ["path", "body"],
+            "visible": ["path", "body", "query"],
             "additionalProperties": false
         }
     },
@@ -484,7 +484,7 @@
                 }
             },
             "required": ["path"],
-            "visible": ["path"],
+            "visible": ["path", "query"],
             "additionalProperties": false
         }
     },
@@ -667,7 +667,7 @@
                 }
             },
             "required": ["path", "body"],
-            "visible": ["path", "body"],
+            "visible": ["path", "body", "query"],
             "additionalProperties": false
         }
     },
@@ -810,7 +810,7 @@
                 }
             },
             "required": ["path"],
-            "visible": ["path"],
+            "visible": ["path", "query"],
             "additionalProperties": false
         }
     },
@@ -860,7 +860,7 @@
                         }
                     },
                     "required": [],
-                    "visible": [],
+                    "visible": ["teamId", "slug"],
                     "additionalProperties": false
                 },
                 "body": {
@@ -878,7 +878,7 @@
                 }
             },
             "required": ["path"],
-            "visible": ["path", "body"],
+            "visible": ["path", "body", "query"],
             "additionalProperties": false
         }
     }
