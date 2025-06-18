@@ -16,28 +16,6 @@
         "parameters": {
             "type": "object",
             "properties": {
-                "header": {
-                    "type": "object",
-                    "description": "Headers for the http request",
-                    "properties": {
-                        "accept": {
-                            "type": "string",
-                            "description": "Accept header",
-                            "default": "application/json"
-                        },
-                        "user-agent": {
-                            "type": "string",
-                            "description": "User-Agent header",
-                            "default": "ACI::GITLAB"
-                        }
-                    },
-                    "required": [
-                        "accept",
-                        "user-agent"
-                    ],
-                    "visible": [],
-                    "additionalProperties": false
-                },
                 "query": {
                     "type": "object",
                     "description": "Query parameters for the http request",
@@ -57,7 +35,6 @@
                 }
             },
             "required": [
-                "header",
                 "query"
             ],
             "visible": [
@@ -83,28 +60,6 @@
         "parameters": {
             "type": "object",
             "properties": {
-                "header": {
-                    "type": "object",
-                    "description": "Headers for the http request",
-                    "properties": {
-                        "accept": {
-                            "type": "string",
-                            "description": "Accept header",
-                            "default": "application/json"
-                        },
-                        "user-agent": {
-                            "type": "string",
-                            "description": "User-Agent header",
-                            "default": "ACI::GITLAB"
-                        }
-                    },
-                    "required": [
-                        "accept",
-                        "user-agent"
-                    ],
-                    "visible": [],
-                    "additionalProperties": false
-                },
                 "path": {
                     "type": "object",
                     "description": "Path parameters for the http request",
@@ -124,7 +79,6 @@
                 }
             },
             "required": [
-                "header",
                 "path"
             ],
             "visible": [
@@ -150,33 +104,8 @@
         },
         "parameters": {
             "type": "object",
-            "properties": {
-                "header": {
-                    "type": "object",
-                    "description": "Headers for the http request",
-                    "properties": {
-                        "accept": {
-                            "type": "string",
-                            "description": "Accept header",
-                            "default": "application/json"
-                        },
-                        "user-agent": {
-                            "type": "string",
-                            "description": "User-Agent header",
-                            "default": "ACI::GITLAB"
-                        }
-                    },
-                    "required": [
-                        "accept",
-                        "user-agent"
-                    ],
-                    "visible": [],
-                    "additionalProperties": false
-                }
-            },
-            "required": [
-                "header"
-            ],
+            "properties": {},
+            "required": [],
             "visible": [],
             "additionalProperties": false
         }
@@ -199,28 +128,6 @@
         "parameters": {
             "type": "object",
             "properties": {
-                "header": {
-                    "type": "object",
-                    "description": "Headers for the http request",
-                    "properties": {
-                        "accept": {
-                            "type": "string",
-                            "description": "Accept header",
-                            "default": "application/json"
-                        },
-                        "user-agent": {
-                            "type": "string",
-                            "description": "User-Agent header",
-                            "default": "ACI::GITLAB"
-                        }
-                    },
-                    "required": [
-                        "accept",
-                        "user-agent"
-                    ],
-                    "visible": [],
-                    "additionalProperties": false
-                },
                 "path": {
                     "type": "object",
                     "description": "Path parameters for the http request",
@@ -296,7 +203,6 @@
                 }
             },
             "required": [
-                "header",
                 "path"
             ],
             "visible": [
@@ -323,28 +229,6 @@
         "parameters": {
             "type": "object",
             "properties": {
-                "header": {
-                    "type": "object",
-                    "description": "Headers for the http request",
-                    "properties": {
-                        "accept": {
-                            "type": "string",
-                            "description": "Accept header",
-                            "default": "application/json"
-                        },
-                        "user-agent": {
-                            "type": "string",
-                            "description": "User-Agent header",
-                            "default": "ACI::GITLAB"
-                        }
-                    },
-                    "required": [
-                        "accept",
-                        "user-agent"
-                    ],
-                    "visible": [],
-                    "additionalProperties": false
-                },
                 "path": {
                     "type": "object",
                     "description": "Path parameters for the http request",
@@ -364,7 +248,6 @@
                 }
             },
             "required": [
-                "header",
                 "path"
             ],
             "visible": [
@@ -391,34 +274,7 @@
         "parameters": {
             "type": "object",
             "properties": {
-                "header": {
-                    "type": "object",
-                    "description": "Headers for the http request",
-                    "properties": {
-                        "accept": {
-                            "type": "string",
-                            "description": "Accept header",
-                            "default": "application/json"
-                        },
-                        "user-agent": {
-                            "type": "string",
-                            "description": "User-Agent header",
-                            "default": "ACI::GITLAB"
-                        },
-                        "content-type": {
-                            "type": "string",
-                            "description": "Content-Type header",
-                            "default": "application/json"
-                        }
-                    },
-                    "required": [
-                        "accept",
-                        "user-agent",
-                        "content-type"
-                    ],
-                    "visible": [],
-                    "additionalProperties": false
-                },
+
                 "body": {
                     "type": "object",
                     "description": "The JSON payload containing project details",
@@ -465,7 +321,6 @@
                 }
             },
             "required": [
-                "header",
                 "body"
             ],
             "visible": [
@@ -492,28 +347,6 @@
         "parameters": {
             "type": "object",
             "properties": {
-                "header": {
-                    "type": "object",
-                    "description": "Headers for the http request",
-                    "properties": {
-                        "accept": {
-                            "type": "string",
-                            "description": "Accept header",
-                            "default": "application/json"
-                        },
-                        "user-agent": {
-                            "type": "string",
-                            "description": "User-Agent header",
-                            "default": "ACI::GITLAB"
-                        }
-                    },
-                    "required": [
-                        "accept",
-                        "user-agent"
-                    ],
-                    "visible": [],
-                    "additionalProperties": false
-                },
                 "path": {
                     "type": "object",
                     "description": "Path parameters for the http request",
@@ -603,12 +436,101 @@
                 }
             },
             "required": [
-                "header",
                 "path"
             ],
             "visible": [
                 "path",
                 "query"
+            ],
+            "additionalProperties": false
+        }
+    },
+    {
+        "name": "GITLAB__ARCHIVE_PROJECT",
+        "description": "Archives a project. Requires administrator access or Owner role on the project.",
+        "tags": [
+            "project",
+            "archive"
+        ],
+        "visibility": "public",
+        "active": true,
+        "protocol": "rest",
+        "protocol_data": {
+            "method": "POST",
+            "path": "/projects/{id}/archive",
+            "server_url": "https://gitlab.com/api/v4"
+        },
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "path": {
+                    "type": "object",
+                    "description": "Path parameters for the http request",
+                    "properties": {
+                        "id": {
+                            "type": "string",
+                            "description": "The ID or URL-encoded path of the project"
+                        }
+                    },
+                    "required": [
+                        "id"
+                    ],
+                    "visible": [
+                        "id"
+                    ],
+                    "additionalProperties": false
+                }
+            },
+            "required": [
+                "path"
+            ],
+            "visible": [
+                "path"
+            ],
+            "additionalProperties": false
+        }
+    },
+    {
+        "name": "GITLAB__UNARCHIVE_PROJECT",
+        "description": "Unarchives a project. Requires administrator access or Owner role on the project. This endpoint is idempotent - unarchiving a project that isn't archived doesn't change the project.",
+        "tags": [
+            "project",
+            "archive"
+        ],
+        "visibility": "public",
+        "active": true,
+        "protocol": "rest",
+        "protocol_data": {
+            "method": "POST",
+            "path": "/projects/{id}/unarchive",
+            "server_url": "https://gitlab.com/api/v4"
+        },
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "path": {
+                    "type": "object",
+                    "description": "Path parameters for the http request",
+                    "properties": {
+                        "id": {
+                            "type": "string",
+                            "description": "The ID or URL-encoded path of the project"
+                        }
+                    },
+                    "required": [
+                        "id"
+                    ],
+                    "visible": [
+                        "id"
+                    ],
+                    "additionalProperties": false
+                }
+            },
+            "required": [
+                "path"
+            ],
+            "visible": [
+                "path"
             ],
             "additionalProperties": false
         }
