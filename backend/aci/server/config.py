@@ -79,5 +79,8 @@ STRIPE_WEBHOOK_SIGNING_SECRET = check_and_get_env_variable("SERVER_STRIPE_WEBHOO
 ACI_ORG_ID_HEADER = "X-ACI-ORG-ID"
 ACI_API_KEY_HEADER = "X-API-KEY"
 
+# New: Organization-level API key
+ACI_ORG_API_KEY = check_and_get_env_variable("ACI_ORG_API_KEY")
+
 # 8KB
 MAX_LOG_FIELD_SIZE = 8 * 1024

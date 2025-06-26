@@ -1,6 +1,6 @@
 from collections.abc import Generator
 from datetime import UTC, datetime, timedelta
-from typing import Annotated
+from typing import Annotated, Union
 from uuid import UUID
 
 from fastapi import Depends, Request, Security
@@ -9,12 +9,13 @@ from sqlalchemy.orm import Session
 
 from aci.common import utils
 from aci.common.db import crud
-from aci.common.db.sql_models import Agent, Project
+from aci.common.db.sql_models import Agent, Project, APIKey as SQLAPIKey
 from aci.common.enums import APIKeyStatus
 from aci.common.exceptions import (
     AgentNotFound,
     DailyQuotaExceeded,
     InvalidAPIKey,
+    AuthenticationError,
     ProjectNotFound,
 )
 from aci.common.logging_setup import get_logger
@@ -23,16 +24,26 @@ from aci.server import billing, config
 logger = get_logger(__name__)
 http_bearer = HTTPBearer(auto_error=True, description="login to receive a JWT token")
 api_key_header = APIKeyHeader(
+    # Changed: Use a different header for agent API keys
     name=config.ACI_API_KEY_HEADER,
     description="API key for authentication",
     auto_error=True,
 )
 
+# New type for API Key authentication details
+class APIKeyAuthDetails:
+    def __init__(self, api_key_id: UUID, project: Project, agent: Agent):
+        self.api_key_id = api_key_id
+        self.project = project
+        self.agent = agent
+
 
 class RequestContext:
-    def __init__(self, db_session: Session, api_key_id: UUID, project: Project, agent: Agent):
+    def __init__(self, db_session: Session, api_key_auth_details: APIKeyAuthDetails, project: Project, agent: Agent):
         self.db_session = db_session
-        self.api_key_id = api_key_id
+        # Store the full APIKeyAuthDetails object
+        # This will be populated by get_api_key_details
+        self.api_key_auth_details = api_key_auth_details
         self.project = project
         self.agent = agent
 
@@ -45,10 +56,11 @@ def yield_db_session() -> Generator[Session, None, None]:
         db_session.close()
 
 
-def validate_api_key(
+# Modified: This dependency now specifically validates agent-associated API keys
+def get_agent_api_key_details(
     db_session: Annotated[Session, Depends(yield_db_session)],
-    api_key_key: Annotated[str, Security(api_key_header)],
-) -> UUID:
+    api_key_key: Annotated[str, Security(api_key_header)],  # Use agent API key header
+) -> APIKeyAuthDetails:
     """Validate API key and return the API key ID. (not the actual API key string)"""
     api_key = crud.projects.get_api_key(db_session, api_key_key)
     if api_key is None:
@@ -63,36 +75,60 @@ def validate_api_key(
         logger.error(f"API key is deleted, api_key_id={api_key.id}")
         raise InvalidAPIKey("API key is deleted")
 
-    else:
-        api_key_id: UUID = api_key.id
-        logger.info(f"API key validation successful, api_key_id={api_key_id}")
-        return api_key_id
-
-
-def validate_agent(
-    db_session: Annotated[Session, Depends(yield_db_session)],
-    api_key_id: Annotated[UUID, Depends(validate_api_key)],
-) -> Agent:
-    agent = crud.projects.get_agent_by_api_key_id(db_session, api_key_id)
+    agent = crud.projects.get_agent_by_api_key_id(db_session, api_key.id)
     if not agent:
-        raise AgentNotFound(f"Agent not found, api_key_id={api_key_id}")
+        logger.error(f"Agent not found for API key, api_key_id={api_key.id}")
+        raise AgentNotFound(f"Agent not found for api_key_id={api_key.id}")
 
-    return agent
+    project = crud.projects.get_project_by_api_key_id(db_session, api_key.id)
+    if not project:
+        logger.error(f"Project not found for API key, api_key_id={api_key.id}")
+        raise ProjectNotFound(f"Project not found for api_key_id={api_key.id}")
+
+    logger.info(f"API key validation successful, api_key_id={api_key.id}")
+    return APIKeyAuthDetails(api_key_id=api_key.id, project=project, agent=agent)
 
 
-# TODO: use cache (redis)
-# TODO: better way to handle replace(tzinfo=datetime.timezone.utc) ?
-# TODO: context return api key object instead of api_key_id
+# New dependency for organization-level API key
+def get_org_api_key(
+    org_api_key: Annotated[str, Security(APIKeyHeader(name="X-ORG-API-KEY", auto_error=True))]
+) -> str:
+    """Validates the organization-level API key from the environment."""
+    if org_api_key != config.ACI_ORG_API_KEY:
+        logger.error("Invalid organization API key provided.")
+        raise AuthenticationError("Invalid organization API key")
+    return org_api_key
+
+
+def get_projects_auth_context(
+    propelauth_user: Annotated[User | None, Depends(acl.get_propelauth().require_user)] = None,
+    org_api_key: Annotated[str | None, Depends(get_org_api_key)] = None,
+) -> Union[User, str]:  # Return the API key string if valid
+    """
+    Authenticates the request for /projects endpoints using either PropelAuth (Bearer token)
+    or an organization-level API Key.
+    Prioritizes PropelAuth, then Org API Key.
+    """
+    if propelauth_user:
+        return propelauth_user
+    elif org_api_key:
+        return org_api_key  # Return the validated API key string
+    else:
+        raise AuthenticationError(
+            "Authentication required: Provide a valid Bearer token or Organization API Key."
+        )
+
+
 def validate_project_quota(
     db_session: Annotated[Session, Depends(yield_db_session)],
-    api_key_id: Annotated[UUID, Depends(validate_api_key)],
+    api_key_auth_details: Annotated[APIKeyAuthDetails, Depends(get_api_key_details)],
 ) -> Project:
-    logger.debug(f"Validating project quota, api_key_id={api_key_id}")
+    logger.debug(f"Validating project quota, api_key_id={api_key_auth_details.api_key_id}")
 
-    project = crud.projects.get_project_by_api_key_id(db_session, api_key_id)
+    project = api_key_auth_details.project
     if not project:
-        logger.error(f"Project not found, api_key_id={api_key_id}")
-        raise ProjectNotFound(f"Project not found, api_key_id={api_key_id}")
+        logger.error(f"Project not found, api_key_id={api_key_auth_details.api_key_id}")
+        raise ProjectNotFound(f"Project not found, api_key_id={api_key_auth_details.api_key_id}")
 
     now: datetime = datetime.now(UTC)
     need_reset = now >= project.daily_quota_reset_at.replace(tzinfo=UTC) + timedelta(days=1)
@@ -160,8 +196,7 @@ def validate_monthly_api_quota(
 
 def get_request_context(
     db_session: Annotated[Session, Depends(yield_db_session)],
-    api_key_id: Annotated[UUID, Depends(validate_api_key)],
-    agent: Annotated[Agent, Depends(validate_agent)],
+    api_key_auth_details: Annotated[APIKeyAuthDetails, Depends(get_api_key_details)],
     project: Annotated[Project, Depends(validate_project_quota)],
     _: Annotated[None, Depends(validate_monthly_api_quota)],
 ) -> RequestContext:
@@ -169,13 +204,10 @@ def get_request_context(
     Returns a RequestContext object containing the DB session,
     the validated API key ID, and the project ID.
     """
-    logger.info(
-        f"Populating request context, api_key_id={api_key_id}, "
-        f"project_id={project.id}, agent_id={agent.id}"
-    )
-    return RequestContext(
-        db_session=db_session,
-        api_key_id=api_key_id,
+    logger.info(f"Populating request context, api_key_id={api_key_auth_details.api_key_id}, "
+                f"project_id={project.id}, agent_id={api_key_auth_details.agent.id}")
+    return RequestContext(db_session=db_session,
+        api_key_auth_details=api_key_auth_details,
         project=project,
-        agent=agent,
+        agent=api_key_auth_details.agent,
     )
