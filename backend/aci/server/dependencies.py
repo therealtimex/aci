@@ -4,7 +4,7 @@ from typing import Annotated
 from uuid import UUID
 
 from fastapi import Depends, Request, Security
-from fastapi.security import APIKeyHeader, HTTPBearer
+from fastapi.security import APIKeyHeader, HTTPAuthorizationCredentials, HTTPBearer
 from propelauth_fastapi import User
 from sqlalchemy.orm import Session
 
@@ -16,13 +16,14 @@ from aci.common.exceptions import (
     AgentNotFound,
     DailyQuotaExceeded,
     InvalidAPIKey,
+    InvalidBearerToken,
     ProjectNotFound,
 )
 from aci.common.logging_setup import get_logger
 from aci.server import acl, billing, config
 
 logger = get_logger(__name__)
-http_bearer = HTTPBearer(auto_error=True, description="login to receive a JWT token")
+http_bearer = HTTPBearer(auto_error=False, description="login to receive a JWT token")
 api_key_header = APIKeyHeader(
     name=config.ACI_API_KEY_HEADER,
     description="API key for authentication",
@@ -75,9 +76,8 @@ def validate_api_key(
         return api_key_id
 
 
-def validate_internal_api_key(
-    internal_api_key: Annotated[str | None, Security(internal_api_key_header)],
-) -> bool:
+def validate_internal_api_key(internal_api_key: str | None) -> bool:
+    """Validate internal API key."""
     if internal_api_key:
         if internal_api_key == config.INTERNAL_API_KEY:
             return True
@@ -85,14 +85,40 @@ def validate_internal_api_key(
     return False
 
 
+async def validate_bearer_token(
+    request: Request,
+    credentials: HTTPAuthorizationCredentials | None
+) -> User | None:
+    """Authenticate user using Bearer token via Propel Auth."""
+    if credentials and credentials.scheme == "Bearer":
+        try:
+            auth = acl.get_propelauth()
+            return await auth.require_user(request)
+        except Exception as exc:
+            raise InvalidBearerToken("Invalid Bearer token") from exc
+    return None
+
+
 async def user_or_internal_api_key(
     request: Request,
-    internal_api_key_validated: Annotated[bool, Depends(validate_internal_api_key)],
+    credentials: Annotated[HTTPAuthorizationCredentials | None, Security(http_bearer)],
+    internal_api_key: Annotated[str | None, Security(internal_api_key_header)],
 ) -> User | None:
-    if internal_api_key_validated:
-        return None  # Indicate successful internal API key authentication
-    auth = acl.get_propelauth()
-    return await auth.require_user(request)
+    """
+    Authenticate user using either Bearer token or internal API key.
+    If internal API key is provided, it takes precedence over Bearer token.
+    """
+    # Check for internal API key first
+    if validate_internal_api_key(internal_api_key):
+        return None  # Successful internal API key authentication
+
+    # Check for Bearer token
+    user = await validate_bearer_token(request, credentials)
+    if user:
+        return user
+
+    # If neither authentication method succeeded
+    raise InvalidAPIKey("Authentication required: provide either Bearer token or internal API key")
 
 
 def validate_agent(
