@@ -5,6 +5,7 @@ from uuid import UUID
 
 from fastapi import Depends, Request, Security
 from fastapi.security import APIKeyHeader, HTTPBearer
+from propelauth_fastapi import User
 from sqlalchemy.orm import Session
 
 from aci.common import utils
@@ -18,7 +19,7 @@ from aci.common.exceptions import (
     ProjectNotFound,
 )
 from aci.common.logging_setup import get_logger
-from aci.server import billing, config
+from aci.server import acl, billing, config
 
 logger = get_logger(__name__)
 http_bearer = HTTPBearer(auto_error=True, description="login to receive a JWT token")
@@ -26,6 +27,11 @@ api_key_header = APIKeyHeader(
     name=config.ACI_API_KEY_HEADER,
     description="API key for authentication",
     auto_error=True,
+)
+internal_api_key_header = APIKeyHeader(
+    name=config.INTERNAL_API_KEY_HEADER,
+    description="Internal API key for authentication",
+    auto_error=False,
 )
 
 
@@ -67,6 +73,26 @@ def validate_api_key(
         api_key_id: UUID = api_key.id
         logger.info(f"API key validation successful, api_key_id={api_key_id}")
         return api_key_id
+
+
+def validate_internal_api_key(
+    internal_api_key: Annotated[str | None, Security(internal_api_key_header)],
+) -> bool:
+    if internal_api_key:
+        if internal_api_key == config.INTERNAL_API_KEY:
+            return True
+        raise InvalidAPIKey("Invalid API key")
+    return False
+
+
+async def user_or_internal_api_key(
+    request: Request,
+    internal_api_key_validated: Annotated[bool, Depends(validate_internal_api_key)],
+) -> User | None:
+    if internal_api_key_validated:
+        return None  # Indicate successful internal API key authentication
+    auth = acl.get_propelauth()
+    return await auth.require_user(request)
 
 
 def validate_agent(
