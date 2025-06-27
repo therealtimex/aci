@@ -4,7 +4,8 @@ from typing import Annotated
 from uuid import UUID
 
 from fastapi import Depends, Request, Security
-from fastapi.security import APIKeyHeader, HTTPBearer
+from fastapi.security import APIKeyHeader, HTTPAuthorizationCredentials, HTTPBearer
+from propelauth_fastapi import User
 from sqlalchemy.orm import Session
 
 from aci.common import utils
@@ -15,17 +16,23 @@ from aci.common.exceptions import (
     AgentNotFound,
     DailyQuotaExceeded,
     InvalidAPIKey,
+    InvalidBearerToken,
     ProjectNotFound,
 )
 from aci.common.logging_setup import get_logger
-from aci.server import billing, config
+from aci.server import acl, billing, config
 
 logger = get_logger(__name__)
-http_bearer = HTTPBearer(auto_error=True, description="login to receive a JWT token")
+http_bearer = HTTPBearer(auto_error=False, description="login to receive a JWT token")
 api_key_header = APIKeyHeader(
     name=config.ACI_API_KEY_HEADER,
     description="API key for authentication",
     auto_error=True,
+)
+internal_api_key_header = APIKeyHeader(
+    name=config.INTERNAL_API_KEY_HEADER,
+    description="Internal API key for authentication",
+    auto_error=False,
 )
 
 
@@ -67,6 +74,51 @@ def validate_api_key(
         api_key_id: UUID = api_key.id
         logger.info(f"API key validation successful, api_key_id={api_key_id}")
         return api_key_id
+
+
+def validate_internal_api_key(internal_api_key: str | None) -> bool:
+    """Validate internal API key."""
+    if internal_api_key:
+        if internal_api_key == config.INTERNAL_API_KEY:
+            return True
+        raise InvalidAPIKey("Invalid API key")
+    return False
+
+
+async def validate_bearer_token(
+    request: Request,
+    credentials: HTTPAuthorizationCredentials | None
+) -> User | None:
+    """Authenticate user using Bearer token via Propel Auth."""
+    if credentials and credentials.scheme == "Bearer":
+        try:
+            auth = acl.get_propelauth()
+            return await auth.require_user(request)
+        except Exception as exc:
+            raise InvalidBearerToken("Invalid Bearer token") from exc
+    return None
+
+
+async def user_or_internal_api_key(
+    request: Request,
+    credentials: Annotated[HTTPAuthorizationCredentials | None, Security(http_bearer)],
+    internal_api_key: Annotated[str | None, Security(internal_api_key_header)],
+) -> User | None:
+    """
+    Authenticate user using either Bearer token or internal API key.
+    If internal API key is provided, it takes precedence over Bearer token.
+    """
+    # Check for internal API key first
+    if validate_internal_api_key(internal_api_key):
+        return None  # Successful internal API key authentication
+
+    # Check for Bearer token
+    user = await validate_bearer_token(request, credentials)
+    if user:
+        return user
+
+    # If neither authentication method succeeded
+    raise InvalidAPIKey("Authentication required: provide either Bearer token or internal API key")
 
 
 def validate_agent(
