@@ -1,0 +1,21 @@
+{
+  "name": "ERPNEXT",
+  "display_name": "ERPNext",
+  "logo": "https://raw.githubusercontent.com/aipotheosis-labs/aipolabs-icons/main/apps/erpnext.svg",
+  "provider": "ERPNext",
+  "version": "1.0.0",
+  "description": "ERPNext is a free and open-source integrated Enterprise Resource Planning (ERP) software. This integration allows interacting with ERPNext resources.",
+  "security_schemes": {
+    "api_key": {
+      "location": "header",
+      "name": "Authorization",
+      "prefix": "token"
+    }
+  },
+  "default_security_credentials_by_scheme": {},
+  "categories": [
+    "ERP"
+  ],
+  "visibility": "public",
+  "active": true
+}
