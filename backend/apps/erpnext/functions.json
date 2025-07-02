@@ -33,11 +33,19 @@
                     "properties": {
                         "fields": {
                             "type": "string",
-                            "description": "JSON string of a list of fields to return. Example: '["name", "customer_name"]'."
+                            "description": "JSON string of a list of fields to return. Example: '[\"name\", \"customer_name\"]'."
                         },
                         "filters": {
                             "type": "string",
-                            "description": "JSON string of a list of filters. Example: '[["customer_name","=","John Doe"]]'."
+                            "description": "JSON string of a list of filters to apply to the query. Each filter is a list of three elements: [field, operator, value]. Available operators: =, !=, <, >, <=, >=, like, not like, in, not in, is, is not, between. E.g., '[["customer_name","=","John Doe"]]'."
+                        },
+                        "or_filters": {
+                            "type": "string",
+                            "description": "Similar to 'filters', but joins the specified filters using the OR SQL operator. E.g., '[["status","=","Open"],["priority","=","High"]]'."
+                        },
+                        "order_by": {
+                            "type": "string",
+                            "description": "The field to sort the results by, and the sort order. The format is 'fieldname asc' or 'fieldname desc'. E.g., 'creation asc'."
                         },
                         "limit_start": {
                             "type": "integer",
@@ -51,7 +59,7 @@
                         }
                     },
                     "required": [],
-                    "visible": ["fields", "filters", "limit_start", "limit_page_length"],
+                    "visible": ["fields", "filters", "or_filters", "order_by", "limit_start", "limit_page_length"],
                     "additionalProperties": false
                 }
             },
