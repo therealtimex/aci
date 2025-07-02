@@ -235,9 +235,7 @@
         "visibility": "public",
         "active": true,
         "protocol": "connector",
-        "protocol_data": {
-            "connector_name": "ERPNEXT__GET_DOCTYPE_LIST"
-        },
+        "protocol_data": {},
         "parameters": {
             "type": "object",
             "properties": {},
