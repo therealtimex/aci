@@ -1,0 +1,223 @@
+[
+    {
+        "name": "ERPNEXT__LIST_DOCUMENTS",
+        "description": "Lists documents of a specified DocType",
+        "tags": ["documents", "list"],
+        "visibility": "public",
+        "active": true,
+        "protocol": "rest",
+        "protocol_data": {
+            "method": "GET",
+            "path": "/api/resource/{doctype}",
+            "server_url": "{{ AIPOLABS_ERPNEXT_SERVER_URL }}"
+        },
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "path": {
+                    "type": "object",
+                    "description": "Path parameters",
+                    "properties": {
+                        "doctype": {
+                            "type": "string",
+                            "description": "The DocType to list documents from (e.g., 'Customer', 'Sales Order')."
+                        }
+                    },
+                    "required": ["doctype"],
+                    "visible": ["doctype"],
+                    "additionalProperties": false
+                },
+                "query": {
+                    "type": "object",
+                    "description": "Query parameters",
+                    "properties": {
+                        "fields": {
+                            "type": "string",
+                            "description": "JSON string of a list of fields to return. Example: '["name", "customer_name"]'."
+                        },
+                        "filters": {
+                            "type": "string",
+                            "description": "JSON string of a list of filters. Example: '[["customer_name","=","John Doe"]]'."
+                        },
+                        "limit_start": {
+                            "type": "integer",
+                            "description": "The number of documents to skip.",
+                            "default": 0
+                        },
+                        "limit_page_length": {
+                            "type": "integer",
+                            "description": "The number of documents to return.",
+                            "default": 20
+                        }
+                    },
+                    "required": [],
+                    "visible": ["fields", "filters", "limit_start", "limit_page_length"],
+                    "additionalProperties": false
+                }
+            },
+            "required": ["path"],
+            "visible": ["path", "query"],
+            "additionalProperties": false
+        }
+    },
+    {
+        "name": "ERPNEXT__GET_DOCUMENT",
+        "description": "Gets a document of a specified DocType by its name (ID)",
+        "tags": ["documents", "get"],
+        "visibility": "public",
+        "active": true,
+        "protocol": "rest",
+        "protocol_data": {
+            "method": "GET",
+            "path": "/api/resource/{doctype}/{name}",
+            "server_url": "{{ AIPOLABS_ERPNEXT_SERVER_URL }}"
+        },
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "path": {
+                    "type": "object",
+                    "description": "Path parameters",
+                    "properties": {
+                        "doctype": {
+                            "type": "string",
+                            "description": "The DocType of the document to retrieve (e.g., 'Customer', 'Sales Order')."
+                        },
+                        "name": {
+                            "type": "string",
+                            "description": "The name (ID) of the document to retrieve."
+                        }
+                    },
+                    "required": ["doctype", "name"],
+                    "visible": ["doctype", "name"],
+                    "additionalProperties": false
+                }
+            },
+            "required": ["path"],
+            "visible": ["path"],
+            "additionalProperties": false
+        }
+    },
+    {
+        "name": "ERPNEXT__CREATE_DOCUMENT",
+        "description": "Creates a new document of a specified DocType",
+        "tags": ["documents", "create"],
+        "visibility": "public",
+        "active": true,
+        "protocol": "rest",
+        "protocol_data": {
+            "method": "POST",
+            "path": "/api/resource/{doctype}",
+            "server_url": "{{ AIPOLABS_ERPNEXT_SERVER_URL }}"
+        },
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "path": {
+                    "type": "object",
+                    "description": "Path parameters",
+                    "properties": {
+                        "doctype": {
+                            "type": "string",
+                            "description": "The DocType to create a new document for (e.g., 'Customer', 'Sales Order')."
+                        }
+                    },
+                    "required": ["doctype"],
+                    "visible": ["doctype"],
+                    "additionalProperties": false
+                },
+                "body": {
+                    "type": "object",
+                    "description": "The document data to create.",
+                    "properties": {},
+                    "additionalProperties": true
+                }
+            },
+            "required": ["path", "body"],
+            "visible": ["path", "body"],
+            "additionalProperties": false
+        }
+    },
+    {
+        "name": "ERPNEXT__UPDATE_DOCUMENT",
+        "description": "Updates a document of a specified DocType",
+        "tags": ["documents", "update"],
+        "visibility": "public",
+        "active": true,
+        "protocol": "rest",
+        "protocol_data": {
+            "method": "PUT",
+            "path": "/api/resource/{doctype}/{name}",
+            "server_url": "{{ AIPOLABS_ERPNEXT_SERVER_URL }}"
+        },
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "path": {
+                    "type": "object",
+                    "description": "Path parameters",
+                    "properties": {
+                        "doctype": {
+                            "type": "string",
+                            "description": "The DocType of the document to update (e.g., 'Customer', 'Sales Order')."
+                        },
+                        "name": {
+                            "type": "string",
+                            "description": "The name (ID) of the document to update."
+                        }
+                    },
+                    "required": ["doctype", "name"],
+                    "visible": ["doctype", "name"],
+                    "additionalProperties": false
+                },
+                "body": {
+                    "type": "object",
+                    "description": "The document data to update.",
+                    "properties": {},
+                    "additionalProperties": true
+                }
+            },
+            "required": ["path", "body"],
+            "visible": ["path", "body"],
+            "additionalProperties": false
+        }
+    },
+    {
+        "name": "ERPNEXT__DELETE_DOCUMENT",
+        "description": "Deletes a document of a specified DocType by its name (ID)",
+        "tags": ["documents", "delete"],
+        "visibility": "public",
+        "active": true,
+        "protocol": "rest",
+        "protocol_data": {
+            "method": "DELETE",
+            "path": "/api/resource/{doctype}/{name}",
+            "server_url": "{{ AIPOLABS_ERPNEXT_SERVER_URL }}"
+        },
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "path": {
+                    "type": "object",
+                    "description": "Path parameters",
+                    "properties": {
+                        "doctype": {
+                            "type": "string",
+                            "description": "The DocType of the document to delete (e.g., 'Customer', 'Sales Order')."
+                        },
+                        "name": {
+                            "type": "string",
+                            "description": "The name (ID) of the document to delete."
+                        }
+                    },
+                    "required": ["doctype", "name"],
+                    "visible": ["doctype", "name"],
+                    "additionalProperties": false
+                }
+            },
+            "required": ["path"],
+            "visible": ["path"],
+            "additionalProperties": false
+        }
+    }
+]
