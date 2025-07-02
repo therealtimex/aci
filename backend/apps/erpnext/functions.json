@@ -243,5 +243,26 @@
             "visible": [],
             "additionalProperties": false
         }
+    },
+    {
+        "name": "ERPNEXT__GET_DOCTYPE_SCHEMA",
+        "description": "Get the complete schema for a DocType including field definitions, validations, and linked DocTypes. Use this to understand the structure of a DocType before creating or updating documents.",
+        "tags": ["doctype", "schema", "get"],
+        "visibility": "public",
+        "active": true,
+        "protocol": "connector",
+        "protocol_data": {},
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "doctype": {
+                    "type": "string",
+                    "description": "The name of the DocType to get the schema for (e.g., 'Customer', 'Sales Order')."
+                }
+            },
+            "required": ["doctype"],
+            "visible": ["doctype"],
+            "additionalProperties": false
+        }
     }
 ]
