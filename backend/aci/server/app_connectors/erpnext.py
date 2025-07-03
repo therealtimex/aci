@@ -33,15 +33,10 @@ class ERPNext(AppConnectorBase):
             security_credentials: The API key credentials for authentication.
         """
         super().__init__(linked_account, security_scheme, security_credentials)
-        # Assuming the API key is directly available in the credentials value
+        # The API key is retrieved from the security credentials.
         self.api_key = security_credentials.secret_key
-        # The server URL is expected to be passed as an environment variable
-        # or configured elsewhere and accessed via linked_account or a global config.
-        # For now, we'll assume it's part of the linked_account's metadata or a similar mechanism.
-        # If not, it would need to be explicitly passed or retrieved.
-        # For this example, we'll use a placeholder that would typically be resolved
-        # from the environment or a configuration store.
-        # In a real scenario, AIPOLABS_ERPNEXT_SERVER_URL would be resolved by the platform.
+        # The ERPNext server URL is retrieved from the linked account's metadata.
+        # This URL is expected to be configured by the platform or user during account linking.
         self.server_url = linked_account.metadata.get("AIPOLABS_ERPNEXT_SERVER_URL")
         if not self.server_url:
             logger.error("ERPNext server URL not found in linked account metadata.")
