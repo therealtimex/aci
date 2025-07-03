@@ -79,7 +79,8 @@ class ERPNext(AppConnectorBase):
 
             # ERPNext API for listing DocTypes typically returns a 'data' key
             # which is a list of dictionaries, each with a 'name' field.
-            doctypes = [item["name"] for item in data.get("data", []) if "name" in item]
+            doctypes = [item["name"]
+                        for item in data.get("data", []) if "name" in item]
             logger.info(f"Successfully fetched {len(doctypes)} DocTypes.")
             return doctypes
         except requests.exceptions.RequestException as e:
@@ -124,7 +125,8 @@ class ERPNext(AppConnectorBase):
             metadata = response.json()
 
             if not metadata:
-                raise ValueError("Invalid response from meta endpoint: response is empty.")
+                raise ValueError(
+                    "Invalid response from meta endpoint: response is empty.")
 
             logger.info(
                 f"Successfully fetched and processed schema for DocType '{doctype}' using meta endpoint."
@@ -159,14 +161,18 @@ class ERPNext(AppConnectorBase):
                     logger.error(
                         f"DocType '{doctype}' not found using both primary and fallback methods."
                     )
-                    raise ValueError(f"DocType '{doctype}' not found.") from http_err
-                logger.error(f"HTTP error on fallback for DocType '{doctype}': {http_err}")
+                    raise ValueError(
+                        f"DocType '{doctype}' not found.") from http_err
+                logger.error(
+                    f"HTTP error on fallback for DocType '{doctype}': {http_err}")
                 raise
             except (requests.exceptions.RequestException, ValueError) as fallback_err:
-                logger.error(f"Fallback method also failed for DocType '{doctype}': {fallback_err}")
+                logger.error(
+                    f"Fallback method also failed for DocType '{doctype}': {fallback_err}")
                 raise fallback_err from e
 
-    def _process_doctype_meta(self, meta: dict[str, Any], doctype_name: str) -> dict[str, Any]:
+    def _process_doctype_meta(self, meta: dict[str, Any],
+                              doctype_name: str) -> dict[str, Any]:
         """Processes the metadata from the meta endpoint."""
         doctype_info = meta.get("doctype", {})
         return {
@@ -204,7 +210,8 @@ class ERPNext(AppConnectorBase):
             "track_changes": doctype_info.get("track_changes") == 1,
         }
 
-    def _process_doctype_doc(self, doc: dict[str, Any], doctype_name: str) -> dict[str, Any]:
+    def _process_doctype_doc(self, doc: dict[str, Any],
+                             doctype_name: str) -> dict[str, Any]:
         """Processes the document data from /api/resource/DocType."""
         return {
             "name": doctype_name,
