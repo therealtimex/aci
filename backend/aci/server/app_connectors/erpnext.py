@@ -37,10 +37,14 @@ class ERPNext(AppConnectorBase):
         self.api_key = security_credentials.secret_key
         # The ERPNext server URL is retrieved from the linked account's metadata.
         # This URL is expected to be configured by the platform or user during account linking.
-        self.server_url = linked_account.metadata.get("AIPOLABS_ERPNEXT_SERVER_URL")
-        if not self.server_url:
-            logger.error("ERPNext server URL not found in linked account metadata.")
-            raise ValueError("ERPNext server URL is not configured.")
+        # Temporary: Hardcoding the ERPNext server URL for development purposes.
+        # In production, this will be dynamically retrieved from linked_account.metadata.
+        self.server_url = "https://erp.realtimex.co"
+        # The original dynamic retrieval and validation logic is commented out for now:
+        # self.server_url = linked_account.metadata.get("AIPOLABS_ERPNEXT_SERVER_URL")
+        # if not self.server_url:
+        #     logger.error("ERPNext server URL not found in linked account metadata.")
+        #     raise ValueError("ERPNext server URL is not configured.")
 
     @override
     def _before_execute(self) -> None:

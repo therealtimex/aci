@@ -9,7 +9,7 @@
         "protocol_data": {
             "method": "GET",
             "path": "/api/resource/{doctype}",
-            "server_url": "{{ AIPOLABS_ERPNEXT_SERVER_URL }}"
+            "server_url": "https://erp.realtimex.co"
         },
         "parameters": {
             "type": "object",
@@ -78,7 +78,7 @@
         "protocol_data": {
             "method": "GET",
             "path": "/api/resource/{doctype}/{name}",
-            "server_url": "{{ AIPOLABS_ERPNEXT_SERVER_URL }}"
+            "server_url": "https://erp.realtimex.co"
         },
         "parameters": {
             "type": "object",
@@ -116,7 +116,7 @@
         "protocol_data": {
             "method": "POST",
             "path": "/api/resource/{doctype}",
-            "server_url": "{{ AIPOLABS_ERPNEXT_SERVER_URL }}"
+            "server_url": "https://erp.realtimex.co"
         },
         "parameters": {
             "type": "object",
@@ -156,7 +156,7 @@
         "protocol_data": {
             "method": "PUT",
             "path": "/api/resource/{doctype}/{name}",
-            "server_url": "{{ AIPOLABS_ERPNEXT_SERVER_URL }}"
+            "server_url": "https://erp.realtimex.co"
         },
         "parameters": {
             "type": "object",
@@ -200,7 +200,7 @@
         "protocol_data": {
             "method": "DELETE",
             "path": "/api/resource/{doctype}/{name}",
-            "server_url": "{{ AIPOLABS_ERPNEXT_SERVER_URL }}"
+            "server_url": "https://erp.realtimex.co"
         },
         "parameters": {
             "type": "object",
