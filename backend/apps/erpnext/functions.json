@@ -242,9 +242,20 @@
         "protocol_data": {},
         "parameters": {
             "type": "object",
-            "properties": {},
+            "properties": {
+                "limit_start": {
+                    "type": "integer",
+                    "description": "The number of DocTypes to skip.",
+                    "default": 0
+                },
+                "limit_page_length": {
+                    "type": "integer",
+                    "description": "The number of DocTypes to return.",
+                    "default": 20
+                }
+            },
             "required": [],
-            "visible": [],
+            "visible": ["limit_start", "limit_page_length"],
             "additionalProperties": false
         }
     },

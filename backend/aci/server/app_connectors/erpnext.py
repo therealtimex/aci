@@ -55,32 +55,43 @@ class ERPNext(AppConnectorBase):
         """
         pass
 
-    def get_doctype_list(self) -> list[str]:
+    def get_doctype_list(
+        self, limit_start: int = 0, limit_page_length: int = 20
+    ) -> list[dict[str, str]]:
         """
         Fetches a list of all available DocTypes from the ERPNext instance.
 
         This method corresponds to the ERPNEXT__GET_DOCTYPE_LIST tool.
         It makes a GET request to the /api/resource/DocType endpoint.
 
+        Args:
+            limit_start: The number of DocTypes to skip.
+            limit_page_length: The number of DocTypes to return.
+
         Returns:
-            A list of strings, where each string is the name of a DocType.
-            Returns an empty list if no DocTypes are found or on error.
+            A list of dictionaries, where each dictionary contains the name and
+            description of a DocType. Returns an empty list if no DocTypes are
+            found or on error.
         Raises:
             requests.exceptions.RequestException: If the API call fails.
         """
         logger.info("Executing get_doctype_list to fetch all ERPNext DocTypes.")
         url = f"{self.server_url}/api/resource/DocType"
         headers = {"Authorization": f"token {self.api_key}"}
+        params = {
+            "fields": '["name", "description"]',
+            "limit_start": limit_start,
+            "limit_page_length": limit_page_length,
+        }
 
         try:
-            response = requests.get(url, headers=headers)
+            response = requests.get(url, headers=headers, params=params)
             response.raise_for_status()  # Raise an HTTPError for bad responses (4xx or 5xx)
             data = response.json()
 
             # ERPNext API for listing DocTypes typically returns a 'data' key
-            # which is a list of dictionaries, each with a 'name' field.
-            doctypes = [item["name"]
-                        for item in data.get("data", []) if "name" in item]
+            # which is a list of dictionaries.
+            doctypes = data.get("data", [])
             logger.info(f"Successfully fetched {len(doctypes)} DocTypes.")
             return doctypes
         except requests.exceptions.RequestException as e:
