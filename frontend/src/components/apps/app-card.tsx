@@ -16,6 +16,7 @@ import {
   TooltipContent,
   TooltipProvider,
 } from "@/components/ui/tooltip";
+import { useAppLinkedAccounts } from "@/hooks/use-linked-account";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle } from "lucide-react";
 
@@ -25,6 +26,7 @@ interface AppCardProps {
 }
 
 export function AppCard({ app, isConfigured = false }: AppCardProps) {
+  const { data: linkedAccounts = [] } = useAppLinkedAccounts(app.name);
   return (
     <Link href={`/apps/${app.name}`} className="block">
       <Card className="h-[300px] transition-shadow hover:shadow-lg flex flex-col overflow-hidden relative">
@@ -102,6 +104,18 @@ export function AppCard({ app, isConfigured = false }: AppCardProps) {
                 <TooltipContent>
                   <p className="text-xs">
                     {`Functions in This App: ${app.functions.length}`}
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className="text-sm bg-blue-100 px-2.5 py-1 font-medium text-blue-600 border rounded-full border-blue-200">
+                    {linkedAccounts.length}
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="text-xs">
+                    {`Linked Accounts: ${linkedAccounts.length}`}
                   </p>
                 </TooltipContent>
               </Tooltip>
