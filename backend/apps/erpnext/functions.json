@@ -138,6 +138,8 @@
                     "type": "object",
                     "description": "The document data to create.",
                     "properties": {},
+                    "required": [],
+                    "visible": [],
                     "additionalProperties": true
                 }
             },
@@ -182,6 +184,8 @@
                     "type": "object",
                     "description": "The document data to update.",
                     "properties": {},
+                    "required": [],
+                    "visible": [],
                     "additionalProperties": true
                 }
             },
