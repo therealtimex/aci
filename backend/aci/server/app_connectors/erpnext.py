@@ -220,3 +220,12 @@ class ERPNext(AppConnectorBase):
             "is_submittable": doc.get("is_submittable") == 1,
             "track_changes": doc.get("track_changes") == 1,
         }
+
+
+# Alias for dynamic import by the ConnectorFunctionExecutor.
+# When a tool for the "erpnext" app is executed by an AI Agent,
+# the ConnectorFunctionExecutor dynamically imports this module
+# and looks for a class named "Erpnext" (case-sensitive from the app name).
+# This alias allows us to keep the more descriptive "ERPNext" class name
+# while still allowing the dynamic import to work.
+Erpnext = ERPNext
