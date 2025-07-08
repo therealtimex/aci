@@ -111,9 +111,8 @@ class ERPNext(AppConnectorBase):
         Get the complete schema for a DocType, including field definitions,
         validations, and linked DocTypes.
 
-        This method first attempts to use the '/api/v2/doctype/{doctype}/meta' endpoint for detailed
-        metadata and falls back to a direct resource API call if the primary
-        method fails.
+        This method uses the '/api/v2/doctype/{doctype}/meta' endpoint for detailed
+        metadata.
 
         Args:
             doctype: The name of the DocType to get the schema for.
@@ -121,13 +120,12 @@ class ERPNext(AppConnectorBase):
         Returns:
             A dictionary representing the processed DocType schema.
         Raises:
-            requests.exceptions.RequestException: If all API call attempts fail.
+            requests.exceptions.RequestException: If the API call fails.
             ValueError: If the doctype is not found or the response is invalid.
         """
         logger.info(f"Executing get_doctype_schema for DocType: {doctype}")
         headers = {"Authorization": f"token {self.api_key}"}
 
-        # Primary method: Use /api/v2/doctype/{doctype}/meta for detailed metadata
         primary_url = f"{self.server_url}/api/v2/doctype/{doctype}/meta"
 
         try:
@@ -146,43 +144,15 @@ class ERPNext(AppConnectorBase):
             logger.debug(f"Metadata for DocType '{doctype}': {doctype_data}")
             return self._process_doctype_meta(doctype_data, doctype)
 
+        except requests.exceptions.HTTPError as http_err:
+            if http_err.response.status_code == 404:
+                logger.error(f"DocType '{doctype}' not found.")
+                raise ValueError(f"DocType '{doctype}' not found.") from http_err
+            logger.error(f"HTTP error on fallback for DocType '{doctype}': {http_err}")
+            raise
         except (requests.exceptions.RequestException, ValueError) as e:
-            logger.warning(
-                f"Primary method with meta endpoint failed for DocType '{doctype}': {e}. "
-                "Attempting fallback to resource API."
-            )
-
-            # Fallback method: Use the resource API
-            fallback_url = f"{self.server_url}/api/resource/DocType/{doctype}"
-            try:
-                response = requests.get(fallback_url, headers=headers)
-                response.raise_for_status()
-                data = response.json().get("data")
-
-                if not data:
-                    raise ValueError(
-                        "Invalid response from resource API: 'data' key is missing or empty."
-                    )
-
-                logger.info(
-                    f"Successfully fetched schema for DocType '{doctype}' using fallback resource API."
-                )
-                return self._process_doctype_doc(data, doctype)
-
-            except requests.exceptions.HTTPError as http_err:
-                if http_err.response.status_code == 404:
-                    logger.error(
-                        f"DocType '{doctype}' not found using both primary and fallback methods."
-                    )
-                    raise ValueError(
-                        f"DocType '{doctype}' not found.") from http_err
-                logger.error(
-                    f"HTTP error on fallback for DocType '{doctype}': {http_err}")
-                raise
-            except (requests.exceptions.RequestException, ValueError) as fallback_err:
-                logger.error(
-                    f"Fallback method also failed for DocType '{doctype}': {fallback_err}")
-                raise fallback_err from e
+            logger.error(f"Failed to get schema for DocType '{doctype}': {e}")
+            raise
 
     def _process_doctype_meta(self, meta: dict[str, Any],
                               doctype_name: str) -> dict[str, Any]:
@@ -221,24 +191,6 @@ class ERPNext(AppConnectorBase):
             "is_custom": doctype_info.get("custom") == 1,
             "fields": processed_fields,
             "is_submittable": doctype_info.get("is_submittable") == 1,
-        }
-
-    def _process_doctype_doc(self, doc: dict[str, Any],
-                             doctype_name: str) -> dict[str, Any]:
-        """Processes the document data from /api/resource/DocType."""
-        return {
-            "name": doctype_name,
-            "label": doc.get("name", doctype_name),
-            "description": doc.get("description"),
-            "module": doc.get("module"),
-            "issingle": doc.get("issingle") == 1,
-            "istable": doc.get("istable") == 1,
-            "custom": doc.get("custom") == 1,
-            "fields": doc.get("fields", []),
-            "permissions": doc.get("permissions", []),
-            "autoname": doc.get("autoname"),
-            "is_submittable": doc.get("is_submittable") == 1,
-            "track_changes": doc.get("track_changes") == 1,
         }
 
 
