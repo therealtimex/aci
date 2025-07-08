@@ -135,14 +135,16 @@ class ERPNext(AppConnectorBase):
             response.raise_for_status()
             metadata = response.json()
 
-            if not metadata:
+            doctype_data = metadata.get("data")
+            if not doctype_data:
                 raise ValueError(
-                    "Invalid response from meta endpoint: response is empty.")
+                    "Invalid response from meta endpoint: response is empty or 'data' key is missing.")
 
             logger.info(
                 f"Successfully fetched and processed schema for DocType '{doctype}' using meta endpoint."
             )
-            return self._process_doctype_meta(metadata, doctype)
+            logger.debug(f"Metadata for DocType '{doctype}': {doctype_data}")
+            return self._process_doctype_meta(doctype_data, doctype)
 
         except (requests.exceptions.RequestException, ValueError) as e:
             logger.warning(
@@ -185,40 +187,40 @@ class ERPNext(AppConnectorBase):
     def _process_doctype_meta(self, meta: dict[str, Any],
                               doctype_name: str) -> dict[str, Any]:
         """Processes the metadata from the meta endpoint."""
-        doctype_info = meta.get("doctype", {})
+        doctype_info = meta
+
+        processed_fields = []
+        required_fields = []
+
+        for field in doctype_info.get("fields", []):
+            is_required = field.get("reqd") == 1
+            if is_required:
+                required_fields.append(field.get("fieldname"))
+
+            processed_fields.append({
+                "fieldname": field.get("fieldname"),
+                "label": field.get("label"),
+                "fieldtype": field.get("fieldtype"),
+                "required": is_required,
+                "description": field.get("description"),
+                "default": field.get("default"),
+                "min_length": field.get("min_length"),
+                "max_length": field.get("max_length"),
+                "min_value": field.get("min_value"),
+                "max_value": field.get("max_value"),
+                "read_only": field.get("read_only") == 1,
+            })
+
         return {
-            "name": doctype_name,
-            "label": doctype_info.get("name", doctype_name),
+            "name": doctype_info.get("name", doctype_name),
             "description": doctype_info.get("description"),
             "module": doctype_info.get("module"),
-            "issingle": doctype_info.get("issingle") == 1,
-            "istable": doctype_info.get("istable") == 1,
-            "custom": doctype_info.get("custom") == 1,
-            "fields": [
-                {
-                    "fieldname": field.get("fieldname"),
-                    "label": field.get("label"),
-                    "fieldtype": field.get("fieldtype"),
-                    "required": field.get("reqd") == 1,
-                    "description": field.get("description"),
-                    "default": field.get("default"),
-                    "options": field.get("options"),
-                    "linked_doctype": field.get("options")
-                    if field.get("fieldtype") == "Link"
-                    else None,
-                    "child_doctype": field.get("options")
-                    if field.get("fieldtype") == "Table"
-                    else None,
-                    "in_list_view": field.get("in_list_view") == 1,
-                    "read_only": field.get("read_only") == 1,
-                    "hidden": field.get("hidden") == 1,
-                }
-                for field in meta.get("fields", [])
-            ],
-            "permissions": meta.get("permissions", []),
-            "autoname": doctype_info.get("autoname"),
+            "required_fields": required_fields,
+            "is_single": doctype_info.get("issingle") == 1,
+            "is_table": doctype_info.get("istable") == 1,
+            "is_custom": doctype_info.get("custom") == 1,
+            "fields": processed_fields,
             "is_submittable": doctype_info.get("is_submittable") == 1,
-            "track_changes": doctype_info.get("track_changes") == 1,
         }
 
     def _process_doctype_doc(self, doc: dict[str, Any],
