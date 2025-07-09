@@ -273,10 +273,15 @@
                 "doctype": {
                     "type": "string",
                     "description": "The name of the DocType to get the schema for (e.g., 'Customer', 'Sales Order')."
+                },
+                "essentials_only": {
+                    "type": "boolean",
+                    "description": "If True, returns only essential information (name, description, module, required fields, and fields). Defaults to False for the complete schema.",
+                    "default": false
                 }
             },
             "required": ["doctype"],
-            "visible": ["doctype"],
+            "visible": ["doctype", "essentials_only"],
             "additionalProperties": false
         }
     }

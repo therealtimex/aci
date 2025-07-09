@@ -106,7 +106,7 @@ class ERPNext(AppConnectorBase):
             logger.error(f"An unexpected error occurred: {e}")
             raise
 
-    def get_doctype_schema(self, doctype: str) -> dict[str, Any]:
+    def get_doctype_schema(self, doctype: str, essentials_only: bool = False) -> dict[str, Any]:
         """
         Get the complete schema for a DocType, including field definitions,
         validations, and linked DocTypes.
@@ -116,6 +116,9 @@ class ERPNext(AppConnectorBase):
 
         Args:
             doctype: The name of the DocType to get the schema for.
+            essentials_only: If True, returns a summarized version of the schema,
+                including only name, description, module, required fields, and field definitions.
+                Defaults to False, returning the complete schema.
 
         Returns:
             A dictionary representing the processed DocType schema.
@@ -142,7 +145,7 @@ class ERPNext(AppConnectorBase):
                 f"Successfully fetched and processed schema for DocType '{doctype}' using meta endpoint."
             )
             logger.debug(f"Metadata for DocType '{doctype}': {doctype_data}")
-            return self._process_doctype_meta(doctype_data, doctype)
+            return self._process_doctype_meta(doctype_data, doctype, essentials_only)
 
         except requests.exceptions.HTTPError as http_err:
             if http_err.response.status_code == 404:
@@ -155,8 +158,8 @@ class ERPNext(AppConnectorBase):
             raise
 
     def _process_doctype_meta(self, meta: dict[str, Any],
-                              doctype_name: str) -> dict[str, Any]:
-        """Processes the metadata from the meta endpoint."""
+                              doctype_name: str, essentials_only: bool = False) -> dict[str, Any]:
+        """Processes the metadata from the meta endpoint, with an option for a minimal response."""
         doctype_info = meta
 
         processed_fields = []
@@ -167,31 +170,44 @@ class ERPNext(AppConnectorBase):
             if is_required:
                 required_fields.append(field.get("fieldname"))
 
-            processed_fields.append({
-                "fieldname": field.get("fieldname"),
-                "label": field.get("label"),
-                "fieldtype": field.get("fieldtype"),
+            field_data = {
+                "field_name": field.get("fieldname"),
+                "field_type": field.get("fieldtype"),
+                "linked_doctype": field.get("options") if field.get("fieldtype") == "Link" else None,
                 "required": is_required,
                 "description": field.get("description"),
                 "default": field.get("default"),
-                "min_length": field.get("min_length"),
-                "max_length": field.get("max_length"),
-                "min_value": field.get("min_value"),
-                "max_value": field.get("max_value"),
-                "read_only": field.get("read_only") == 1,
-            })
+            }
 
-        return {
+            if not essentials_only:
+                field_data.update({
+                    "label": field.get("label"),
+                    "min_length": field.get("min_length"),
+                    "max_length": field.get("max_length"),
+                    "min_value": field.get("min_value"),
+                    "max_value": field.get("max_value"),
+                    "read_only": field.get("read_only") == 1,
+                })
+            
+            processed_fields.append(field_data)
+
+        schema = {
             "name": doctype_info.get("name", doctype_name),
             "description": doctype_info.get("description"),
             "module": doctype_info.get("module"),
             "required_fields": required_fields,
-            "is_single": doctype_info.get("issingle") == 1,
-            "is_table": doctype_info.get("istable") == 1,
-            "is_custom": doctype_info.get("custom") == 1,
             "fields": processed_fields,
-            "is_submittable": doctype_info.get("is_submittable") == 1,
         }
+
+        if not essentials_only:
+            schema.update({
+                "is_single": doctype_info.get("issingle") == 1,
+                "is_table": doctype_info.get("istable") == 1,
+                "is_custom": doctype_info.get("custom") == 1,
+                "is_submittable": doctype_info.get("is_submittable") == 1,
+            })
+        
+        return schema
 
 
 # Alias for dynamic import by the ConnectorFunctionExecutor.
