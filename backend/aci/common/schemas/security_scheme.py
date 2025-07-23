@@ -18,6 +18,20 @@ class APIKeyScheme(BaseModel):
         default=None,
         description="The prefix of the API key in the request, e.g., 'Bearer'. If None, no prefix will be used.",
     )
+    api_host_url: str | None = Field(
+        default=None,
+        min_length=1,
+        max_length=2048,
+        description="Custom API host URL for white-labeling. If provided, overrides the default server URL.",
+    )
+
+    @field_validator("api_host_url")
+    def validate_api_host_url(cls, v: str | None) -> str | None:
+        if v is None:
+            return v
+        if not (v.startswith("http://") or v.startswith("https://")):
+            raise ValueError("API host URL must start with http:// or https://")
+        return v.rstrip('/')  # Remove trailing slash for consistency
 
 
 # NOTE: not necessary but for the sake of consistency and future use
@@ -134,6 +148,24 @@ class OAuth2SchemeOverride(BaseModel):
     # TODO: might need to support "scope" in the future
 
 
+class APIKeySchemeOverride(BaseModel):
+    """
+    Fields that are allowed to be overridden for API key authentication.
+    """
+    api_host_url: str = Field(
+        ...,
+        min_length=1,
+        max_length=2048,
+        description="Custom API host URL for white-labeling. Must include protocol (http/https)."
+    )
+
+    @field_validator("api_host_url")
+    def validate_api_host_url(cls, v: str) -> str:
+        if not (v.startswith("http://") or v.startswith("https://")):
+            raise ValueError("API host URL must start with http:// or https://")
+        return v.rstrip('/')  # Remove trailing slash for consistency
+
+
 class NoAuthScheme(BaseModel, extra="forbid"):
     """
     model for security scheme that has no authentication.
@@ -230,10 +262,10 @@ class SecuritySchemesPublic(BaseModel):
 class SecuritySchemeOverrides(BaseModel, extra="forbid"):
     """
     Allowed security scheme overrides
-    NOTE: for now we only support oauth2 overrides (because nothing is overridable for api_key and no_auth)
     """
 
     oauth2: OAuth2SchemeOverride | None = None
+    api_key: APIKeySchemeOverride | None = None
 
 
 TScheme = TypeVar("TScheme", APIKeyScheme, OAuth2Scheme, NoAuthScheme)
