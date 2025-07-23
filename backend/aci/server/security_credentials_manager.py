@@ -34,7 +34,7 @@ async def get_security_credentials(
     app: App, app_configuration: AppConfiguration, linked_account: LinkedAccount
 ) -> SecurityCredentialsResponse:
     if linked_account.security_scheme == SecurityScheme.API_KEY:
-        return _get_api_key_credentials(app, linked_account)
+        return _get_api_key_credentials(app, app_configuration, linked_account)
     elif linked_account.security_scheme == SecurityScheme.OAUTH2:
         return await _get_oauth2_credentials(app, app_configuration, linked_account)
     elif linked_account.security_scheme == SecurityScheme.NO_AUTH:
@@ -163,7 +163,7 @@ async def _refresh_oauth2_access_token(
 
 
 def _get_api_key_credentials(
-    app: App, linked_account: LinkedAccount
+    app: App, app_configuration: AppConfiguration, linked_account: LinkedAccount
 ) -> SecurityCredentialsResponse:
     """
     Get API key credentials from linked account or use app's default credentials if no linked account's API key is found
@@ -187,8 +187,11 @@ def _get_api_key_credentials(
             f"linked_account_owner_id={linked_account.linked_account_owner_id}"
         )
 
+    # Get API key scheme with potential overrides applied
+    api_key_scheme = get_app_configuration_api_key_scheme(app, app_configuration)
+
     return SecurityCredentialsResponse(
-        scheme=APIKeyScheme.model_validate(app.security_schemes[SecurityScheme.API_KEY]),
+        scheme=api_key_scheme,
         credentials=APIKeySchemeCredentials.model_validate(security_credentials),
         is_app_default_credentials=not bool(linked_account.security_credentials),
         is_updated=False,
@@ -236,3 +239,56 @@ def get_app_configuration_oauth2_scheme(
         )
 
     return oauth2_scheme
+
+
+def get_app_configuration_api_key_scheme(
+    app: App, app_configuration: AppConfiguration
+) -> APIKeyScheme:
+    """
+    Get the API key scheme for an app configuration, taking into account potential overrides.
+    Similar to get_app_configuration_oauth2_scheme but for API key authentication.
+    """
+    try:
+        api_key_scheme = APIKeyScheme.model_validate(app.security_schemes[SecurityScheme.API_KEY])
+    except Exception as e:
+        logger.error(
+            f"Failed to validate API key scheme for app={app.name}, "
+            f"app_configuration_id={app_configuration.id}, error={str(e)}"
+        )
+        raise ValueError(f"Invalid API key scheme configuration for app {app.name}") from e
+
+    try:
+        # Parse the security scheme overrides
+        security_scheme_overrides = SecuritySchemeOverrides.model_validate(
+            app_configuration.security_scheme_overrides
+        )
+    except Exception as e:
+        logger.error(
+            f"Failed to parse security scheme overrides for app={app.name}, "
+            f"app_configuration_id={app_configuration.id}, "
+            f"overrides={app_configuration.security_scheme_overrides}, error={str(e)}"
+        )
+        # Return the base scheme without overrides if parsing fails
+        return api_key_scheme
+
+    # Apply api_key overrides if they exist
+    if security_scheme_overrides.api_key:
+        try:
+            api_key_scheme = api_key_scheme.model_copy(
+                update=security_scheme_overrides.api_key.model_dump(exclude_none=True)
+            )
+            logger.info(
+                f"Applied API key overrides for app={app.name}, "
+                f"app_configuration_id={app_configuration.id}, "
+                f"api_host_url={security_scheme_overrides.api_key.api_host_url}"
+            )
+        except Exception as e:
+            logger.error(
+                f"Failed to apply API key overrides for app={app.name}, "
+                f"app_configuration_id={app_configuration.id}, "
+                f"overrides={security_scheme_overrides.api_key}, error={str(e)}"
+            )
+            # Return the base scheme without overrides if applying overrides fails
+            return api_key_scheme
+
+    return api_key_scheme
