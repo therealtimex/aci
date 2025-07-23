@@ -32,7 +32,7 @@
   - Add detailed logging for host URL selection decisions
   - _Requirements: 2.1, 2.2, 2.4, 5.1, 5.2_
 
-- [ ] 5. Update app configuration validation logic
+- [x] 5. Update app configuration validation logic
 
   - Extend AppConfigurationCreate.check_security_scheme_matches_override validator
   - Add validation to reject api_key overrides when security_scheme is not API_KEY

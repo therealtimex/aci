@@ -1,14 +1,20 @@
 import pytest
 from unittest.mock import patch
 
-from aci.common.db.sql_models import App, AppConfiguration
+from aci.common.db.sql_models import App, AppConfiguration, LinkedAccount
 from aci.common.enums import SecurityScheme
+from aci.common.exceptions import NoImplementationFound
 from aci.common.schemas.security_scheme import (
     APIKeyScheme,
+    APIKeySchemeCredentials,
     APIKeySchemeOverride,
     SecuritySchemeOverrides,
 )
-from aci.server.security_credentials_manager import get_app_configuration_api_key_scheme
+from aci.server.security_credentials_manager import (
+    get_app_configuration_api_key_scheme,
+    _get_api_key_credentials,
+    SecurityCredentialsResponse,
+)
 
 
 class TestGetAppConfigurationApiKeyScheme:
@@ -283,3 +289,239 @@ class TestGetAppConfigurationApiKeyScheme:
         log_call_args = mock_logger.error.call_args[0][0]
         assert "Failed to parse security scheme overrides" in log_call_args
         assert "test_app" in log_call_args
+
+
+class TestGetApiKeyCredentials:
+    """Test cases for _get_api_key_credentials function."""
+
+    def test_get_api_key_credentials_with_linked_account_credentials(self):
+        """Test getting API key credentials when linked account has credentials."""
+        # Create mock app with API key scheme
+        mock_app = App()
+        mock_app.name = "test_app"
+        mock_app.security_schemes = {
+            SecurityScheme.API_KEY: {
+                "location": "header",
+                "name": "X-API-Key",
+                "prefix": None,
+                "api_host_url": None,
+            }
+        }
+        mock_app.default_security_credentials_by_scheme = {}
+
+        # Create mock app configuration without overrides
+        mock_app_config = AppConfiguration()
+        mock_app_config.id = 1
+        mock_app_config.security_scheme_overrides = {}
+
+        # Create mock linked account with credentials
+        mock_linked_account = LinkedAccount()
+        mock_linked_account.id = 1
+        mock_linked_account.security_scheme = SecurityScheme.API_KEY
+        mock_linked_account.security_credentials = {"secret_key": "test_api_key"}
+        mock_linked_account.linked_account_owner_id = "user123"
+
+        # Call the function
+        result = _get_api_key_credentials(mock_app, mock_app_config, mock_linked_account)
+
+        # Verify the result
+        assert isinstance(result, SecurityCredentialsResponse)
+        assert isinstance(result.scheme, APIKeyScheme)
+        assert result.scheme.location.value == "header"
+        assert result.scheme.name == "X-API-Key"
+        assert result.scheme.prefix is None
+        assert result.scheme.api_host_url is None
+        assert isinstance(result.credentials, APIKeySchemeCredentials)
+        assert result.credentials.secret_key == "test_api_key"
+        assert result.is_app_default_credentials is False
+        assert result.is_updated is False
+
+    def test_get_api_key_credentials_with_app_default_credentials(self):
+        """Test getting API key credentials when using app default credentials."""
+        # Create mock app with API key scheme and default credentials
+        mock_app = App()
+        mock_app.name = "test_app"
+        mock_app.security_schemes = {
+            SecurityScheme.API_KEY: {
+                "location": "header",
+                "name": "Authorization",
+                "prefix": "Bearer",
+                "api_host_url": None,
+            }
+        }
+        mock_app.default_security_credentials_by_scheme = {
+            SecurityScheme.API_KEY: {"secret_key": "default_api_key"}
+        }
+
+        # Create mock app configuration without overrides
+        mock_app_config = AppConfiguration()
+        mock_app_config.id = 1
+        mock_app_config.security_scheme_overrides = {}
+
+        # Create mock linked account without credentials
+        mock_linked_account = LinkedAccount()
+        mock_linked_account.id = 1
+        mock_linked_account.security_scheme = SecurityScheme.API_KEY
+        mock_linked_account.security_credentials = None
+        mock_linked_account.linked_account_owner_id = "user123"
+
+        # Call the function
+        result = _get_api_key_credentials(mock_app, mock_app_config, mock_linked_account)
+
+        # Verify the result
+        assert isinstance(result, SecurityCredentialsResponse)
+        assert isinstance(result.scheme, APIKeyScheme)
+        assert result.scheme.location.value == "header"
+        assert result.scheme.name == "Authorization"
+        assert result.scheme.prefix == "Bearer"
+        assert result.scheme.api_host_url is None
+        assert isinstance(result.credentials, APIKeySchemeCredentials)
+        assert result.credentials.secret_key == "default_api_key"
+        assert result.is_app_default_credentials is True
+        assert result.is_updated is False
+
+    def test_get_api_key_credentials_with_host_override(self):
+        """Test getting API key credentials with api_host_url override."""
+        # Create mock app with API key scheme
+        mock_app = App()
+        mock_app.name = "test_app"
+        mock_app.security_schemes = {
+            SecurityScheme.API_KEY: {
+                "location": "header",
+                "name": "X-API-Key",
+                "prefix": None,
+                "api_host_url": None,
+            }
+        }
+        mock_app.default_security_credentials_by_scheme = {}
+
+        # Create mock app configuration with API key host override
+        mock_app_config = AppConfiguration()
+        mock_app_config.id = 1
+        mock_app_config.security_scheme_overrides = {
+            "api_key": {
+                "api_host_url": "https://custom-api.example.com"
+            }
+        }
+
+        # Create mock linked account with credentials
+        mock_linked_account = LinkedAccount()
+        mock_linked_account.id = 1
+        mock_linked_account.security_scheme = SecurityScheme.API_KEY
+        mock_linked_account.security_credentials = {"secret_key": "test_api_key"}
+        mock_linked_account.linked_account_owner_id = "user123"
+
+        # Call the function
+        result = _get_api_key_credentials(mock_app, mock_app_config, mock_linked_account)
+
+        # Verify the result
+        assert isinstance(result, SecurityCredentialsResponse)
+        assert isinstance(result.scheme, APIKeyScheme)
+        assert result.scheme.location.value == "header"
+        assert result.scheme.name == "X-API-Key"
+        assert result.scheme.prefix is None
+        assert result.scheme.api_host_url == "https://custom-api.example.com"
+        assert isinstance(result.credentials, APIKeySchemeCredentials)
+        assert result.credentials.secret_key == "test_api_key"
+        assert result.is_app_default_credentials is False
+        assert result.is_updated is False
+
+    def test_get_api_key_credentials_no_credentials_available(self):
+        """Test error handling when no credentials are available."""
+        # Create mock app with API key scheme but no default credentials
+        mock_app = App()
+        mock_app.name = "test_app"
+        mock_app.security_schemes = {
+            SecurityScheme.API_KEY: {
+                "location": "header",
+                "name": "X-API-Key",
+                "prefix": None,
+                "api_host_url": None,
+            }
+        }
+        mock_app.default_security_credentials_by_scheme = {}
+
+        # Create mock app configuration
+        mock_app_config = AppConfiguration()
+        mock_app_config.id = 1
+        mock_app_config.security_scheme_overrides = {}
+
+        # Create mock linked account without credentials
+        mock_linked_account = LinkedAccount()
+        mock_linked_account.id = 1
+        mock_linked_account.security_scheme = SecurityScheme.API_KEY
+        mock_linked_account.security_credentials = None
+        mock_linked_account.linked_account_owner_id = "user123"
+
+        # Call the function and expect NoImplementationFound
+        with pytest.raises(NoImplementationFound, match="No API key credentials usable"):
+            _get_api_key_credentials(mock_app, mock_app_config, mock_linked_account)
+
+    def test_get_api_key_credentials_empty_credentials_dict(self):
+        """Test error handling when credentials are empty dict."""
+        # Create mock app with API key scheme but no default credentials
+        mock_app = App()
+        mock_app.name = "test_app"
+        mock_app.security_schemes = {
+            SecurityScheme.API_KEY: {
+                "location": "header",
+                "name": "X-API-Key",
+                "prefix": None,
+                "api_host_url": None,
+            }
+        }
+        mock_app.default_security_credentials_by_scheme = {}
+
+        # Create mock app configuration
+        mock_app_config = AppConfiguration()
+        mock_app_config.id = 1
+        mock_app_config.security_scheme_overrides = {}
+
+        # Create mock linked account with empty credentials dict
+        mock_linked_account = LinkedAccount()
+        mock_linked_account.id = 1
+        mock_linked_account.security_scheme = SecurityScheme.API_KEY
+        mock_linked_account.security_credentials = {}  # Empty dict
+        mock_linked_account.linked_account_owner_id = "user123"
+
+        # Call the function and expect NoImplementationFound
+        with pytest.raises(NoImplementationFound, match="No API key credentials usable"):
+            _get_api_key_credentials(mock_app, mock_app_config, mock_linked_account)
+
+    @patch('aci.server.security_credentials_manager.get_app_configuration_api_key_scheme')
+    def test_get_api_key_credentials_uses_scheme_function(self, mock_get_scheme):
+        """Test that _get_api_key_credentials uses get_app_configuration_api_key_scheme."""
+        # Setup mock return value
+        mock_scheme = APIKeyScheme(
+            location="header",
+            name="X-API-Key",
+            prefix=None,
+            api_host_url="https://custom-api.example.com"
+        )
+        mock_get_scheme.return_value = mock_scheme
+
+        # Create mock app
+        mock_app = App()
+        mock_app.name = "test_app"
+        mock_app.default_security_credentials_by_scheme = {}
+
+        # Create mock app configuration
+        mock_app_config = AppConfiguration()
+        mock_app_config.id = 1
+
+        # Create mock linked account with credentials
+        mock_linked_account = LinkedAccount()
+        mock_linked_account.id = 1
+        mock_linked_account.security_scheme = SecurityScheme.API_KEY
+        mock_linked_account.security_credentials = {"secret_key": "test_api_key"}
+        mock_linked_account.linked_account_owner_id = "user123"
+
+        # Call the function
+        result = _get_api_key_credentials(mock_app, mock_app_config, mock_linked_account)
+
+        # Verify that get_app_configuration_api_key_scheme was called
+        mock_get_scheme.assert_called_once_with(mock_app, mock_app_config)
+
+        # Verify the result uses the mocked scheme
+        assert result.scheme == mock_scheme
+        assert result.scheme.api_host_url == "https://custom-api.example.com"
