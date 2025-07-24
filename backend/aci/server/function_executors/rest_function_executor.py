@@ -33,6 +33,57 @@ class RestFunctionExecutor(FunctionExecutor[TScheme, TCred], Generic[TScheme, TC
     ) -> None:
         pass
 
+    def _construct_url(
+        self,
+        function: Function,
+        protocol_data: RestMetadata,
+        security_scheme: TScheme,
+        path_params: dict,
+    ) -> str:
+        """
+        Construct the request URL, using custom API host if available in security scheme.
+
+        Args:
+            function: Function object containing app information
+            protocol_data: Function protocol metadata containing default server URL and path
+            security_scheme: Security scheme that may contain api_host_url override
+            path_params: Path parameters to substitute in the URL
+
+        Returns:
+            Complete URL for the API request
+
+        Raises:
+            ValueError: If app requires api_host_url but none is provided
+        """
+        # Check if security scheme has api_host_url override (for API key schemes)
+        if hasattr(security_scheme, "api_host_url") and security_scheme.api_host_url:
+            base_url = security_scheme.api_host_url
+            logger.info(f"Using custom API host URL: {base_url} for function: {function.name}")
+        else:
+            # Check if the app's API key scheme requires api_host_url but none was provided
+            if (
+                hasattr(security_scheme, "requires_api_host_url")
+                and security_scheme.requires_api_host_url
+            ):
+                raise ValueError(
+                    f"App {function.app.name} requires api_host_url to be configured, "
+                    f"but none was provided in the security scheme overrides. "
+                    f"Please configure api_host_url in your app configuration."
+                )
+
+            base_url = protocol_data.server_url
+            logger.debug(f"Using default API host URL: {base_url} for function: {function.name}")
+
+        # Construct URL with path parameters, preserving the path from protocol_data
+        url = f"{base_url}{protocol_data.path}"
+
+        # Replace path parameters in URL if any exist
+        if path_params:
+            for path_param_name, path_param_value in path_params.items():
+                url = url.replace(f"{{{path_param_name}}}", str(path_param_value))
+
+        return url
+
     @override
     def _execute(
         self,
@@ -49,12 +100,9 @@ class RestFunctionExecutor(FunctionExecutor[TScheme, TCred], Generic[TScheme, TC
         body: dict = function_input.get("body", {})
 
         protocol_data = RestMetadata.model_validate(function.protocol_data)
-        # Construct URL with path parameters
-        url = f"{protocol_data.server_url}{protocol_data.path}"
-        if path:
-            # Replace path parameters in URL
-            for path_param_name, path_param_value in path.items():
-                url = url.replace(f"{{{path_param_name}}}", str(path_param_value))
+
+        # Construct URL using helper method
+        url = self._construct_url(function, protocol_data, security_scheme, path)
 
         self._inject_credentials(
             security_scheme, security_credentials, headers, query, body, cookies

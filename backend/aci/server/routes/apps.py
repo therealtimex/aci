@@ -5,7 +5,7 @@ from openai import OpenAI
 
 from aci.common.db import crud
 from aci.common.embeddings import generate_embedding
-from aci.common.enums import Visibility
+from aci.common.enums import SecurityScheme, Visibility
 from aci.common.exceptions import AppNotFound
 from aci.common.logging_setup import get_logger
 from aci.common.schemas.app import (
@@ -15,7 +15,7 @@ from aci.common.schemas.app import (
     AppsSearch,
 )
 from aci.common.schemas.function import BasicFunctionDefinition, FunctionDetails
-from aci.common.schemas.security_scheme import SecuritySchemesPublic
+from aci.common.schemas.security_scheme import APIKeySchemePublic, SecuritySchemesPublic
 from aci.server import config
 from aci.server import dependencies as deps
 
@@ -23,6 +23,41 @@ logger = get_logger(__name__)
 router = APIRouter()
 # TODO: will this be a bottleneck and problem if high concurrent requests from users?
 openai_client = OpenAI(api_key=config.OPENAI_API_KEY)
+
+
+def _create_enhanced_security_schemes_public(app) -> SecuritySchemesPublic:
+    """
+    Create SecuritySchemesPublic with enhanced information about API key requirements.
+
+    Args:
+        app: App object with security_schemes and functions
+
+    Returns:
+        SecuritySchemesPublic with api_host_url requirement information
+    """
+    # Start with the base SecuritySchemesPublic
+    security_schemes_public = SecuritySchemesPublic.model_validate(app.security_schemes)
+
+    # Check if API key scheme exists and if api_host_url is required
+    if SecurityScheme.API_KEY in app.security_schemes:
+        from aci.common.schemas.security_scheme import APIKeyScheme
+
+        # Parse the APIKeyScheme to check if api_host_url is required
+        try:
+            api_key_scheme = APIKeyScheme.model_validate(
+                app.security_schemes[SecurityScheme.API_KEY]
+            )
+            if api_key_scheme.requires_api_host_url:
+                security_schemes_public.api_key = APIKeySchemePublic(
+                    api_host_url={"required": True}
+                )
+            else:
+                security_schemes_public.api_key = APIKeySchemePublic()
+        except Exception as e:
+            logger.warning(f"Error parsing APIKeyScheme for app {app.name}: {e}")
+            security_schemes_public.api_key = APIKeySchemePublic()
+
+    return security_schemes_public
 
 
 @router.get("", response_model_exclude_none=True)
@@ -57,7 +92,7 @@ async def list_apps(
             active=app.active,
             security_schemes=list(app.security_schemes.keys()),
             # TODO: check validation latency
-            supported_security_schemes=SecuritySchemesPublic.model_validate(app.security_schemes),
+            supported_security_schemes=_create_enhanced_security_schemes_public(app),
             functions=[FunctionDetails.model_validate(function) for function in app.functions],
             created_at=app.created_at,
             updated_at=app.updated_at,
@@ -175,7 +210,7 @@ async def get_app_details(
         visibility=app.visibility,
         active=app.active,
         security_schemes=list(app.security_schemes.keys()),
-        supported_security_schemes=SecuritySchemesPublic.model_validate(app.security_schemes),
+        supported_security_schemes=_create_enhanced_security_schemes_public(app),
         functions=[FunctionDetails.model_validate(function) for function in functions],
         created_at=app.created_at,
         updated_at=app.updated_at,
