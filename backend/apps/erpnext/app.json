@@ -9,7 +9,8 @@
     "api_key": {
       "location": "header",
       "name": "Authorization",
-      "prefix": "token"
+      "prefix": "token",
+      "requires_api_host_url": true
     }
   },
   "default_security_credentials_by_scheme": {},
