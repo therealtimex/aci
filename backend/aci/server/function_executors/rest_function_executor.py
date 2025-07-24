@@ -33,6 +33,43 @@ class RestFunctionExecutor(FunctionExecutor[TScheme, TCred], Generic[TScheme, TC
     ) -> None:
         pass
 
+    def _construct_url(
+        self,
+        protocol_data: RestMetadata,
+        security_scheme: TScheme,
+        path_params: dict,
+        function_name: str,
+    ) -> str:
+        """
+        Construct the request URL, using custom API host if available in security scheme.
+
+        Args:
+            protocol_data: Function protocol metadata containing default server URL and path
+            security_scheme: Security scheme that may contain api_host_url override
+            path_params: Path parameters to substitute in the URL
+            function_name: Function name for logging purposes
+
+        Returns:
+            Complete URL for the API request
+        """
+        # Check if security scheme has api_host_url override (for API key schemes)
+        if hasattr(security_scheme, "api_host_url") and security_scheme.api_host_url:
+            base_url = security_scheme.api_host_url
+            logger.info(f"Using custom API host URL: {base_url} for function: {function_name}")
+        else:
+            base_url = protocol_data.server_url
+            logger.debug(f"Using default API host URL: {base_url} for function: {function_name}")
+
+        # Construct URL with path parameters, preserving the path from protocol_data
+        url = f"{base_url}{protocol_data.path}"
+
+        # Replace path parameters in URL if any exist
+        if path_params:
+            for path_param_name, path_param_value in path_params.items():
+                url = url.replace(f"{{{path_param_name}}}", str(path_param_value))
+
+        return url
+
     @override
     def _execute(
         self,
@@ -49,35 +86,9 @@ class RestFunctionExecutor(FunctionExecutor[TScheme, TCred], Generic[TScheme, TC
         body: dict = function_input.get("body", {})
 
         protocol_data = RestMetadata.model_validate(function.protocol_data)
-        
-        # Check if security scheme has api_host_url override (for API key schemes)
-        base_url = protocol_data.server_url
-        if hasattr(security_scheme, 'api_host_url') and security_scheme.api_host_url:
-            try:
-                # Validate the custom host URL format
-                custom_host = security_scheme.api_host_url
-                if not (custom_host.startswith("http://") or custom_host.startswith("https://")):
-                    logger.warning(
-                        f"Custom API host URL has invalid format: {custom_host}. "
-                        f"Falling back to default host: {protocol_data.server_url}"
-                    )
-                else:
-                    base_url = custom_host
-                    logger.info(f"Using custom API host URL: {custom_host} for function: {function.name}")
-            except Exception as e:
-                logger.error(
-                    f"Error processing custom API host URL: {security_scheme.api_host_url}. "
-                    f"Falling back to default host: {protocol_data.server_url}. Error: {e}"
-                )
-        else:
-            logger.debug(f"Using default API host URL: {protocol_data.server_url} for function: {function.name}")
-        
-        # Construct URL with path parameters, preserving the path from protocol_data
-        url = f"{base_url}{protocol_data.path}"
-        if path:
-            # Replace path parameters in URL
-            for path_param_name, path_param_value in path.items():
-                url = url.replace(f"{{{path_param_name}}}", str(path_param_value))
+
+        # Construct URL using helper method
+        url = self._construct_url(protocol_data, security_scheme, path, function.name)
 
         self._inject_credentials(
             security_scheme, security_credentials, headers, query, body, cookies
