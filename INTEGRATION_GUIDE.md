@@ -2,7 +2,7 @@
 
 ## Overview
 
-In the ACI framework, integrations are composed of two main components: **Apps** and **Functions**. Apps define external services (metadata, authentication), while Functions define their specific operations (endpoints, parameters, protocols). This guide provides a complete walkthrough for creating new integrations.
+On the ACI platform, integrations are composed of two definition components: **Apps** and **Functions**. Apps define external services (metadata, authentication), while Functions define their specific operations (endpoints, parameters, protocols). This is a guide for contributors who wish to help contribute new integrations to the platform.
 
 ## 1. App Configuration (`app.json`)
 
@@ -193,7 +193,7 @@ The `GMAIL__SEND_EMAIL` function uses the `connector` protocol, routing executio
 
 ### Parameter Schema with Visibility Rules
 
-The `parameters` object extends JSON Schema with a `visible` field to control which parameters are exposed to AI agents. This creates a clean separation: the AI focuses on user intent, while the framework handles technical details.
+The `parameters` object extends JSON Schema with a `visible` field to control which parameters are exposed to AI agents. This creates a clean separation: the AI focuses on user intent, while the platform handles technical details.
 
 **Key Concept**:
 -   `required`: A JSON Schema keyword for validation. If a parameter is in this list, it must be provided.
@@ -614,7 +614,7 @@ This example demonstrates an OAuth2-protected app that uses the `connector` prot
 
 ## Closing Notes and Further Reading
 
-This guide provides a universal tutorial for integrating apps and functions into ACI, focusing on schema design, step-by-step insertion, and testing. It aligns with key design decisions such as deriving schemas from OpenAPI specs (with modifications like inline objects and visibility fields), centralized authentication, and flexible protocols. For properties not visible to LLMs, ensure defaults are set for required fields.
+This guide provides a basic tutorial for integrating apps and functions to ACI, focusing on schema design, step-by-step insertion, and testing. It aligns with key design decisions such as deriving schemas from OpenAPI specs (with modifications like inline objects and visibility fields), centralized authentication, and flexible protocols. For properties not visible to LLMs, ensure defaults are set for required fields.
 
 **Key References:**
 - [OpenAI Function Calling](https://platform.openai.com/docs/guides/function-calling)
