@@ -1,7 +1,7 @@
 from datetime import datetime
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from aci.common.db.sql_models import MAX_STRING_LENGTH, SecurityScheme
 from aci.common.schemas.security_scheme import (
@@ -22,6 +22,20 @@ class LinkedAccountOAuth2Create(LinkedAccountCreateBase):
 
 class LinkedAccountAPIKeyCreate(LinkedAccountCreateBase):
     api_key: str
+    api_host_url: str | None = Field(
+        default=None,
+        min_length=1,
+        max_length=2048,
+        description="Custom API host URL for this linked account. Required for self-hosted apps.",
+    )
+
+    @field_validator("api_host_url")
+    def validate_api_host_url(cls, v: str | None) -> str | None:
+        if v is None:
+            return v
+        if not (v.startswith("http://") or v.startswith("https://")):
+            raise ValueError("API host URL must start with http:// or https://")
+        return v.rstrip("/")  # Remove trailing slash for consistency
 
 
 class LinkedAccountDefaultCreate(LinkedAccountCreateBase):
