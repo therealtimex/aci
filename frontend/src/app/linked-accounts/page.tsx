@@ -26,7 +26,7 @@ import { EnhancedSwitch } from "@/components/ui-extensions/enhanced-switch/enhan
 import Image from "next/image";
 import { useMetaInfo } from "@/components/context/metainfo";
 import { formatToLocalTime } from "@/utils/time";
-import { ArrowUpDown } from "lucide-react";
+import { ArrowUpDown, User, Users } from "lucide-react";
 import { EnhancedDataTable } from "@/components/ui-extensions/enhanced-data-table/data-table";
 import { createColumnHelper, type ColumnDef } from "@tanstack/react-table";
 import {
@@ -163,7 +163,7 @@ export default function LinkedAccountsPage() {
               }
               className="p-0 h-auto text-left font-normal  hover:bg-transparent focus:ring-0"
             >
-              LINKED ACCOUNT OWNER ID
+              <User className="h-4 w-4" /> LINKED ACCOUNT OWNER ID
               <ArrowUpDown className="h-4 w-4" />
             </Button>
           </div>
@@ -178,6 +178,16 @@ export default function LinkedAccountsPage() {
         },
         enableColumnFilter: true,
         filterFn: "arrIncludes",
+        meta: {
+          filterProps: {
+            icon: Users,
+            optionIcon: User,
+            placeholder: "Filter by linked account owner",
+            placeholderIcon: Users,
+            allText: "All",
+            width: "w-[260px]",
+          },
+        },
       }),
 
       columnHelper.accessor("created_at", {
@@ -350,7 +360,7 @@ export default function LinkedAccountsPage() {
                 data={tableData}
                 defaultSorting={[{ id: "app_name", desc: false }]}
                 searchBarProps={{
-                  placeholder: "Search linked accounts",
+                  placeholder: "Search AppName",
                 }}
                 paginationOptions={{
                   initialPageIndex: 0,
