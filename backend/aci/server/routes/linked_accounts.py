@@ -18,6 +18,7 @@ from aci.common.exceptions import (
     NoImplementationFound,
     OAuth2Error,
     ProjectNotFound,
+    ValidationError,
 )
 from aci.common.logging_setup import get_logger
 from aci.common.schemas.linked_accounts import (
@@ -32,6 +33,7 @@ from aci.common.schemas.linked_accounts import (
     LinkedAccountWithCredentials,
 )
 from aci.common.schemas.security_scheme import (
+    APIKeyScheme,
     APIKeySchemeCredentials,
     NoAuthSchemeCredentials,
 )
@@ -263,6 +265,21 @@ async def link_account_with_api_key(
             f"the security_scheme configured for app={body.app_name} is "
             f"{app_configuration.security_scheme}, not api_key"
         )
+
+    # Check if the app requires api_host_url but none was provided
+    api_key_scheme = APIKeyScheme.model_validate(
+        app_configuration.app.security_schemes[SecurityScheme.API_KEY]
+    )
+    if api_key_scheme.requires_api_host_url and not body.api_host_url:
+        logger.error(
+            f"Failed to link api_key account, app requires api_host_url but none provided, "
+            f"app_name={body.app_name}"
+        )
+        raise ValidationError(
+            f"App {body.app_name} requires api_host_url to be provided, "
+            f"but none was provided in the request. Please provide api_host_url."
+        )
+
     linked_account = crud.linked_accounts.get_linked_account(
         context.db_session,
         context.project.id,
@@ -271,6 +288,7 @@ async def link_account_with_api_key(
     )
     security_credentials = APIKeySchemeCredentials(
         secret_key=body.api_key,
+        api_host_url=body.api_host_url,
     )
     # TODO: same as other linked account creation, we might want to separate the logic for updating and creating a linked account
     # or give warning to clients if the linked account already exists to avoid accidental overwriting the account
