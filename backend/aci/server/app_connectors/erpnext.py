@@ -33,18 +33,16 @@ class ERPNext(AppConnectorBase):
             security_credentials: The API key credentials for authentication.
         """
         super().__init__(linked_account, security_scheme, security_credentials)
-        # The API key is retrieved from the security credentials.
         self.api_key = security_credentials.secret_key
-        # The ERPNext server URL is retrieved from the linked account's metadata.
-        # This URL is expected to be configured by the platform or user during account linking.
-        # Temporary: Hardcoding the ERPNext server URL for development purposes.
-        # In production, this will be dynamically retrieved from linked_account.metadata.
-        self.server_url = "https://erp.realtimex.co"
-        # The original dynamic retrieval and validation logic is commented out for now:
-        # self.server_url = linked_account.metadata.get("AIPOLABS_ERPNEXT_SERVER_URL")
-        # if not self.server_url:
-        #     logger.error("ERPNext server URL not found in linked account metadata.")
-        #     raise ValueError("ERPNext server URL is not configured.")
+        self.server_url = security_credentials.api_host_url
+
+        if not self.api_key:
+            logger.error("ERPNext API key not found in security credentials.")
+            raise ValueError("ERPNext API key is not configured.")
+
+        if not self.server_url:
+            logger.error("ERPNext server URL not found in security credentials.")
+            raise ValueError("ERPNext server URL is not configured.")
 
     @override
     def _before_execute(self) -> None:
