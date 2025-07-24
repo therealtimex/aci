@@ -498,3 +498,16 @@ class MaxAgentSecretsReached(ACIException):
             message=message,
             error_code=status.HTTP_403_FORBIDDEN,
         )
+
+
+class FrontendQaAgentError(ACIException):
+    """
+    Exception raised when an error occurs in the Frontend QA Agent
+    """
+
+    def __init__(self, message: str | None = None):
+        super().__init__(
+            title="Frontend QA Agent error",
+            message=message,
+            error_code=status.HTTP_400_BAD_REQUEST,
+        )
