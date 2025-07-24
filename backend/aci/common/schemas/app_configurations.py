@@ -60,13 +60,7 @@ class AppConfigurationCreate(BaseModel):
         if self.security_scheme_overrides.oauth2:
             if self.security_scheme != SecurityScheme.OAUTH2:
                 raise ValueError(
-                    f"OAuth2 overrides not supported for security scheme {self.security_scheme}"
-                )
-        
-        if self.security_scheme_overrides.api_key:
-            if self.security_scheme != SecurityScheme.API_KEY:
-                raise ValueError(
-                    f"API key overrides not supported for security scheme {self.security_scheme}"
+                    f"unsupported security_scheme_overrides provided for the security scheme {self.security_scheme}"
                 )
         return self
 
