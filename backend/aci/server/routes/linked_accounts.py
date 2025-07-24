@@ -18,6 +18,7 @@ from aci.common.exceptions import (
     NoImplementationFound,
     OAuth2Error,
     ProjectNotFound,
+    ValidationError,
 )
 from aci.common.logging_setup import get_logger
 from aci.common.schemas.linked_accounts import (
@@ -274,7 +275,7 @@ async def link_account_with_api_key(
             f"Failed to link api_key account, app requires api_host_url but none provided, "
             f"app_name={body.app_name}"
         )
-        raise NoImplementationFound(
+        raise ValidationError(
             f"App {body.app_name} requires api_host_url to be provided, "
             f"but none was provided in the request. Please provide api_host_url."
         )

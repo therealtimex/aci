@@ -289,6 +289,19 @@ class InvalidFunctionInput(ACIException):
         )
 
 
+class ValidationError(ACIException):
+    """
+    Exception raised when client-provided data fails validation
+    """
+
+    def __init__(self, message: str | None = None):
+        super().__init__(
+            title="Validation error",
+            message=message,
+            error_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        )
+
+
 class InvalidFunctionDefinitionFormat(ACIException):
     """
     Exception raised when an invalid function definition format is provided
