@@ -24,6 +24,18 @@ class RestMetadata(BaseModel):
     path: str
     server_url: str
 
+    @field_validator("path")
+    def validate_path_starts_with_slash(cls, v: str) -> str:
+        """Ensure path always starts with '/' for proper URL construction."""
+        if not v.startswith("/"):
+            v = f"/{v}"
+        return v
+
+    @field_validator("server_url")
+    def validate_server_url_no_trailing_slash(cls, v: str) -> str:
+        """Remove trailing slash from server_url for consistent URL construction."""
+        return v.rstrip("/")
+
 
 class ConnectorMetadata(RootModel[dict]):
     """placeholder, allow any metadata for connector for now"""
