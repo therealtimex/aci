@@ -24,6 +24,10 @@ class APIKeyScheme(BaseModel):
         max_length=2048,
         description="Custom API host URL for white-labeling. If provided, overrides the default server URL.",
     )
+    requires_api_host_url: bool = Field(
+        default=False,
+        description="Indicates whether this app requires users to provide their own API host URL (for self-hosted apps)",
+    )
 
     @field_validator("api_host_url")
     def validate_api_host_url(cls, v: str | None) -> str | None:
@@ -31,12 +35,15 @@ class APIKeyScheme(BaseModel):
             return v
         if not (v.startswith("http://") or v.startswith("https://")):
             raise ValueError("API host URL must start with http:// or https://")
-        return v.rstrip('/')  # Remove trailing slash for consistency
+        return v.rstrip("/")  # Remove trailing slash for consistency
 
 
 # NOTE: not necessary but for the sake of consistency and future use
 class APIKeySchemePublic(BaseModel):
-    pass
+    api_host_url: dict[str, bool] | None = Field(
+        default=None,
+        description="Information about api_host_url field requirements. Contains 'required' boolean.",
+    )
 
 
 class OAuth2Scheme(BaseModel):
@@ -152,18 +159,19 @@ class APIKeySchemeOverride(BaseModel):
     """
     Fields that are allowed to be overridden for API key authentication.
     """
+
     api_host_url: str = Field(
         ...,
         min_length=1,
         max_length=2048,
-        description="Custom API host URL for white-labeling. Must include protocol (http/https)."
+        description="Custom API host URL for white-labeling. Must include protocol (http/https).",
     )
 
     @field_validator("api_host_url")
     def validate_api_host_url(cls, v: str) -> str:
         if not (v.startswith("http://") or v.startswith("https://")):
             raise ValueError("API host URL must start with http:// or https://")
-        return v.rstrip('/')  # Remove trailing slash for consistency
+        return v.rstrip("/")  # Remove trailing slash for consistency
 
 
 class NoAuthScheme(BaseModel, extra="forbid"):

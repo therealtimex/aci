@@ -35,30 +35,44 @@ class RestFunctionExecutor(FunctionExecutor[TScheme, TCred], Generic[TScheme, TC
 
     def _construct_url(
         self,
+        function: Function,
         protocol_data: RestMetadata,
         security_scheme: TScheme,
         path_params: dict,
-        function_name: str,
     ) -> str:
         """
         Construct the request URL, using custom API host if available in security scheme.
 
         Args:
+            function: Function object containing app information
             protocol_data: Function protocol metadata containing default server URL and path
             security_scheme: Security scheme that may contain api_host_url override
             path_params: Path parameters to substitute in the URL
-            function_name: Function name for logging purposes
 
         Returns:
             Complete URL for the API request
+
+        Raises:
+            ValueError: If app requires api_host_url but none is provided
         """
         # Check if security scheme has api_host_url override (for API key schemes)
         if hasattr(security_scheme, "api_host_url") and security_scheme.api_host_url:
             base_url = security_scheme.api_host_url
-            logger.info(f"Using custom API host URL: {base_url} for function: {function_name}")
+            logger.info(f"Using custom API host URL: {base_url} for function: {function.name}")
         else:
+            # Check if the app's API key scheme requires api_host_url but none was provided
+            if (
+                hasattr(security_scheme, "requires_api_host_url")
+                and security_scheme.requires_api_host_url
+            ):
+                raise ValueError(
+                    f"App {function.app.name} requires api_host_url to be configured, "
+                    f"but none was provided in the security scheme overrides. "
+                    f"Please configure api_host_url in your app configuration."
+                )
+
             base_url = protocol_data.server_url
-            logger.debug(f"Using default API host URL: {base_url} for function: {function_name}")
+            logger.debug(f"Using default API host URL: {base_url} for function: {function.name}")
 
         # Construct URL with path parameters, preserving the path from protocol_data
         url = f"{base_url}{protocol_data.path}"
@@ -88,7 +102,7 @@ class RestFunctionExecutor(FunctionExecutor[TScheme, TCred], Generic[TScheme, TC
         protocol_data = RestMetadata.model_validate(function.protocol_data)
 
         # Construct URL using helper method
-        url = self._construct_url(protocol_data, security_scheme, path, function.name)
+        url = self._construct_url(function, protocol_data, security_scheme, path)
 
         self._inject_credentials(
             security_scheme, security_credentials, headers, query, body, cookies
