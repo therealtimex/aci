@@ -253,7 +253,7 @@ def get_app_configuration_api_key_scheme(
     except Exception as e:
         logger.error(
             f"Failed to validate API key scheme for app={app.name}, "
-            f"app_configuration_id={app_configuration.id}, error={str(e)}"
+            f"app_configuration_id={app_configuration.id}, error={e!s}"
         )
         raise ValueError(f"Invalid API key scheme configuration for app {app.name}") from e
 
@@ -266,7 +266,7 @@ def get_app_configuration_api_key_scheme(
         logger.error(
             f"Failed to parse security scheme overrides for app={app.name}, "
             f"app_configuration_id={app_configuration.id}, "
-            f"overrides={app_configuration.security_scheme_overrides}, error={str(e)}"
+            f"overrides={app_configuration.security_scheme_overrides}, error={e!s}"
         )
         # Return the base scheme without overrides if parsing fails
         return api_key_scheme
@@ -286,7 +286,7 @@ def get_app_configuration_api_key_scheme(
             logger.error(
                 f"Failed to apply API key overrides for app={app.name}, "
                 f"app_configuration_id={app_configuration.id}, "
-                f"overrides={security_scheme_overrides.api_key}, error={str(e)}"
+                f"overrides={security_scheme_overrides.api_key}, error={e!s}"
             )
             # Return the base scheme without overrides if applying overrides fails
             return api_key_scheme
