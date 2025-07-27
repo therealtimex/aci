@@ -104,7 +104,7 @@ export default function RootLayout({
               <SidebarProvider>
                 <AppSidebar />
                 <SidebarInset>
-                  <main className="w-full h-full mr-2 border rounded-lg border-gray-400 border-opacity-30 bg-white">
+                  <main className="w-full h-full mr-2 border rounded-lg bg-white">
                     <Header />
                     {children}
                     <Analytics />
@@ -121,7 +121,7 @@ export default function RootLayout({
           toastOptions={{
             classNames: {
               closeButton:
-                "!text-gray-600 hover:!text-red-500 !h-6 !w-6 !bg-white hover:!bg-red-50 !rounded !border !border-gray-200 hover:!border-red-200 !transition-colors !duration-150",
+                "text-gray-600! hover:text-red-500! h-6! w-6! bg-white! hover:bg-red-50! rounded! border! border-gray-200! hover:border-red-200! transition-colors! duration-150!",
             },
           }}
         />
