@@ -473,6 +473,223 @@ class ERPNext(AppConnectorBase):
                 "language": "en"
             }
 
+    def get_naming_series(
+        self,
+        doctype: str | None = None,
+        include_options: bool = True,
+        include_current_number: bool = False,
+    ) -> dict[str, Any]:
+        """
+        Retrieves naming series information for a specific DocType or all DocTypes.
+        Naming series define how documents are automatically numbered in ERPNext.
+
+        Args:
+            doctype: The DocType to get naming series for. If None, returns for all DocTypes.
+            include_options: Include all available naming series options, not just the default.
+            include_current_number: Include the current number/counter for each naming series.
+
+        Returns:
+            A dictionary containing naming series information with the following structure:
+            If doctype is specified:
+            {
+                "doctype": "Sales Invoice",
+                "has_naming_series": true,
+                "default_series": "SINV-.YYYY.-",
+                "available_series": ["SINV-.YYYY.-", "SI-.####.-"],
+                "current_numbers": {"SINV-.YYYY.-": 1001, "SI-.####.-": 5}
+            }
+            
+            If doctype is None (all DocTypes):
+            {
+                "Sales Invoice": {
+                    "has_naming_series": true,
+                    "default_series": "SINV-.YYYY.-",
+                    "available_series": ["SINV-.YYYY.-", "SI-.####.-"],
+                    "current_numbers": {"SINV-.YYYY.-": 1001}
+                },
+                "Purchase Order": {
+                    "has_naming_series": true,
+                    "default_series": "PO-.YYYY.-",
+                    "available_series": ["PO-.YYYY.-"],
+                    "current_numbers": {"PO-.YYYY.-": 501}
+                }
+            }
+
+        Raises:
+            requests.exceptions.RequestException: If the API call fails.
+            ValueError: If the doctype is not found or invalid.
+        """
+        logger.info(f"Executing get_naming_series for DocType: {doctype or 'all DocTypes'}")
+        headers = {"Authorization": f"token {self.api_key}"}
+
+        try:
+            if doctype:
+                # Get naming series for a specific DocType
+                return self._get_doctype_naming_series(doctype, headers, include_options, include_current_number)
+            else:
+                # Get naming series for all DocTypes
+                return self._get_all_naming_series(headers, include_options, include_current_number)
+
+        except requests.exceptions.RequestException as e:
+            logger.error(f"Error fetching naming series from ERPNext: {e}")
+            raise
+        except Exception as e:
+            logger.error(f"An unexpected error occurred while fetching naming series: {e}")
+            raise
+
+    def _get_doctype_naming_series(
+        self, 
+        doctype: str, 
+        headers: dict[str, str], 
+        include_options: bool, 
+        include_current_number: bool
+    ) -> dict[str, Any]:
+        """Get naming series information for a specific DocType."""
+        try:
+            # First, get the DocType meta to check if it has naming series
+            meta_url = f"{self.server_url}/api/v2/doctype/{doctype}/meta"
+            meta_response = requests.get(meta_url, headers=headers)
+            
+            if meta_response.status_code == 404:
+                raise ValueError(f"DocType '{doctype}' not found.")
+            
+            meta_response.raise_for_status()
+            meta_data = meta_response.json()
+            
+            if "data" not in meta_data:
+                raise ValueError("Invalid response from meta endpoint.")
+
+            doctype_meta = meta_data["data"]
+            
+            # Check if the DocType has naming series
+            has_naming_series = False
+            naming_series_field = None
+            
+            for field in doctype_meta.get("fields", []):
+                if field.get("fieldname") == "naming_series" and field.get("fieldtype") == "Select":
+                    has_naming_series = True
+                    naming_series_field = field
+                    break
+
+            result = {
+                "doctype": doctype,
+                "has_naming_series": has_naming_series,
+                "default_series": None,
+                "available_series": [],
+                "current_numbers": {}
+            }
+
+            if not has_naming_series:
+                logger.info(f"DocType '{doctype}' does not have naming series.")
+                return result
+
+            # Get available naming series options
+            if include_options and naming_series_field:
+                options = naming_series_field.get("options", "")
+                if options:
+                    available_series = [opt.strip() for opt in options.split("\n") if opt.strip()]
+                    result["available_series"] = available_series
+                    
+                    # The first option is typically the default
+                    if available_series:
+                        result["default_series"] = available_series[0]
+
+            # Get current numbers if requested
+            if include_current_number and result["available_series"]:
+                result["current_numbers"] = self._get_current_numbers(result["available_series"], headers)
+
+            logger.info(f"Successfully retrieved naming series for DocType '{doctype}'.")
+            return result
+
+        except requests.exceptions.HTTPError as http_err:
+            if http_err.response.status_code == 404:
+                raise ValueError(f"DocType '{doctype}' not found.") from http_err
+            raise
+        except Exception as e:
+            logger.error(f"Error getting naming series for DocType '{doctype}': {e}")
+            raise
+
+    def _get_all_naming_series(
+        self, 
+        headers: dict[str, str], 
+        include_options: bool, 
+        include_current_number: bool
+    ) -> dict[str, Any]:
+        """Get naming series information for all DocTypes."""
+        try:
+            # Get list of all DocTypes first
+            doctypes_url = f"{self.server_url}/api/resource/DocType"
+            doctypes_response = requests.get(doctypes_url, headers=headers, params={
+                "fields": '["name"]',
+                "limit_page_length": 1000  # Get a large number of DocTypes
+            })
+            doctypes_response.raise_for_status()
+            doctypes_data = doctypes_response.json()
+
+            all_naming_series = {}
+            doctypes = doctypes_data.get("data", [])
+
+            logger.info(f"Found {len(doctypes)} DocTypes to check for naming series.")
+
+            for doctype_info in doctypes:
+                doctype_name = doctype_info.get("name")
+                if not doctype_name:
+                    continue
+
+                try:
+                    # Get naming series for this DocType
+                    doctype_series = self._get_doctype_naming_series(
+                        doctype_name, headers, include_options, include_current_number
+                    )
+                    
+                    # Only include DocTypes that have naming series
+                    if doctype_series["has_naming_series"]:
+                        # Remove the doctype key from the result since it's redundant in this context
+                        series_info = {
+                            "has_naming_series": doctype_series["has_naming_series"],
+                            "default_series": doctype_series["default_series"],
+                            "available_series": doctype_series["available_series"],
+                            "current_numbers": doctype_series["current_numbers"]
+                        }
+                        all_naming_series[doctype_name] = series_info
+
+                except Exception as e:
+                    # Log the error but continue with other DocTypes
+                    logger.warning(f"Could not get naming series for DocType '{doctype_name}': {e}")
+                    continue
+
+            logger.info(f"Successfully retrieved naming series for {len(all_naming_series)} DocTypes.")
+            return all_naming_series
+
+        except Exception as e:
+            logger.error(f"Error getting naming series for all DocTypes: {e}")
+            raise
+
+    def _get_current_numbers(self, series_list: list[str], headers: dict[str, str]) -> dict[str, int]:
+        """Get current numbers for a list of naming series."""
+        current_numbers = {}
+        
+        for series in series_list:
+            try:
+                # Try to get the current number from the Series DocType
+                series_url = f"{self.server_url}/api/resource/Series/{series}"
+                series_response = requests.get(series_url, headers=headers)
+                
+                if series_response.status_code == 200:
+                    series_data = series_response.json()
+                    if "data" in series_data:
+                        current_number = series_data["data"].get("current", 0)
+                        current_numbers[series] = current_number
+                else:
+                    # If Series document doesn't exist, try to get from naming series settings
+                    current_numbers[series] = 1  # Default starting number
+                    
+            except Exception as e:
+                logger.warning(f"Could not get current number for series '{series}': {e}")
+                current_numbers[series] = 1  # Default fallback
+                
+        return current_numbers
+
 
 # Alias for dynamic import by the ConnectorFunctionExecutor.
 # When a tool for the "erpnext" app is executed by an AI Agent,

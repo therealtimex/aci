@@ -316,5 +316,36 @@
             "visible": ["include_company_details", "include_system_settings", "include_user_defaults"],
             "additionalProperties": false
         }
+    },
+    {
+        "name": "ERPNEXT__GET_NAMING_SERIES",
+        "description": "Retrieves naming series information for a specific DocType or all DocTypes. Naming series define how documents are automatically numbered in ERPNext (e.g., 'SINV-', 'PO-YYYY-').",
+        "tags": ["naming", "series", "doctype", "numbering"],
+        "visibility": "public",
+        "active": true,
+        "protocol": "connector",
+        "protocol_data": {},
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "doctype": {
+                    "type": "string",
+                    "description": "The DocType to get naming series for (e.g., 'Sales Invoice', 'Purchase Order'). If not provided, returns naming series for all DocTypes."
+                },
+                "include_options": {
+                    "type": "boolean",
+                    "description": "Include all available naming series options for the DocType, not just the default.",
+                    "default": true
+                },
+                "include_current_number": {
+                    "type": "boolean",
+                    "description": "Include the current number/counter for each naming series.",
+                    "default": false
+                }
+            },
+            "required": [],
+            "visible": ["doctype", "include_options", "include_current_number"],
+            "additionalProperties": false
+        }
     }
 ]
