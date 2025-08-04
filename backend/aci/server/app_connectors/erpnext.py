@@ -207,6 +207,272 @@ class ERPNext(AppConnectorBase):
         
         return schema
 
+    def get_instance_config(
+        self,
+        include_company_details: bool = True,
+        include_system_settings: bool = True,
+        include_user_defaults: bool = True,
+    ) -> dict[str, Any]:
+        """
+        Retrieves ERPNext instance configuration and settings that provide context
+        for AI agents, including company information, system settings, and regional preferences.
+
+        Args:
+            include_company_details: Include detailed information about the default company.
+            include_system_settings: Include system-wide settings and preferences.
+            include_user_defaults: Include current user's default settings.
+
+        Returns:
+            A dictionary containing the instance configuration with the following structure:
+            {
+                "instance": {
+                    "base_url": str,
+                    "version": str,
+                    "title": str
+                },
+                "company": {
+                    "name": str,
+                    "abbr": str,
+                    "country": str,
+                    "currency": str,
+                    "domain": str
+                },
+                "system_settings": {
+                    "country": str,
+                    "time_zone": str,
+                    "date_format": str,
+                    "time_format": str,
+                    "number_format": str,
+                    "float_precision": int,
+                    "currency_precision": int
+                },
+                "user_defaults": {
+                    "company": str,
+                    "fiscal_year": str,
+                    "language": str
+                }
+            }
+
+        Raises:
+            requests.exceptions.RequestException: If any API call fails.
+            ValueError: If required data is not found in the response.
+        """
+        logger.info("Executing get_instance_config to fetch ERPNext instance configuration.")
+        headers = {"Authorization": f"token {self.api_key}"}
+        config = {}
+
+        try:
+            # Get basic instance information
+            config["instance"] = self._get_instance_info(headers)
+
+            # Get company details if requested
+            if include_company_details:
+                config["company"] = self._get_default_company_info(headers)
+
+            # Get system settings if requested
+            if include_system_settings:
+                config["system_settings"] = self._get_system_settings(headers)
+
+            # Get user defaults if requested
+            if include_user_defaults:
+                config["user_defaults"] = self._get_user_defaults(headers)
+
+            logger.info("Successfully retrieved ERPNext instance configuration.")
+            return config
+
+        except requests.exceptions.RequestException as e:
+            logger.error(f"Error fetching instance configuration from ERPNext: {e}")
+            raise
+        except Exception as e:
+            logger.error(f"An unexpected error occurred while fetching instance config: {e}")
+            raise
+
+    def _get_instance_info(self, headers: dict[str, str]) -> dict[str, Any]:
+        """Get basic instance information."""
+        try:
+            # Try to get version info from the version endpoint
+            version_url = f"{self.server_url}/api/method/frappe.utils.change_log.get_versions"
+            response = requests.get(version_url, headers=headers)
+            
+            instance_info = {
+                "base_url": self.server_url,
+                "version": "Unknown",
+                "title": "ERPNext Instance"
+            }
+
+            if response.status_code == 200:
+                version_data = response.json()
+                if "message" in version_data and isinstance(version_data["message"], dict):
+                    # Get ERPNext version
+                    erpnext_version = version_data["message"].get("erpnext", "Unknown")
+                    instance_info["version"] = erpnext_version
+
+            # Try to get system settings for site title
+            try:
+                settings_url = f"{self.server_url}/api/resource/System Settings"
+                settings_response = requests.get(settings_url, headers=headers)
+                if settings_response.status_code == 200:
+                    settings_data = settings_response.json()
+                    if "data" in settings_data and len(settings_data["data"]) > 0:
+                        site_name = settings_data["data"][0].get("site_name")
+                        if site_name:
+                            instance_info["title"] = site_name
+            except Exception:
+                # If we can't get the site name, keep the default
+                pass
+
+            return instance_info
+
+        except Exception as e:
+            logger.warning(f"Could not fetch complete instance info: {e}")
+            return {
+                "base_url": self.server_url,
+                "version": "Unknown",
+                "title": "ERPNext Instance"
+            }
+
+    def _get_default_company_info(self, headers: dict[str, str]) -> dict[str, Any]:
+        """Get information about the default company."""
+        try:
+            # First, try to get the default company from Global Defaults
+            defaults_url = f"{self.server_url}/api/resource/Global Defaults"
+            response = requests.get(defaults_url, headers=headers)
+            
+            default_company = None
+            if response.status_code == 200:
+                defaults_data = response.json()
+                if "data" in defaults_data and len(defaults_data["data"]) > 0:
+                    default_company = defaults_data["data"][0].get("default_company")
+
+            # If no default company found, get the first company
+            if not default_company:
+                companies_url = f"{self.server_url}/api/resource/Company"
+                companies_response = requests.get(companies_url, headers=headers, params={"limit_page_length": 1})
+                if companies_response.status_code == 200:
+                    companies_data = companies_response.json()
+                    if "data" in companies_data and len(companies_data["data"]) > 0:
+                        default_company = companies_data["data"][0].get("name")
+
+            if not default_company:
+                return {"name": "Unknown", "abbr": "", "country": "", "currency": "", "domain": ""}
+
+            # Get detailed company information
+            company_url = f"{self.server_url}/api/resource/Company/{default_company}"
+            company_response = requests.get(company_url, headers=headers)
+            
+            if company_response.status_code == 200:
+                company_data = company_response.json()
+                if "data" in company_data:
+                    company = company_data["data"]
+                    return {
+                        "name": company.get("company_name", company.get("name", "Unknown")),
+                        "abbr": company.get("abbr", ""),
+                        "country": company.get("country", ""),
+                        "currency": company.get("default_currency", ""),
+                        "domain": company.get("domain", "")
+                    }
+
+            return {"name": default_company, "abbr": "", "country": "", "currency": "", "domain": ""}
+
+        except Exception as e:
+            logger.warning(f"Could not fetch company info: {e}")
+            return {"name": "Unknown", "abbr": "", "country": "", "currency": "", "domain": ""}
+
+    def _get_system_settings(self, headers: dict[str, str]) -> dict[str, Any]:
+        """Get system-wide settings."""
+        try:
+            settings_url = f"{self.server_url}/api/resource/System Settings"
+            response = requests.get(settings_url, headers=headers)
+            
+            default_settings = {
+                "country": "",
+                "time_zone": "UTC",
+                "date_format": "dd-mm-yyyy",
+                "time_format": "HH:mm:ss",
+                "number_format": "#,###.##",
+                "float_precision": 3,
+                "currency_precision": 2
+            }
+
+            if response.status_code == 200:
+                settings_data = response.json()
+                if "data" in settings_data and len(settings_data["data"]) > 0:
+                    settings = settings_data["data"][0]
+                    return {
+                        "country": settings.get("country", default_settings["country"]),
+                        "time_zone": settings.get("time_zone", default_settings["time_zone"]),
+                        "date_format": settings.get("date_format", default_settings["date_format"]),
+                        "time_format": settings.get("time_format", default_settings["time_format"]),
+                        "number_format": settings.get("number_format", default_settings["number_format"]),
+                        "float_precision": settings.get("float_precision", default_settings["float_precision"]),
+                        "currency_precision": settings.get("currency_precision", default_settings["currency_precision"])
+                    }
+
+            return default_settings
+
+        except Exception as e:
+            logger.warning(f"Could not fetch system settings: {e}")
+            return {
+                "country": "",
+                "time_zone": "UTC",
+                "date_format": "dd-mm-yyyy",
+                "time_format": "HH:mm:ss",
+                "number_format": "#,###.##",
+                "float_precision": 3,
+                "currency_precision": 2
+            }
+
+    def _get_user_defaults(self, headers: dict[str, str]) -> dict[str, Any]:
+        """Get current user's default settings."""
+        try:
+            # Get current user info
+            user_url = f"{self.server_url}/api/method/frappe.auth.get_logged_user"
+            user_response = requests.get(user_url, headers=headers)
+            
+            defaults = {
+                "company": "",
+                "fiscal_year": "",
+                "language": "en"
+            }
+
+            if user_response.status_code == 200:
+                user_data = user_response.json()
+                current_user = user_data.get("message")
+                
+                if current_user:
+                    # Get user defaults
+                    user_defaults_url = f"{self.server_url}/api/resource/User/{current_user}"
+                    user_defaults_response = requests.get(user_defaults_url, headers=headers)
+                    
+                    if user_defaults_response.status_code == 200:
+                        user_defaults_data = user_defaults_response.json()
+                        if "data" in user_defaults_data:
+                            user_info = user_defaults_data["data"]
+                            defaults["language"] = user_info.get("language", "en")
+
+                    # Try to get user's default company from User Permission or Global Defaults
+                    try:
+                        global_defaults_url = f"{self.server_url}/api/resource/Global Defaults"
+                        global_response = requests.get(global_defaults_url, headers=headers)
+                        if global_response.status_code == 200:
+                            global_data = global_response.json()
+                            if "data" in global_data and len(global_data["data"]) > 0:
+                                global_defaults = global_data["data"][0]
+                                defaults["company"] = global_defaults.get("default_company", "")
+                                defaults["fiscal_year"] = global_defaults.get("current_fiscal_year", "")
+                    except Exception:
+                        pass
+
+            return defaults
+
+        except Exception as e:
+            logger.warning(f"Could not fetch user defaults: {e}")
+            return {
+                "company": "",
+                "fiscal_year": "",
+                "language": "en"
+            }
+
 
 # Alias for dynamic import by the ConnectorFunctionExecutor.
 # When a tool for the "erpnext" app is executed by an AI Agent,

@@ -284,5 +284,37 @@
             "visible": ["doctype", "essentials_only"],
             "additionalProperties": false
         }
+    },
+    {
+        "name": "ERPNEXT__GET_INSTANCE_CONFIG",
+        "description": "Retrieves ERPNext instance configuration and settings that provide context for AI agents, including company information, system settings, and regional preferences.",
+        "tags": ["config", "instance", "system", "settings"],
+        "visibility": "public",
+        "active": true,
+        "protocol": "connector",
+        "protocol_data": {},
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "include_company_details": {
+                    "type": "boolean",
+                    "description": "Include detailed information about the default company.",
+                    "default": true
+                },
+                "include_system_settings": {
+                    "type": "boolean",
+                    "description": "Include system-wide settings and preferences.",
+                    "default": true
+                },
+                "include_user_defaults": {
+                    "type": "boolean",
+                    "description": "Include current user's default settings.",
+                    "default": true
+                }
+            },
+            "required": [],
+            "visible": ["include_company_details", "include_system_settings", "include_user_defaults"],
+            "additionalProperties": false
+        }
     }
 ]
