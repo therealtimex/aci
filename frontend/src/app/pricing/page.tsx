@@ -11,11 +11,14 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { IoMdCheckmark } from "react-icons/io";
-import { Interval } from "@/lib/types/billing";
+import { Interval, Plan } from "@/lib/types/billing";
 import { useSubscription } from "@/hooks/use-subscription";
-import { createCheckoutSession } from "@/lib/api/billing";
+import {
+  createCheckoutSession,
+  createCustomerPortalSession,
+} from "@/lib/api/billing";
 import { useMetaInfo } from "@/components/context/metainfo";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { FaqSection } from "@/components/pricing/faq";
@@ -91,13 +94,6 @@ export default function PricingPage() {
   const [isYearly, setIsYearly] = useState(false);
   const router = useRouter();
 
-  useEffect(() => {
-    if (subscription && subscription.plan !== "free") {
-      router.replace("/account");
-    }
-  }, [subscription, router]);
-
-  // TODO: Enterprise button should have a mail popup
   return (
     <div className="relative bg-background text-foreground py-10 sm:py-14 min-h-screen">
       <Button
@@ -213,13 +209,21 @@ export default function PricingPage() {
                       return;
                     }
 
-                    const url = await createCheckoutSession(
-                      accessToken,
-                      activeOrg.orgId,
-                      tier.name,
-                      isYearly ? Interval.Year : Interval.Month,
-                    );
-                    window.location.href = url;
+                    if (subscription?.plan === Plan.Free) {
+                      const url = await createCheckoutSession(
+                        accessToken,
+                        activeOrg.orgId,
+                        tier.name,
+                        isYearly ? Interval.Year : Interval.Month,
+                      );
+                      window.location.href = url;
+                    } else {
+                      const url = await createCustomerPortalSession(
+                        accessToken,
+                        activeOrg.orgId,
+                      );
+                      window.location.href = url;
+                    }
                   }}
                 >
                   {subscription?.plan === tier.name ? (
