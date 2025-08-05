@@ -104,9 +104,13 @@ class RestFunctionExecutor(FunctionExecutor[TScheme, TCred], Generic[TScheme, TC
         protocol_data = RestMetadata.model_validate(function.protocol_data)
 
         # Construct URL using helper method
-        url = self._construct_url(
-            function, protocol_data, security_scheme, security_credentials, path
-        )
+        try:
+            url = self._construct_url(
+                function, protocol_data, security_scheme, security_credentials, path
+            )
+        except ValueError as e:
+            logger.error(f"URL construction failed for function {function.name}: {e}")
+            return FunctionExecutionResult(success=False, error=str(e))
 
         self._inject_credentials(
             security_scheme, security_credentials, headers, query, body, cookies
