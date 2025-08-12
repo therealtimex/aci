@@ -1,10 +1,11 @@
 import { Plan } from "@/lib/types/billing";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { BsStars } from "react-icons/bs";
 import { RiUserSettingsLine } from "react-icons/ri";
-import Link from "next/link";
 import { SettingsItem } from "./settings-item";
+import { UpgradeButton } from "@/components/layout/subscription-button";
+import { BsStars } from "react-icons/bs";
+import Link from "next/link";
 
 interface SubscriptionDisplayProps {
   subscription:
@@ -34,29 +35,11 @@ export function SubscriptionDisplay({
         ) : subscription ? (
           <div className="mt-1">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium">
-                  {subscription.plan.charAt(0).toUpperCase() +
-                    subscription.plan.slice(1) +
-                    " Plan"}
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  {subscription.plan === Plan.Free
-                    ? "Basic features for small teams"
-                    : "Advanced features for growing organizations"}
-                </p>
-              </div>
-              {subscription.plan === Plan.Free ? (
-                <Link href="/pricing">
-                  <Button className="gap-2">
-                    <BsStars className="h-4 w-4" />
-                    Upgrade
-                  </Button>
-                </Link>
-              ) : (
+              <UpgradeButton size="sm" />
+              {subscription.plan !== Plan.Free && (
                 <Button
-                  variant="outline"
-                  className="gap-2"
+                  variant="default"
+                  className="gap-2 ml-2"
                   onClick={onManageSubscription}
                 >
                   <RiUserSettingsLine className="h-4 w-4" />
@@ -67,7 +50,10 @@ export function SubscriptionDisplay({
             {subscription.plan !== Plan.Free && (
               <p className="text-sm text-muted-foreground mt-2">
                 Need help with your subscription?{" "}
-                <Link href="/support" className="text-primary hover:underline">
+                <Link
+                  href="mailto:support@aipolabs.xyz"
+                  className="text-primary hover:underline"
+                >
                   Contact support
                 </Link>
               </p>

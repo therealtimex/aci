@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { UpgradeButton } from "@/components/layout/subscription-button";
 
 interface QuotaUsageDisplayProps {
   quotaUsage: QuotaUsage;
@@ -59,7 +60,7 @@ export const QuotaUsageDisplay: React.FC<QuotaUsageDisplayProps> = ({
     <Card className="flex flex-col h-full">
       <CardHeader className="flex flex-row items-center justify-between p-4">
         <CardTitle>Quota Usage</CardTitle>
-        <Badge variant="outline">{quotaUsage.plan.name} Plan</Badge>
+        <UpgradeButton size="sm" />
       </CardHeader>
       <Separator />
       <CardContent className="p-4 space-y-6">
@@ -75,7 +76,9 @@ export const QuotaUsageDisplay: React.FC<QuotaUsageDisplayProps> = ({
           limit={quotaUsage.plan.features.linked_accounts}
         />
 
-        <QuotaItem
+        {/* Not displaying the agent credentials and API calls limit for now */}
+        {/* Refer to the prod DB for the actual limits */}
+        {/* <QuotaItem
           title="Agent Credentials"
           used={quotaUsage.agent_credentials_used}
           limit={quotaUsage.plan.features.agent_credentials}
@@ -85,7 +88,7 @@ export const QuotaUsageDisplay: React.FC<QuotaUsageDisplayProps> = ({
           title="API Calls (Across All Projects,Reset Monthly)"
           used={quotaUsage.api_calls_used}
           limit={quotaUsage.plan.features.api_calls_monthly}
-        />
+        /> */}
       </CardContent>
     </Card>
   );

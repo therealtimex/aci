@@ -26,7 +26,7 @@ import { EnhancedSwitch } from "@/components/ui-extensions/enhanced-switch/enhan
 import Image from "next/image";
 import { useMetaInfo } from "@/components/context/metainfo";
 import { formatToLocalTime } from "@/utils/time";
-import { ArrowUpDown } from "lucide-react";
+import { ArrowUpDown, User, Users } from "lucide-react";
 import { EnhancedDataTable } from "@/components/ui-extensions/enhanced-data-table/data-table";
 import { createColumnHelper, type ColumnDef } from "@tanstack/react-table";
 import {
@@ -136,7 +136,7 @@ export default function LinkedAccountsPage() {
           return (
             <div className="flex items-center gap-2">
               {info.row.original.logo && (
-                <div className="relative h-6 w-6 flex-shrink-0 overflow-hidden">
+                <div className="relative h-6 w-6 shrink-0 overflow-hidden">
                   <Image
                     src={info.row.original.logo}
                     alt={`${appName} logo`}
@@ -163,7 +163,7 @@ export default function LinkedAccountsPage() {
               }
               className="p-0 h-auto text-left font-normal  hover:bg-transparent focus:ring-0"
             >
-              LINKED ACCOUNT OWNER ID
+              <User className="h-4 w-4" /> LINKED ACCOUNT OWNER ID
               <ArrowUpDown className="h-4 w-4" />
             </Button>
           </div>
@@ -171,13 +171,23 @@ export default function LinkedAccountsPage() {
         cell: (info) => {
           const [ownerId] = info.getValue();
           return (
-            <div className="flex-shrink-0">
+            <div className="shrink-0">
               <IdDisplay id={ownerId} />
             </div>
           );
         },
         enableColumnFilter: true,
         filterFn: "arrIncludes",
+        meta: {
+          filterProps: {
+            icon: Users,
+            optionIcon: User,
+            placeholder: "Filter by linked account owner",
+            placeholderIcon: Users,
+            allText: "All",
+            width: "w-[260px]",
+          },
+        },
       }),
 
       columnHelper.accessor("created_at", {
@@ -255,7 +265,7 @@ export default function LinkedAccountsPage() {
           return (
             <AlertDialog>
               <AlertDialogTrigger asChild>
-                <Button variant="ghost" size="sm" className="text-red-600">
+                <Button variant="ghost" size="sm" className="text-destructive">
                   <GoTrash />
                 </Button>
               </AlertDialogTrigger>
@@ -337,7 +347,7 @@ export default function LinkedAccountsPage() {
               <div className="flex items-center justify-center p-8">
                 <div className="flex flex-col items-center space-y-4">
                   <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
-                  <p className="text-sm text-gray-500">Loading...</p>
+                  <p className="text-sm text-muted-foreground">Loading...</p>
                 </div>
               </div>
             ) : tableData.length === 0 ? (
@@ -350,7 +360,7 @@ export default function LinkedAccountsPage() {
                 data={tableData}
                 defaultSorting={[{ id: "app_name", desc: false }]}
                 searchBarProps={{
-                  placeholder: "Search linked accounts",
+                  placeholder: "Search AppName",
                 }}
                 paginationOptions={{
                   initialPageIndex: 0,
