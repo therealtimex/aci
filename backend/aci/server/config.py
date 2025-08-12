@@ -18,6 +18,7 @@ COOKIE_KEY_FOR_AUTH_TOKEN = "accessToken"
 
 # Google Auth
 GOOGLE_AUTH_CLIENT_SCOPE = "openid email profile"
+
 DB_SCHEME = check_and_get_env_variable("SERVER_DB_SCHEME")
 DB_USER = check_and_get_env_variable("SERVER_DB_USER")
 DB_PASSWORD = check_and_get_env_variable("SERVER_DB_PASSWORD")
@@ -63,6 +64,7 @@ ROUTER_PREFIX_ANALYTICS = "/v1/analytics"
 ROUTER_PREFIX_WEBHOOKS = "/v1/webhooks"
 ROUTER_PREFIX_BILLING = "/v1/billing"
 ROUTER_PREFIX_ORGANIZATIONS = "/v1/organizations"
+ROUTER_PREFIX_DOCS = "/v1/docs"
 
 # DEV PORTAL
 DEV_PORTAL_URL = check_and_get_env_variable("SERVER_DEV_PORTAL_URL")
@@ -82,6 +84,13 @@ INTERNAL_API_KEY_HEADER = "X-AUTH-API-KEY"
 
 # 8KB
 MAX_LOG_FIELD_SIZE = 8 * 1024
+
+# Agentic Apps
+ANTHROPIC_API_KEY = check_and_get_env_variable("SERVER_ANTHROPIC_API_KEY")
+ANTHROPIC_MODEL_FOR_FRONTEND_QA_AGENT = "claude-3-5-sonnet-latest"
+
+# Vector DB
+VECTOR_DB_FULL_URL = check_and_get_env_variable("SERVER_VECTOR_DB_FULL_URL")
 
 # INTERAL API KEY
 INTERNAL_API_KEY = check_and_get_env_variable("SERVER_INTERNAL_API_KEY")

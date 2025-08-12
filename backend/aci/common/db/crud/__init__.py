@@ -1,6 +1,7 @@
 from . import (
     app_configurations,
     apps,
+    frontend_qa_agent,
     functions,
     linked_accounts,
     plans,
@@ -13,6 +14,7 @@ from . import (
 __all__ = [
     "app_configurations",
     "apps",
+    "frontend_qa_agent",
     "functions",
     "linked_accounts",
     "plans",

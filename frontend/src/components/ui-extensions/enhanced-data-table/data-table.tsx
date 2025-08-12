@@ -14,12 +14,22 @@ import {
   getPaginationRowModel,
   PaginationState,
 } from "@tanstack/react-table";
+import type { LucideIcon } from "lucide-react";
 
 declare module "@tanstack/react-table" {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   interface ColumnMeta<TData, TValue> {
     defaultSort?: boolean;
     defaultSortDesc?: boolean;
+    filterProps?: {
+      icon?: LucideIcon;
+      optionIcon?: LucideIcon;
+      placeholder?: string;
+      placeholderIcon?: React.ComponentType<{ className?: string }>;
+      allText?: string;
+      className?: string;
+      width?: string;
+    };
   }
 }
 
@@ -193,9 +203,18 @@ export function EnhancedDataTable<TData, TValue>({
             const options = Array.from(uniqueValues);
             /** If there are no options, don't render the column filter component */
             if (options.length === 0) return null;
+
+            /** Get custom filter props from column meta */
+            const filterProps = column.columnDef.meta?.filterProps || {};
+
             /** Render the column filter component */
             return (
-              <ColumnFilter key={column.id} column={column} options={options} />
+              <ColumnFilter
+                key={column.id}
+                column={column}
+                options={options}
+                {...filterProps}
+              />
             );
           }
           return null;
@@ -216,7 +235,7 @@ export function EnhancedDataTable<TData, TValue>({
       )}
       <div className="border rounded-lg overflow-hidden">
         <Table>
-          <TableHeader className="bg-gray-50 rounded-t-lg">
+          <TableHeader className="bg-muted rounded-t-lg">
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
@@ -240,7 +259,10 @@ export function EnhancedDataTable<TData, TValue>({
                   data-state={row.getIsSelected() && "selected"}
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id} className="px-4 py-2">
+                    <TableCell
+                      key={cell.id}
+                      className="px-4 py-2 whitespace-normal"
+                    >
                       {flexRender(
                         cell.column.columnDef.cell,
                         cell.getContext(),
@@ -262,7 +284,7 @@ export function EnhancedDataTable<TData, TValue>({
           </TableBody>
         </Table>
         {paginationOptions && (
-          <div className="border-t border-gray-200 bg-gray-50 ">
+          <div className="border-t border-border bg-muted ">
             <DataTablePagination
               table={table}
               totalCount={paginationOptions.totalCount}

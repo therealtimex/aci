@@ -27,14 +27,15 @@ import { RiSettings3Line, RiLinkUnlinkM } from "react-icons/ri";
 import { AiOutlineRobot } from "react-icons/ai";
 import { HiOutlineChatBubbleBottomCenterText } from "react-icons/hi2";
 import { RiFileList3Line } from "react-icons/ri";
+import { UpgradeButton } from "./subscription-button";
 
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { ProjectSelector } from "./project-selector";
-import { OrgSelector } from "./org-selector";
+import { ThemeToggle } from "../theme-toggle";
+import { useTheme } from "next-themes";
 
 const showLogDashboard =
   process.env.NEXT_PUBLIC_FEATURE_LOG_DASHBOARD === "true";
@@ -93,24 +94,21 @@ export function AppSidebar() {
   const { state } = useSidebar();
   const isCollapsed = state === "collapsed";
   const pathname = usePathname();
+  const { resolvedTheme } = useTheme();
 
   return (
     <Sidebar variant="inset" collapsible="icon" className="flex flex-col">
-      <div className="w-full text-center py-1 text-xs font-bold flex items-center justify-center border-b-2 border-gray-200">
-        <AiOutlineRobot className="inline-block mr-2" />
-        In Beta
-      </div>
-      <SidebarHeader>
+      <SidebarHeader className="px-2 pt-4 pb-0 gap-2 flex flex-col">
         <div
           className={cn(
-            "flex items-center px-4",
+            "flex items-center px-4 h-9",
             isCollapsed ? "justify-center" : "justify-between gap-2",
           )}
         >
           {!isCollapsed && (
-            <div className="h-8 w-auto relative flex items-center justify-center">
+            <div className="h-9 w-auto relative flex items-center justify-center">
               <Image
-                src="/aci-dev-full-logo.svg"
+                src={`/aci-dev-full-logo-${resolvedTheme ?? "light"}-bg.svg`}
                 alt="ACI Dev Logo"
                 width={150}
                 height={30}
@@ -120,24 +118,9 @@ export function AppSidebar() {
             </div>
           )}
           <SidebarTrigger />
+          {!isCollapsed && <ThemeToggle />}
         </div>
         <Separator />
-        <div
-          className={cn(
-            "transition-all duration-200 overflow-hidden",
-            isCollapsed
-              ? "max-h-0 opacity-0 scale-95"
-              : "max-h-[100px] opacity-100 scale-100",
-          )}
-        >
-          <div className="w-full p-4">
-            <OrgSelector />
-            <div className="mt-3">
-              <ProjectSelector />
-            </div>
-          </div>
-          <Separator />
-        </div>
       </SidebarHeader>
 
       <SidebarContent>
@@ -163,7 +146,7 @@ export function AppSidebar() {
                           >
                             <item.icon
                               className={cn(
-                                "h-5 w-5 flex-shrink-0",
+                                "h-5 w-5 shrink-0",
                                 isActive && "text-primary",
                               )}
                             />
@@ -185,6 +168,12 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
+      <div className="px-2 pb-2">
+        <div className="flex flex-col items-center gap-2">
+          <UpgradeButton size="sm" className="w-full" />
+        </div>
+      </div>
+
       <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem>
@@ -205,7 +194,7 @@ export function AppSidebar() {
                       return (
                         <IconComponent
                           className={cn(
-                            "h-5 w-5 flex-shrink-0",
+                            "h-5 w-5 shrink-0",
                             pathname === settingsItem.url && "text-primary",
                           )}
                         />

@@ -2,7 +2,7 @@
 
 ## Overview
 
-In the ACI framework, integrations are composed of two main components: **Apps** and **Functions**. Apps define external services (metadata, authentication), while Functions define their specific operations (endpoints, parameters, protocols). This guide provides a complete walkthrough for creating new integrations.
+On the ACI platform, integrations are composed of two definition components: **Apps** and **Functions**. Apps define external services (metadata, authentication), while Functions define their specific operations (endpoints, parameters, protocols). This is a guide for contributors who wish to help contribute new integrations to the platform.
 
 ## 1. App Configuration (`app.json`)
 
@@ -193,7 +193,7 @@ The `GMAIL__SEND_EMAIL` function uses the `connector` protocol, routing executio
 
 ### Parameter Schema with Visibility Rules
 
-The `parameters` object extends JSON Schema with a `visible` field to control which parameters are exposed to AI agents. This creates a clean separation: the AI focuses on user intent, while the framework handles technical details.
+The `parameters` object extends JSON Schema with a `visible` field to control which parameters are exposed to AI agents. This creates a clean separation: the AI focuses on user intent, while the platform handles technical details.
 
 **Key Concept**:
 -   `required`: A JSON Schema keyword for validation. If a parameter is in this list, it must be provided.
@@ -308,8 +308,8 @@ Before integrating new apps, ensure your development environment is ready:
 cd backend
 docker compose up --build
 
-# In a separate terminal, initialize the database
-docker compose exec runner ./scripts/seed_db.sh user
+# In a separate terminal, initialize the database with default apps and a test user
+docker compose exec runner ./scripts/seed_db.sh
 ```
 
 ### Step 1: Insert an App
@@ -363,11 +363,10 @@ To test your integration, you need an API key and a linked account.
     ```
     Copy the returned key for the next steps.
 
-2.  **Create App Configuration & Linked Account**: This is currently done via the Swagger UI.
-    -   Navigate to [http://localhost:8000/v1/notforhuman-docs](http://localhost:8000/v1/notforhuman-docs).
-    -   Authorize using your generated API key.
-    -   Use `POST /v1/app-configurations` to enable your app.
-    -   Use the appropriate `POST /v1/linked-accounts/*` endpoint to create a linked account (e.g., `/api-key`, `/default`).
+2.  **Create App Configuration & Linked Account via Swagger UI**:
+    -   Navigate to [http://localhost:8000/v1/notforhuman-docs](http://localhost:8000/v1/notforhuman-docs) and authorize using your new ACI API key.
+    -   **A) Create App Configuration**: Use `POST /v1/app-configurations` with the body `{"app_name": "YOUR_APP_NAME"}`. Copy the `id` from the response.
+    -   **B) Create Linked Account**: Use the appropriate `POST /v1/linked-accounts/*` endpoint (e.g., `/api-key`). Fill in the body with the `app_config_id` from step A, the `owner_id` as `"test_user"`, and your external app's `credentials`.
 
 ### Step 5: Fuzzy Test the Function
 
@@ -615,7 +614,7 @@ This example demonstrates an OAuth2-protected app that uses the `connector` prot
 
 ## Closing Notes and Further Reading
 
-This guide provides a universal tutorial for integrating apps and functions into ACI, focusing on schema design, step-by-step insertion, and testing. It aligns with key design decisions such as deriving schemas from OpenAPI specs (with modifications like inline objects and visibility fields), centralized authentication, and flexible protocols. For properties not visible to LLMs, ensure defaults are set for required fields.
+This guide provides a basic tutorial for integrating apps and functions to ACI, focusing on schema design, step-by-step insertion, and testing. It aligns with key design decisions such as deriving schemas from OpenAPI specs (with modifications like inline objects and visibility fields), centralized authentication, and flexible protocols. For properties not visible to LLMs, ensure defaults are set for required fields.
 
 **Key References:**
 - [OpenAI Function Calling](https://platform.openai.com/docs/guides/function-calling)

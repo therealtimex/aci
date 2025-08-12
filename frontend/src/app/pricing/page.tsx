@@ -11,11 +11,14 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { IoMdCheckmark } from "react-icons/io";
-import { Interval } from "@/lib/types/billing";
+import { Interval, Plan } from "@/lib/types/billing";
 import { useSubscription } from "@/hooks/use-subscription";
-import { createCheckoutSession } from "@/lib/api/billing";
+import {
+  createCheckoutSession,
+  createCustomerPortalSession,
+} from "@/lib/api/billing";
 import { useMetaInfo } from "@/components/context/metainfo";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { FaqSection } from "@/components/pricing/faq";
@@ -30,10 +33,7 @@ const tiers = [
     features: [
       "1 Project",
       "10 Unique End Users",
-      "1K API calls/month",
-      "5 Agent Credentials",
       "1 Developer Seat",
-      "Custom OAuth2 Client",
       "3 Days Log Retention",
     ],
     buttonText: "Start for Free",
@@ -49,10 +49,7 @@ const tiers = [
     features: [
       "5 Projects",
       "250 Unique End Users",
-      "100K API calls/month",
-      "2500 Agent Credentials",
       "5 Developer Seats",
-      "Custom OAuth2 Client",
       "1 Week Log Retention",
     ],
     buttonText: "Get Started",
@@ -68,10 +65,7 @@ const tiers = [
     features: [
       "10 Projects",
       "1000 Unique End Users",
-      "300K API calls/month",
-      "10000 Agent Credentials",
       "10 Developer Seats",
-      "Custom OAuth2 Client",
       "1 Month Log Retention",
     ],
     mostPopular: true,
@@ -86,10 +80,7 @@ const tiers = [
     features: [
       "Custom Projects",
       "Custom Unique End User Accounts",
-      "Custom API Calls",
-      "Unlimited Agent Credentials",
       "Custom Developer Seats",
-      "Custom OAuth2 Client",
       "Custom Log Retention",
     ],
     buttonText: "Contact Us",
@@ -103,20 +94,13 @@ export default function PricingPage() {
   const [isYearly, setIsYearly] = useState(false);
   const router = useRouter();
 
-  useEffect(() => {
-    if (subscription && subscription.plan !== "free") {
-      router.replace("/account");
-    }
-  }, [subscription, router]);
-
-  // TODO: Enterprise button should have a mail popup
   return (
     <div className="relative bg-background text-foreground py-10 sm:py-14 min-h-screen">
       <Button
         variant="ghost"
         size="icon"
         className="absolute top-6 right-6 text-muted-foreground hover:text-foreground"
-        onClick={() => router.push("/settings")}
+        onClick={() => router.back()}
         aria-label="Close pricing page"
       >
         <X className="h-6 w-6" />
@@ -133,12 +117,12 @@ export default function PricingPage() {
           sales.
         </p>
         <div className="flex justify-center mt-8">
-          <div className="inline-flex rounded-md shadow-sm bg-muted p-1">
+          <div className="inline-flex rounded-md shadow-xs bg-muted p-1">
             <button
               onClick={() => setIsYearly(false)}
-              className={`px-6 py-2 rounded-l-md text-sm font-medium focus:z-10 focus:outline-none transition-colors duration-150 ${
+              className={`px-6 py-2 rounded-l-md text-sm font-medium focus:z-10 focus:outline-hidden transition-colors duration-150 ${
                 !isYearly
-                  ? "bg-background text-foreground shadow-sm"
+                  ? "bg-background text-foreground shadow-xs"
                   : "text-muted-foreground hover:bg-background/50"
               }`}
             >
@@ -146,9 +130,9 @@ export default function PricingPage() {
             </button>
             <button
               onClick={() => setIsYearly(true)}
-              className={`px-6 py-2 rounded-r-md text-sm font-medium focus:z-10 focus:outline-none transition-colors duration-150 ${
+              className={`px-6 py-2 rounded-r-md text-sm font-medium focus:z-10 focus:outline-hidden transition-colors duration-150 ${
                 isYearly
-                  ? "bg-background text-foreground shadow-sm"
+                  ? "bg-background text-foreground shadow-xs"
                   : "text-muted-foreground hover:bg-background/50"
               }`}
             >
@@ -225,18 +209,26 @@ export default function PricingPage() {
                       return;
                     }
 
-                    const url = await createCheckoutSession(
-                      accessToken,
-                      activeOrg.orgId,
-                      tier.name,
-                      isYearly ? Interval.Year : Interval.Month,
-                    );
-                    window.location.href = url;
+                    if (subscription?.plan === Plan.Free) {
+                      const url = await createCheckoutSession(
+                        accessToken,
+                        activeOrg.orgId,
+                        tier.name,
+                        isYearly ? Interval.Year : Interval.Month,
+                      );
+                      window.location.href = url;
+                    } else {
+                      const url = await createCustomerPortalSession(
+                        accessToken,
+                        activeOrg.orgId,
+                      );
+                      window.location.href = url;
+                    }
                   }}
                 >
                   {subscription?.plan === tier.name ? (
                     <div className="flex items-center gap-1">
-                      <IoMdCheckmark className="text-white" />
+                      <IoMdCheckmark className="text-primary-foreground" />
                       Current Plan
                     </div>
                   ) : (

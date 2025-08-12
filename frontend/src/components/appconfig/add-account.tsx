@@ -313,7 +313,7 @@ export function AddAccountForm({ appInfos }: AddAccountProps) {
                     value={field.value}
                   >
                     <FormControl>
-                      <SelectTrigger>
+                      <SelectTrigger className="w-full">
                         <SelectValue placeholder="Select app" />
                       </SelectTrigger>
                     </FormControl>
@@ -322,7 +322,7 @@ export function AddAccountForm({ appInfos }: AddAccountProps) {
                         <SelectItem key={appInfo.name} value={appInfo.name}>
                           <div className="flex items-center gap-2">
                             {appInfo.logo && (
-                              <div className="relative h-5 w-5 flex-shrink-0 overflow-hidden">
+                              <div className="relative h-5 w-5 shrink-0 overflow-hidden">
                                 <Image
                                   src={appInfo.logo}
                                   alt={appInfo.name}
@@ -379,7 +379,11 @@ export function AddAccountForm({ appInfos }: AddAccountProps) {
                     </Tooltip>
                   </div>
                   <FormControl>
-                    <Input placeholder="linked account owner id" {...field} />
+                    <Input
+                      placeholder="linked account owner id"
+                      className="w-full"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -401,7 +405,7 @@ export function AddAccountForm({ appInfos }: AddAccountProps) {
                     value={field.value}
                   >
                     <FormControl>
-                      <SelectTrigger>
+                      <SelectTrigger className="w-full">
                         <SelectValue placeholder="Select auth type" />
                       </SelectTrigger>
                     </FormControl>
@@ -429,7 +433,11 @@ export function AddAccountForm({ appInfos }: AddAccountProps) {
                   <FormItem>
                     <FormLabel>API Key</FormLabel>
                     <FormControl>
-                      <Input placeholder="api key" {...field} />
+                      <Input
+                        placeholder="api key"
+                        className="w-full"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
