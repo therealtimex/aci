@@ -1,0 +1,22 @@
+{
+  "name": "ERPNEXT",
+  "display_name": "ERPNext",
+  "logo": "https://raw.githubusercontent.com/therealtimex/rtlibrary/refs/heads/main/img/mcp-servers/erpnext.png",
+  "provider": "ERPNext",
+  "version": "1.0.0",
+  "description": "ERPNext is a free and open-source integrated Enterprise Resource Planning (ERP) software. This integration allows interacting with ERPNext resources.",
+  "security_schemes": {
+    "api_key": {
+      "location": "header",
+      "name": "Authorization",
+      "prefix": "token",
+      "requires_api_host_url": true
+    }
+  },
+  "default_security_credentials_by_scheme": {},
+  "categories": [
+    "ERP"
+  ],
+  "visibility": "public",
+  "active": true
+}

@@ -1,0 +1,351 @@
+[
+    {
+        "name": "ERPNEXT__LIST_DOCUMENTS",
+        "description": "Lists documents of a specified DocType",
+        "tags": ["documents", "list"],
+        "visibility": "public",
+        "active": true,
+        "protocol": "rest",
+        "protocol_data": {
+            "method": "GET",
+            "path": "/api/resource/{doctype}",
+            "server_url": "https://erp.realtimex.co"
+        },
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "path": {
+                    "type": "object",
+                    "description": "Path parameters",
+                    "properties": {
+                        "doctype": {
+                            "type": "string",
+                            "description": "The DocType to list documents from (e.g., 'Customer', 'Sales Order')."
+                        }
+                    },
+                    "required": ["doctype"],
+                    "visible": ["doctype"],
+                    "additionalProperties": false
+                },
+                "query": {
+                    "type": "object",
+                    "description": "Query parameters",
+                    "properties": {
+                        "fields": {
+                            "type": "string",
+                            "description": "JSON string of a list of fields to return. Example: '[\"name\", \"customer_name\"]'."
+                        },
+                        "filters": {
+                            "type": "string",
+                            "description": "JSON string of a list of filters to apply to the query. Each filter is a list of three elements: [field, operator, value]. Available operators: =, !=, <, >, <=, >=, like, not like, in, not in, is, is not, between. E.g., '[[\"customer_name\",\"=\",\"John Doe\"]]'."
+                        },
+                        "or_filters": {
+                            "type": "string",
+                            "description": "Similar to 'filters', but joins the specified filters using the OR SQL operator. E.g., '[[\"status\",\"=\",\"Open\"],[\"priority\",\"=\",\"High\"]]'."
+                        },
+                        "order_by": {
+                            "type": "string",
+                            "description": "The field to sort the results by, and the sort order. The format is 'fieldname asc' or 'fieldname desc'. E.g., 'creation asc'."
+                        },
+                        "limit_start": {
+                            "type": "integer",
+                            "description": "The number of documents to skip.",
+                            "default": 0
+                        },
+                        "limit_page_length": {
+                            "type": "integer",
+                            "description": "The number of documents to return.",
+                            "default": 20
+                        }
+                    },
+                    "required": [],
+                    "visible": ["fields", "filters", "or_filters", "order_by", "limit_start", "limit_page_length"],
+                    "additionalProperties": false
+                }
+            },
+            "required": ["path"],
+            "visible": ["path", "query"],
+            "additionalProperties": false
+        }
+    },
+    {
+        "name": "ERPNEXT__GET_DOCUMENT",
+        "description": "Gets a document of a specified DocType by its name (ID)",
+        "tags": ["documents", "get"],
+        "visibility": "public",
+        "active": true,
+        "protocol": "rest",
+        "protocol_data": {
+            "method": "GET",
+            "path": "/api/resource/{doctype}/{name}",
+            "server_url": "https://erp.realtimex.co"
+        },
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "path": {
+                    "type": "object",
+                    "description": "Path parameters",
+                    "properties": {
+                        "doctype": {
+                            "type": "string",
+                            "description": "The DocType of the document to retrieve (e.g., 'Customer', 'Sales Order')."
+                        },
+                        "name": {
+                            "type": "string",
+                            "description": "The name (ID) of the document to retrieve."
+                        }
+                    },
+                    "required": ["doctype", "name"],
+                    "visible": ["doctype", "name"],
+                    "additionalProperties": false
+                }
+            },
+            "required": ["path"],
+            "visible": ["path"],
+            "additionalProperties": false
+        }
+    },
+    {
+        "name": "ERPNEXT__CREATE_DOCUMENT",
+        "description": "Creates a new document of a specified DocType",
+        "tags": ["documents", "create"],
+        "visibility": "public",
+        "active": true,
+        "protocol": "rest",
+        "protocol_data": {
+            "method": "POST",
+            "path": "/api/resource/{doctype}",
+            "server_url": "https://erp.realtimex.co"
+        },
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "path": {
+                    "type": "object",
+                    "description": "Path parameters",
+                    "properties": {
+                        "doctype": {
+                            "type": "string",
+                            "description": "The DocType to create a new document for (e.g., 'Customer', 'Sales Order')."
+                        }
+                    },
+                    "required": ["doctype"],
+                    "visible": ["doctype"],
+                    "additionalProperties": false
+                },
+                "body": {
+                    "type": "object",
+                    "description": "The document data to create.",
+                    "properties": {},
+                    "required": [],
+                    "visible": [],
+                    "additionalProperties": true
+                }
+            },
+            "required": ["path", "body"],
+            "visible": ["path", "body"],
+            "additionalProperties": false
+        }
+    },
+    {
+        "name": "ERPNEXT__UPDATE_DOCUMENT",
+        "description": "Updates a document of a specified DocType",
+        "tags": ["documents", "update"],
+        "visibility": "public",
+        "active": true,
+        "protocol": "rest",
+        "protocol_data": {
+            "method": "PUT",
+            "path": "/api/resource/{doctype}/{name}",
+            "server_url": "https://erp.realtimex.co"
+        },
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "path": {
+                    "type": "object",
+                    "description": "Path parameters",
+                    "properties": {
+                        "doctype": {
+                            "type": "string",
+                            "description": "The DocType of the document to update (e.g., 'Customer', 'Sales Order')."
+                        },
+                        "name": {
+                            "type": "string",
+                            "description": "The name (ID) of the document to update."
+                        }
+                    },
+                    "required": ["doctype", "name"],
+                    "visible": ["doctype", "name"],
+                    "additionalProperties": false
+                },
+                "body": {
+                    "type": "object",
+                    "description": "The document data to update.",
+                    "properties": {},
+                    "required": [],
+                    "visible": [],
+                    "additionalProperties": true
+                }
+            },
+            "required": ["path", "body"],
+            "visible": ["path", "body"],
+            "additionalProperties": false
+        }
+    },
+    {
+        "name": "ERPNEXT__DELETE_DOCUMENT",
+        "description": "Deletes a document of a specified DocType by its name (ID)",
+        "tags": ["documents", "delete"],
+        "visibility": "public",
+        "active": true,
+        "protocol": "rest",
+        "protocol_data": {
+            "method": "DELETE",
+            "path": "/api/resource/{doctype}/{name}",
+            "server_url": "https://erp.realtimex.co"
+        },
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "path": {
+                    "type": "object",
+                    "description": "Path parameters",
+                    "properties": {
+                        "doctype": {
+                            "type": "string",
+                            "description": "The DocType of the document to delete (e.g., 'Customer', 'Sales Order')."
+                        },
+                        "name": {
+                            "type": "string",
+                            "description": "The name (ID) of the document to delete."
+                        }
+                    },
+                    "required": ["doctype", "name"],
+                    "visible": ["doctype", "name"],
+                    "additionalProperties": false
+                }
+            },
+            "required": ["path"],
+            "visible": ["path"],
+            "additionalProperties": false
+        }
+    },
+    {
+        "name": "ERPNEXT__GET_DOCTYPE_LIST",
+        "description": "Gets a list of all available DocTypes",
+        "tags": ["doctype", "list"],
+        "visibility": "public",
+        "active": true,
+        "protocol": "connector",
+        "protocol_data": {},
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "limit_start": {
+                    "type": "integer",
+                    "description": "The number of DocTypes to skip.",
+                    "default": 0
+                },
+                "limit_page_length": {
+                    "type": "integer",
+                    "description": "The number of DocTypes to return.",
+                    "default": 20
+                }
+            },
+            "required": [],
+            "visible": ["limit_start", "limit_page_length"],
+            "additionalProperties": false
+        }
+    },
+    {
+        "name": "ERPNEXT__GET_DOCTYPE_SCHEMA",
+        "description": "Get the complete schema for a DocType including field definitions, validations, and linked DocTypes. Use this to understand the structure of a DocType before creating or updating documents.",
+        "tags": ["doctype", "schema", "get"],
+        "visibility": "public",
+        "active": true,
+        "protocol": "connector",
+        "protocol_data": {},
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "doctype": {
+                    "type": "string",
+                    "description": "The name of the DocType to get the schema for (e.g., 'Customer', 'Sales Order')."
+                },
+                "essentials_only": {
+                    "type": "boolean",
+                    "description": "If True, returns only essential information (name, description, module, required fields, and fields). Defaults to False for the complete schema.",
+                    "default": false
+                }
+            },
+            "required": ["doctype"],
+            "visible": ["doctype", "essentials_only"],
+            "additionalProperties": false
+        }
+    },
+    {
+        "name": "ERPNEXT__GET_INSTANCE_CONFIG",
+        "description": "Retrieves ERPNext instance configuration and settings that provide context for AI agents, including company information, system settings, and regional preferences.",
+        "tags": ["config", "instance", "system", "settings"],
+        "visibility": "public",
+        "active": true,
+        "protocol": "connector",
+        "protocol_data": {},
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "include_company_details": {
+                    "type": "boolean",
+                    "description": "Include detailed information about the default company.",
+                    "default": true
+                },
+                "include_system_settings": {
+                    "type": "boolean",
+                    "description": "Include system-wide settings and preferences.",
+                    "default": true
+                },
+                "include_user_defaults": {
+                    "type": "boolean",
+                    "description": "Include current user's default settings.",
+                    "default": true
+                }
+            },
+            "required": [],
+            "visible": ["include_company_details", "include_system_settings", "include_user_defaults"],
+            "additionalProperties": false
+        }
+    },
+    {
+        "name": "ERPNEXT__GET_NAMING_SERIES",
+        "description": "Retrieves naming series information for a specific DocType or all DocTypes. Naming series define how documents are automatically numbered in ERPNext (e.g., 'SINV-', 'PO-YYYY-').",
+        "tags": ["naming", "series", "doctype", "numbering"],
+        "visibility": "public",
+        "active": true,
+        "protocol": "connector",
+        "protocol_data": {},
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "doctype": {
+                    "type": "string",
+                    "description": "The DocType to get naming series for (e.g., 'Sales Invoice', 'Purchase Order'). If not provided, returns naming series for all DocTypes."
+                },
+                "include_options": {
+                    "type": "boolean",
+                    "description": "Include all available naming series options for the DocType, not just the default.",
+                    "default": true
+                },
+                "include_current_number": {
+                    "type": "boolean",
+                    "description": "Include the current number/counter for each naming series.",
+                    "default": false
+                }
+            },
+            "required": [],
+            "visible": ["doctype", "include_options", "include_current_number"],
+            "additionalProperties": false
+        }
+    }
+]
